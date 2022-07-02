@@ -19,7 +19,24 @@ TEST(TestLexer, SimpleTextLexer){
     EXPECT_EQ(tokenizer.getTokens()[2].getType(), lexer::TokenTypes::Identifier);
     EXPECT_EQ(tokenizer.getTokens()[2].getText(), "b");
 }
+TEST(TestLexer, twoLiterates){
+    std::string_view view("BEGIN 12 34 END;");
+    SourceCodeManager manager(view);
 
+    Tokenizer tokenizer = Tokenizer();
+    tokenizer.parse(manager);
+    EXPECT_EQ(tokenizer.getTokens().size(), 5);
+    EXPECT_EQ(tokenizer.getTokens()[0].getType(), lexer::TokenTypes::Keyword);
+    EXPECT_EQ(tokenizer.getTokens()[0].getText(), "BEGIN");
+    EXPECT_EQ(tokenizer.getTokens()[1].getType(), lexer::TokenTypes::Literal);
+    EXPECT_EQ(tokenizer.getTokens()[1].getText(), "12");
+    EXPECT_EQ(tokenizer.getTokens()[2].getType(), lexer::TokenTypes::Literal);
+    EXPECT_EQ(tokenizer.getTokens()[2].getText(), "34");
+    EXPECT_EQ(tokenizer.getTokens()[3].getType(), lexer::TokenTypes::Keyword);
+    EXPECT_EQ(tokenizer.getTokens()[3].getText(), "END");
+    EXPECT_EQ(tokenizer.getTokens()[4].getType(), lexer::TokenTypes::Separator);
+    EXPECT_EQ(tokenizer.getTokens()[4].getText(), ";");
+}
 TEST(TestLexer, LiteralIdentifier){
     std::string_view view("BEGIN VAR b 1234a END;");
     SourceCodeManager manager(view);

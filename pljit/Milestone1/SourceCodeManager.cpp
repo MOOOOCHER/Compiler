@@ -27,6 +27,7 @@ namespace sourceCodeManagement{
         std::pair<size_t,size_t> position = resolveLocation();
         //getContext
         std::cout << position.first<<":"<<position.second<<": An error has occurred!"<<std::endl;
+        std::cout << "\t";
         size_t line = 1;
         for(const char& c: manager.source){
             if(line == position.first && c!='\n'){
@@ -40,6 +41,7 @@ namespace sourceCodeManagement{
         }
         size_t pos = 1;
         std::cout<< std::endl;
+        std::cout << "\t";
         while(pos<position.second){
             std::cout<< " ";
             ++pos;
@@ -53,6 +55,7 @@ namespace sourceCodeManagement{
         std::pair<size_t,size_t> position = resolveLocation();
         //getContext
         size_t line = 0;
+        std::cout << "\t";
         for(const char& c: manager.source){
             if(line == position.first && c!='\n'){
                 std::cout<< c;
@@ -65,6 +68,7 @@ namespace sourceCodeManagement{
         }
         size_t pos = 0;
         std::cout<< std::endl;
+        std::cout << "\t";
         while(pos<position.second){
             std::cout<< " ";
             ++pos;
