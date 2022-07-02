@@ -43,9 +43,7 @@ std::string Token::getText(){
 }
 //Tokenizer-------------------------------------------------------------------------------------------------------------------------
 bool Tokenizer::isValidToken(std::string tokenText){
-    if(tokenText.empty()){
-        return true;    //in this case empty text is valid
-    } else if(tokenText ==";" || tokenText =="."|| tokenText =="," || tokenText =="+"|| tokenText =="-"|| tokenText =="*"|| tokenText =="/"
+     if(tokenText.empty() || tokenText ==";" || tokenText =="."|| tokenText =="," || tokenText =="+"|| tokenText =="-"|| tokenText =="*"|| tokenText =="/"
                || tokenText =="("|| tokenText ==")"|| tokenText ==":"|| tokenText =="=" ||tokenText == ":="){
         return true;
     }
@@ -58,11 +56,11 @@ bool Tokenizer::isValidToken(std::string tokenText){
  * this function returns the next token
  */
 bool Tokenizer::next(size_t& position, const std::string_view& sourceCode, SourceCodeManager& manager) {
-    std::string current ="";
+    std::string current;
     const char* ptr = nullptr;
     for(const char&c: sourceCode){
         if(c != ' ' && c!='\t' && c!='\n'){
-            if(current ==""){   //we save the location of the first non-whitespace char
+            if(current.empty()){   //we save the location of the first non-whitespace char
                 ptr = &c;
             }
             if(!isValidToken(current+c)){   //if not valid we need to save the token with the current text;
@@ -72,31 +70,31 @@ bool Tokenizer::next(size_t& position, const std::string_view& sourceCode, Sourc
             current+=c;
             switch (c) {
                 case '.':{
-                    tokens.push_back(Token(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Separator,"."));
+                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Separator,".");
                     return true;
                 }
                 case ';':{
-                    tokens.push_back(Token(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Separator,";"));
+                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Separator,";");
                     return true;
                 }
                 case ',':{
-                    tokens.push_back(Token(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Separator,","));
+                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Separator,",");
                     return true;
                 }
                 case '+':{
-                    tokens.push_back(Token(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Operator,"+"));
+                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Operator,"+");
                     return true;
                 }
                 case '-':{
-                    tokens.push_back(Token(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Operator,"-"));
+                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Operator,"-");
                     return true;
                 }
                 case '/':{
-                    tokens.push_back(Token(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Operator,"/"));
+                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Operator,"/");
                     return true;
                 }
                 case '*':{
-                    tokens.push_back(Token(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Operator,"*"));
+                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Operator,"*");
                     return true;
                 }
                 case ':':{
@@ -104,25 +102,25 @@ bool Tokenizer::next(size_t& position, const std::string_view& sourceCode, Sourc
                 }
                 case '=':{
                     if(current == ":="){
-                        tokens.push_back(Token(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Operator,":="));
+                        tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Operator,":=");
                     } else{
-                        tokens.push_back(Token(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Operator,"="));
+                        tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Operator,"=");
                     }
                         return true;
                 }
                 case '(':{
-                    tokens.push_back(Token(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Separator,"("));
+                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Separator,"(");
                     return true;
                 }
                 case ')':{
-                    tokens.push_back(Token(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Separator,")"));
+                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Separator,")");
                     return true;
                 }
                 default:{
                     if(isDigit(c)){
                     } else if( isLetter(c)||c !='_'){
                         if(hasOnlyDigits(current)){
-                            tokens.push_back(Token(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Literal,current));
+                            tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Literal,current);
                             return true;
                         }
                     } else {
@@ -133,15 +131,15 @@ bool Tokenizer::next(size_t& position, const std::string_view& sourceCode, Sourc
                     }
                 }
             }
-        } else if(current != ""){
+        } else if(!current.empty()){
             if(current =="PARAM"||current=="VAR"||current=="CONST"||current=="BEGIN"||current=="END"||current=="RETURN"){
                 //the position of the last character of the string is the given argument (line,linePos)
-                tokens.push_back(Token(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Keyword,current));
+                tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Keyword,current);
             } else if(hasOnlyDigits(current)){
                 //if there are only digit it has to be a literal
-                tokens.push_back(Token(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Literal,current));
+                tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Literal,current);
             } else{
-                tokens.push_back(Token(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Identifier,current));
+                tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Identifier,current);
             }
                 position++;
                 return true;
@@ -149,17 +147,17 @@ bool Tokenizer::next(size_t& position, const std::string_view& sourceCode, Sourc
             position++;
         }
     }
-    if(current != ""){
+    if(!current.empty()){
         if(current =="PARAM"||current=="VAR"||current=="CONST"||current=="BEGIN"||current=="END"||current=="RETURN"){
             //the position of the last character of the string is the given argument (line,linePos)
-            tokens.push_back(Token(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Keyword,current));
+            tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Keyword,current);
             return true;
         } else if(hasOnlyDigits(current)){
             //if there are only digit it has to be a literal
-            tokens.push_back(Token(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Literal,current));
+            tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Literal,current);
             return true;
         } else if(hasOnlyLetters(current)){
-            tokens.push_back(Token(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Identifier,current));
+            tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Identifier,current);
             return true;
         }
     }
@@ -176,7 +174,6 @@ void Tokenizer::parse(SourceCodeManager& sourceCode) {
             break;
         }
     }
-    return;
 }
 std::vector<Token> Tokenizer::getTokens(){
     return tokens;

@@ -40,7 +40,7 @@ class Tokenizer{
     /*
      * this function wether the token is invalid
      */
-    bool isValidToken(std::string tokenText);
+    static bool isValidToken(std::string tokenText);
     public:
     /*
      * this function parses the source code into a vector of tokens
