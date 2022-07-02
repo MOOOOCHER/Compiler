@@ -3,22 +3,27 @@
 #include <cstddef>
 #include <string_view>
 namespace sourceCodeManagement{
-class SourceCodeManager{
-    std::string_view source = "";
-public:
+class SourceCodeReference;
+
+struct SourceCodeManager{
+    const std::string_view source = "";
     explicit SourceCodeManager(std::string_view source);
 };
 class SourceCodeReference{
+    friend struct SourceCodeManager;
     protected:
-    size_t line;
-    size_t position;
-    char* location;
-    SourceCodeReference(size_t line, size_t position, char* location): line(line), position(position), location(location){};
+    const char* location;
+    SourceCodeManager& manager;
+    SourceCodeReference(const char* location,SourceCodeManager& manager): location(location), manager(manager){};
     virtual void printContext() = 0;
+    /*
+     * this function returns the corresponding line and position within the line for a given pointer to the source code
+     */
+    std::pair<size_t ,size_t> resolveLocation();
 };
 class SourceCodeReferenceLocation: public SourceCodeReference{
     public:
-    SourceCodeReferenceLocation(size_t line, size_t position, char* location);
+    SourceCodeReferenceLocation(const char* location, SourceCodeManager& manager);
     void printContext() override;
 
 };
@@ -26,8 +31,8 @@ class SourceCodeReferenceLocation: public SourceCodeReference{
 class SourceCodeReferenceRange: public SourceCodeReference{
     size_t length;
     public:
-    SourceCodeReferenceRange(size_t line, size_t position,size_t length, char* location);
+    SourceCodeReferenceRange(const char* location,size_t length, SourceCodeManager& manager);
     void printContext() override;
 };
-}
+} // namespace sourceCodeManagement
 #endif //FINAL_SOURCECODEMANAGER_H

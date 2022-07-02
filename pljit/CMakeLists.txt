@@ -1,6 +1,6 @@
 set(PLJIT_SOURCES
     # add your source files here
-        Milestone1/SourceCodeManager.cpp
+        Milestone1/SourceCodeManager.cpp Milestone2/Token.cpp
     )
 
 add_library(pljit_core ${PLJIT_SOURCES})
