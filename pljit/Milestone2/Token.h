@@ -2,6 +2,7 @@
 #define PLJIT_TOKEN_H
 #include "../Milestone1/SourceCodeManager.h"
 #include <string>
+#include <utility>
 #include <vector>
 namespace lexer {
 using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
@@ -23,7 +24,7 @@ class Token{
     TokenTypes type;
     std::string text = "";
     public:
-    Token(const SourceCodeReference& characters, TokenTypes type, std::string text): characters(characters), type(type), text(text){};
+    Token(const SourceCodeReference& characters, TokenTypes type, std::string text): characters(characters), type(type), text(std::move(text)){};
     TokenTypes getType();
     std::string getText();
 
