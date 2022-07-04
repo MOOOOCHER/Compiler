@@ -5,6 +5,16 @@
 using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
 using Token = lexer::Token;
 using Tokenizer = lexer::Tokenizer;
+using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
+
+TEST(TestLexer, PrintContext){
+    std::string_view view("PARAM a b;");
+    SourceCodeManager manager(view);
+    SourceCodeReference range = SourceCodeReference(view.data(),manager);
+    range.printContext("Testing Range",5);
+    SourceCodeReference location = SourceCodeReference(view.data(),manager);
+    location.printContext("Testing Location", 1);
+}
 TEST(TestLexer, SimpleTextLexer){
     std::string_view view("PARAM a b");
     SourceCodeManager manager(view);

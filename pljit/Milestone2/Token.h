@@ -19,15 +19,14 @@ using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
  */
 class Token{
     friend class Tokenizer;
-    protected:
-    const SourceCodeReference& characters;
-    TokenTypes type;
-    std::string text = "";
     public:
-    Token(const SourceCodeReference& characters, TokenTypes type, std::string text): characters(characters), type(type), text(std::move(text)){};
+    const SourceCodeReference sourceCodeReference;
+    Token(const SourceCodeReference characters, TokenTypes type, std::string text): sourceCodeReference(characters), type(type), text(std::move(text)){};
     TokenTypes getType();
     std::string getText();
-
+    protected:
+    TokenTypes type;
+    std::string text = "";
 };
 /*
  * class for Tokenizing the source code
@@ -47,7 +46,7 @@ class Tokenizer{
      * this function parses the source code into a vector of tokens
      */
      void parse(sourceCodeManagement::SourceCodeManager& sourceCode);
-     std::vector<Token> getTokens();
+     std::vector<Token>& getTokens();
 };
 }//namespace lexer
 #endif //PLJIT_TOKEN_H

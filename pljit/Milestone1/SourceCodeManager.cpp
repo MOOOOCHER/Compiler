@@ -5,7 +5,7 @@ namespace sourceCodeManagement{
     /*
      * this function returns the corresponding line and position within the line for a given pointer to the source code
      */
-    std::pair<size_t ,size_t> SourceCodeReference::resolveLocation(){
+    std::pair<size_t ,size_t> SourceCodeReference::resolveLocation() const{
         size_t line = 1;
         size_t linePos = 1;
         for(const char& c: manager.source){
@@ -21,12 +21,10 @@ namespace sourceCodeManagement{
         }
         return {};
     }
-
-    SourceCodeReferenceLocation::SourceCodeReferenceLocation(const char* location, SourceCodeManager& manager): SourceCodeReference(location,manager) {}
-    void SourceCodeReferenceLocation::printContext() {
+    void SourceCodeReference::printContext(std::string_view errorMsg, size_t lengthOfString) const {
         std::pair<size_t,size_t> position = resolveLocation();
         //getContext
-        std::cout << position.first<<":"<<position.second<<": An error has occurred!"<<std::endl;
+        std::cout << position.first<<":"<<position.second<<": " << errorMsg<<std::endl;
         std::cout << "\t";
         size_t line = 1;
         for(const char& c: manager.source){
@@ -47,36 +45,9 @@ namespace sourceCodeManagement{
             ++pos;
         }
 
-        std::cout << "^" << std::endl;
-    }
-
-    SourceCodeReferenceRange::SourceCodeReferenceRange(const char* location, size_t length, SourceCodeManager& manager): SourceCodeReference(location, manager),length(length) {}
-    void SourceCodeReferenceRange::printContext() {
-        std::pair<size_t,size_t> position = resolveLocation();
-        //getContext
-        size_t line = 0;
-        std::cout << "\t";
-        for(const char& c: manager.source){
-            if(line == position.first && c!='\n'){
-                std::cout<< c;
-            }
-            if(c=='\n'){
-                ++line;
-            } else if (line>=position.first){
-                break;
-            }
-        }
-        size_t pos = 0;
-        std::cout<< std::endl;
-        std::cout << "\t";
-        while(pos<position.second){
-            std::cout<< " ";
-            ++pos;
-        }
-
-        std::cout << "^" << std::endl;
-        size_t len = 1;
-        while(len<=length){
+        std::cout << "^" ;
+        size_t len = 2;
+        while(len<=lengthOfString){
             std::cout<<"~";
             len++;
         }

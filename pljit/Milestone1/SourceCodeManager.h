@@ -11,28 +11,18 @@ struct SourceCodeManager{
 };
 class SourceCodeReference{
     friend struct SourceCodeManager;
-    protected:
     const char* location;
     SourceCodeManager& manager;
-    SourceCodeReference(const char* location,SourceCodeManager& manager): location(location), manager(manager){};
-    virtual void printContext() = 0;
     /*
      * this function returns the corresponding line and position within the line for a given pointer to the source code
      */
-    std::pair<size_t ,size_t> resolveLocation();
-};
-class SourceCodeReferenceLocation: public SourceCodeReference{
+    std::pair<size_t ,size_t> resolveLocation() const;
     public:
-    SourceCodeReferenceLocation(const char* location, SourceCodeManager& manager);
-    void printContext() override;
-
-};
-
-class SourceCodeReferenceRange: public SourceCodeReference{
-    size_t length;
-    public:
-    SourceCodeReferenceRange(const char* location,size_t length, SourceCodeManager& manager);
-    void printContext() override;
+    /*
+     * This function takes an error message and the length of the marked string (if >1 then we have a range)
+     */
+    void printContext(std::string_view errorMsg, size_t lengthOfString) const;
+    SourceCodeReference(const char* location,SourceCodeManager& manager): location(location), manager(manager){}
 };
 } // namespace sourceCodeManagement
 #endif //FINAL_SOURCECODEMANAGER_H

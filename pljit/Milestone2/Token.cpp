@@ -1,7 +1,6 @@
 #include "Token.h"
 namespace lexer{
-using SourceCodeReferenceLocation = sourceCodeManagement::SourceCodeReferenceLocation;
-using SourceCodeReferenceRange = sourceCodeManagement::SourceCodeReferenceRange;
+using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
 using SourceCodeManager=sourceCodeManagement::SourceCodeManager;
 /*
  * this function checks whether the string only has digits
@@ -70,31 +69,31 @@ bool Tokenizer::next(size_t& position, const std::string_view& sourceCode, Sourc
             current+=c;
             switch (c) {
                 case '.':{
-                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Separator,".");
+                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Separator,".");
                     return true;
                 }
                 case ';':{
-                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Separator,";");
+                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Separator,";");
                     return true;
                 }
                 case ',':{
-                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Separator,",");
+                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Separator,",");
                     return true;
                 }
                 case '+':{
-                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Operator,"+");
+                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Operator,"+");
                     return true;
                 }
                 case '-':{
-                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Operator,"-");
+                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Operator,"-");
                     return true;
                 }
                 case '/':{
-                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Operator,"/");
+                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Operator,"/");
                     return true;
                 }
                 case '*':{
-                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Operator,"*");
+                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Operator,"*");
                     return true;
                 }
                 case ':':{
@@ -102,31 +101,35 @@ bool Tokenizer::next(size_t& position, const std::string_view& sourceCode, Sourc
                 }
                 case '=':{
                     if(current == ":="){
-                        tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Operator,":=");
+                        tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Operator,":=");
                     } else{
-                        tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Operator,"=");
+                        tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Operator,"=");
                     }
                         return true;
                 }
                 case '(':{
-                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Separator,"(");
+                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Separator,"(");
                     return true;
                 }
                 case ')':{
-                    tokens.emplace_back(SourceCodeReferenceLocation(ptr,manager), TokenTypes::Separator,")");
+                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Separator,")");
                     return true;
                 }
                 default:{
                     if(isDigit(c)){
+                        if(hasOnlyLetters(current)){
+                            tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Identifier,current);
+                            return true;
+                        }
                     } else if( isLetter(c)||c !='_'){
                         if(hasOnlyDigits(current)){
-                            tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Literal,current);
+                            tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Literal,current);
                             return true;
                         }
                     } else {
                         //invalid char
-                        auto s = SourceCodeReferenceLocation(ptr,manager);
-                        s.printContext();
+                        auto s = SourceCodeReference(ptr,manager);
+                        s.printContext("An invalid character has been used!", 1);
                         return false;
                     }
                 }
@@ -134,12 +137,12 @@ bool Tokenizer::next(size_t& position, const std::string_view& sourceCode, Sourc
         } else if(!current.empty()){
             if(current =="PARAM"||current=="VAR"||current=="CONST"||current=="BEGIN"||current=="END"||current=="RETURN"){
                 //the position of the last character of the string is the given argument (line,linePos)
-                tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Keyword,current);
+                tokens.emplace_back(SourceCodeReference(ptr, manager), TokenTypes::Keyword,current);
             } else if(hasOnlyDigits(current)){
                 //if there are only digit it has to be a literal
-                tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Literal,current);
+                tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Literal,current);
             } else{
-                tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Identifier,current);
+                tokens.emplace_back(SourceCodeReference(ptr, manager), TokenTypes::Identifier,current);
             }
                 position++;
                 return true;
@@ -150,19 +153,19 @@ bool Tokenizer::next(size_t& position, const std::string_view& sourceCode, Sourc
     if(!current.empty()){
         if(current =="PARAM"||current=="VAR"||current=="CONST"||current=="BEGIN"||current=="END"||current=="RETURN"){
             //the position of the last character of the string is the given argument (line,linePos)
-            tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Keyword,current);
+            tokens.emplace_back(SourceCodeReference(ptr, manager), TokenTypes::Keyword,current);
             return true;
         } else if(hasOnlyDigits(current)){
             //if there are only digit it has to be a literal
-            tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Literal,current);
+            tokens.emplace_back(SourceCodeReference(ptr, manager), TokenTypes::Literal,current);
             return true;
         } else if(hasOnlyLetters(current)){
-            tokens.emplace_back(SourceCodeReferenceRange(ptr, current.length(),manager), TokenTypes::Identifier,current);
+            tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Identifier,current);
             return true;
         }
     }
-    auto s = SourceCodeReferenceLocation(ptr,manager);
-    s.printContext();
+    auto s = SourceCodeReference(ptr,manager);
+    s.printContext("An invalid character has been used!", 1);
     return false;
 }
 void Tokenizer::parse(SourceCodeManager& sourceCode) {
@@ -175,7 +178,7 @@ void Tokenizer::parse(SourceCodeManager& sourceCode) {
         }
     }
 }
-std::vector<Token> Tokenizer::getTokens(){
+std::vector<Token>& Tokenizer::getTokens(){
     return tokens;
 }
 } // namespace lexer
