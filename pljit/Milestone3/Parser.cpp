@@ -8,8 +8,15 @@ std::unique_ptr<NonTerminalNode> Parser::parse(std::vector<Token>& tokens) {
         return expectFunctionDefinition(tokens);
     }
 }
+//TODO: Für Fall dass currentPos größer ist als tokens.size() => wie soll die Fehlermeldung gehandhabt werden?
 //--------------------------------------------------------------------------------------------------
 std::unique_ptr<IdentifierNode> Parser::expectIdentifierNode(size_t& currentPos, std::vector<Token>& tokens){
+    if(tokens.empty()){
+        return nullptr;
+    } else if(currentPos>=tokens.size()){
+        tokens[tokens.size()-1].sourceCodeReference.printContext("error: an identifier is expected!",tokens[tokens.size()-1].getText().size());
+        return nullptr;
+    }
  if(tokens[currentPos].getType() == lexer::TokenTypes::Identifier){
      return std::make_unique<IdentifierNode>(tokens[currentPos].getText(),sourceCodeManager);
  } else {
@@ -19,7 +26,13 @@ std::unique_ptr<IdentifierNode> Parser::expectIdentifierNode(size_t& currentPos,
 }
 
 std::unique_ptr<LiteralNode> Parser::expectLiteralNode(size_t& currentPos, std::vector<Token>& tokens){
-    if(tokens[currentPos].getType() == lexer::TokenTypes::Literal){
+    if(tokens.empty()){
+        return nullptr;
+    } else if(currentPos>=tokens.size()){
+        tokens[tokens.size()-1].sourceCodeReference.printContext("error: a literal is expected!",tokens[tokens.size()-1].getText().size());
+        return nullptr;
+    }
+    if(currentPos<tokens.size()&&tokens[currentPos].getType() == lexer::TokenTypes::Literal){
         //get number from string
         unsigned long value;
         std::from_chars(tokens[currentPos].getText().data(),tokens[currentPos].getText().data()+tokens[currentPos].getText().size(),value);
@@ -31,10 +44,16 @@ std::unique_ptr<LiteralNode> Parser::expectLiteralNode(size_t& currentPos, std::
 }
 
 std::unique_ptr<GenericNode> Parser::expectGenericNode(const std::string& c, size_t& currentPos, std::vector<Token>& tokens){
-    lexer::TokenTypes type = tokens[currentPos].getType();
-    if(type == lexer::TokenTypes::Operator || type == lexer::TokenTypes::Separator || type == lexer::TokenTypes::Keyword){
-        if(tokens[currentPos].getText() == c){
-            return std::make_unique<GenericNode>(tokens[currentPos].getText(),sourceCodeManager);
+    if(tokens.empty()){
+        return nullptr;
+    } else if(currentPos>=tokens.size()){
+        tokens[tokens.size()-1].sourceCodeReference.printContext("error: expected '"+c+"'",tokens[tokens.size()-1].getText().size());
+        return nullptr;
+    }
+    if(currentPos<tokens.size()){
+        lexer::TokenTypes type = tokens[currentPos].getType();
+        if((type == lexer::TokenTypes::Operator || type == lexer::TokenTypes::Separator || type == lexer::TokenTypes::Keyword) && tokens[currentPos].getText() == c){
+                return std::make_unique<GenericNode>(tokens[currentPos].getText(),sourceCodeManager);
         }
     }
     tokens[currentPos].sourceCodeReference.printContext("error: expected '"+c+"'",tokens[currentPos].getText().size());
@@ -112,7 +131,8 @@ std::unique_ptr<NonTerminalNode> Parser::expectDeclaratorList(size_t& currentPos
         std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::DeclaratorList,sourceCodeManager);
         node->vec.push_back(std::move(identifier));
         //check for more identifier
-        for(auto comma = expectGenericNode(",",++currentPos,tokens); comma != nullptr;){
+        auto comma = expectGenericNode(",",++currentPos,tokens);
+        while(comma != nullptr){
             node->vec.push_back(std::move(comma));
             identifier = expectIdentifierNode(++currentPos,tokens);
             if(identifier){
@@ -120,6 +140,7 @@ std::unique_ptr<NonTerminalNode> Parser::expectDeclaratorList(size_t& currentPos
             }else {
                 return nullptr;
             }
+            comma = expectGenericNode(",",++currentPos,tokens);
         }
         return node;
     } else {

@@ -173,6 +173,7 @@ void Tokenizer::parse(SourceCodeManager& sourceCode) {
     for(size_t position = 0;position<string.size();){
         std::string_view substring = string.substr(position,string.size()-position);
         if(!next(position, substring, sourceCode)){
+            //if an invalid char has been found, we abort compilation
             tokens.clear();
             break;
         }

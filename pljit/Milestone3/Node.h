@@ -31,6 +31,7 @@ using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
         Types getType(){
             return type;
         };
+        virtual ~Node() = default;
         protected:
         Types type;
         sourceCodeManagement::SourceCodeManager sourceCodeManager;
@@ -64,6 +65,10 @@ using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
     //Non-Terminal Node-----------------------------------------------------------------------------------------------------------------------
     class NonTerminalNode: public Node{
         friend class Parser;
+        std::vector<std::unique_ptr<Node>> vec;
+
+        public:
+        NonTerminalNode(typename Node::Types type, SourceCodeManager manager): Node(type, manager) {}
         std::vector<Node*> getChildren(){
             std::vector<Node*> children;
             for(auto& child: vec){
@@ -71,11 +76,6 @@ using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
             }
             return children;
         }//only for testing
-        protected:
-        std::vector<std::unique_ptr<Node>> vec;
-
-        public:
-        NonTerminalNode(typename Node::Types type, SourceCodeManager manager): Node(type, manager) {}
     };
 } // namespace parser
 #endif //PLJIT_NODE_H

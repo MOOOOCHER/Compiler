@@ -9,7 +9,6 @@ using Node = parser::Node;
 class Parser{
     SourceCodeManager sourceCodeManager;
     public:
-    Parser();
     explicit Parser(SourceCodeManager& sourceCodeManager): sourceCodeManager(sourceCodeManager){};
 
     std::unique_ptr<NonTerminalNode> parse(std::vector<Token>& tokens);
@@ -48,5 +47,5 @@ class Parser{
     std::unique_ptr<NonTerminalNode> expectUnaryExpression(size_t& currentPos, std::vector<Token>& tokens);
     std::unique_ptr<NonTerminalNode> expectPrimaryExpression(size_t& currentPos, std::vector<Token>& tokens);
 };
-}
+} // namespace parser
 #endif //PLJIT_PARSER_H
