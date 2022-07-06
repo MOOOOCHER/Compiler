@@ -22,7 +22,7 @@ class Parser{
 
     std::unique_ptr<LiteralNode> expectLiteralNode(size_t& currentPos, std::vector<Token>& tokens);
 
-    std::unique_ptr<GenericNode> expectGenericNode(const std::string& c, size_t& currentPos, std::vector<Token>& tokens);
+    std::unique_ptr<GenericNode> expectGenericNode(const std::string& c, size_t& currentPos, std::vector<Token>& tokens, bool optional);
     //---------------------------------------------------------------------------------------------------------
     /*
      * The following functions parse non-terminal symbols.
@@ -49,8 +49,35 @@ class Parser{
     private:
     /*
      * this function refactors grammar productions of this form, identifier{"," identifier}
+     * PARAM
+     * currentPos: current position within the token stream (which token we currently evaluate)
+     * tokens: token stream
+     * func*: the function pointer for the expectFunction mentioned above (e.g. identifier for declarator-list)
+     * NodeType: the NodeType for the returned NonTerminalNode
+     * tokenType: the type for the token in the stream, which we need to check for invalid inputs (e.g. identifier identifier for declarator list)
+     * separatorType: type of the separator between the elements of the list, e.g. "," or ";"
       */
-    std::unique_ptr<NonTerminalNode> refactorList(size_t& currentPos, std::vector<Token>& tokens,auto (Parser::*func)(size_t&, std::vector<Token>&), Node::Types NodeType, lexer::TokenTypes tokenType,std::string separatorType);
+    std::unique_ptr<NonTerminalNode> refactorList(size_t& currentPos, std::vector<Token>& tokens,auto (Parser::*func)(size_t&, std::vector<Token>&), Node::Types nodeType, lexer::TokenTypes tokenType,const std::string& separatorType);
+    /*
+     * this function refactors grammar productions of this form, identifier assignmentOperator (literal | additive-expression)
+     * PARAM
+     * currentPos: current position within the token stream (which token we currently evaluate)
+     * tokens: token stream
+     * func*: the function pointer for the expectFunction mentioned above (e.g. identifier for declarator-list)
+     * NodeType: the NodeType for the returned NonTerminalNode
+     * separatorType: type of the assignment between the elements of the list, e.g. "=" or ":="
+      */
+    std::unique_ptr<NonTerminalNode> refactorAssignmentInit(size_t& currentPos, std::vector<Token>& tokens,auto (Parser::*func)(size_t&, std::vector<Token>&), Node::Types nodeType, const std::string& assignmentType);
+    /*
+     * this function refactors grammar for parameter/variable/constant declarations
+     * PARAM
+     * currentPos: current position within the token stream (which token we currently evaluate)
+     * tokens: token stream
+     * func*: the function pointer for the expectFunction mentioned above (e.g. identifier for declarator-list)
+     * NodeType: the NodeType for the returned NonTerminalNode
+     * keywordType: type of the keyword,e.g. "PARAM"
+      */
+    std::unique_ptr<NonTerminalNode> refactorDeclaration(size_t& currentPos, std::vector<Token>& tokens,auto (Parser::*func)(size_t&, std::vector<Token>&), Node::Types nodeType, const std::string& keywordType);
 };
 } // namespace parser
 #endif //PLJIT_PARSER_H

@@ -11,6 +11,15 @@ using Tokenizer = lexer::Tokenizer;
 using Parser = parser::Parser;
 using Node = parser::Node;
 
+static auto setup(const std::string_view& input, auto (Parser::*func)(size_t&, std::vector<Token>&)){
+    SourceCodeManager manager(input);
+    Tokenizer tokenizer = Tokenizer();
+    tokenizer.parse(manager);
+
+    Parser parser = Parser(manager);
+    size_t currentPosition = 0;
+    return (parser.*func)(currentPosition,tokenizer.getTokens());
+}
 static void checkInvalid(const std::string& input, auto (Parser::*func)(size_t&, std::vector<Token>&)){
     SourceCodeManager manager(input);
     Tokenizer tokenizer = Tokenizer();
@@ -29,20 +38,13 @@ static void checkGenericNode(const std::string& input){
 
     Parser parser = Parser(manager);
     size_t currentPosition = 0;
-    auto result = parser.expectGenericNode(input,currentPosition,tokenizer.getTokens());
+    auto result = parser.expectGenericNode(input,currentPosition,tokenizer.getTokens(),false);
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->getType(), Node::Types::Generic);
     EXPECT_EQ(result->getInformation(), input);
 }
-static void checkDeclaratorList(const std::string& input){
-    SourceCodeManager manager(input);
-    Tokenizer tokenizer = Tokenizer();
-    tokenizer.parse(manager);
-    Parser parser = Parser(manager);
-    size_t currentPosition = 0;
-    size_t expectedSize = tokenizer.getTokens().size();
-
-    auto result = parser.expectDeclaratorList(currentPosition,tokenizer.getTokens());
+static void checkDeclaratorList(const std::string& input,const size_t expectedSize){
+    auto result = setup(input, &Parser::expectDeclaratorList);
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->getChildren().size(), expectedSize);
     EXPECT_EQ(result->getType(), Node::Types::DeclaratorList);
@@ -59,13 +61,7 @@ static void checkDeclaratorList(const std::string& input){
     }
 }
 static void checkInitDeclaratorList(const std::string& input, size_t expectedSize){
-    SourceCodeManager manager(input);
-    Tokenizer tokenizer = Tokenizer();
-    tokenizer.parse(manager);
-    Parser parser = Parser(manager);
-    size_t currentPosition = 0;
-
-    auto result = parser.expectInitDeclaratorList(currentPosition,tokenizer.getTokens());
+    auto result = setup(input,&Parser::expectInitDeclaratorList);
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->getChildren().size(), expectedSize);
     EXPECT_EQ(result->getType(), Node::Types::InitDeclaratorList);
@@ -84,13 +80,7 @@ static void checkInitDeclaratorList(const std::string& input, size_t expectedSiz
 
 TEST(TestParser, ExpectIdentifierNodeValid){
     std::string_view view("hello");
-    SourceCodeManager manager(view);
-    Tokenizer tokenizer = Tokenizer();
-    tokenizer.parse(manager);
-
-    Parser parser = Parser(manager);
-    size_t currentPosition = 0;
-    auto result = parser.expectIdentifierNode(currentPosition,tokenizer.getTokens());
+    auto result = setup(view, &Parser::expectIdentifierNode);
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->getType(), Node::Types::Identifier);
     EXPECT_EQ(result->getInformation(), view);
@@ -98,16 +88,11 @@ TEST(TestParser, ExpectIdentifierNodeValid){
 TEST(TestParser, ExpectIdentifierNodeInvalid){
     std::cout << "Testing invalid identifier:" << std::endl;
     checkInvalid("1234",  &Parser::expectIdentifierNode);
+    std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectLiteralNodeValid){
     std::string_view view("1234");
-    SourceCodeManager manager(view);
-    Tokenizer tokenizer = Tokenizer();
-    tokenizer.parse(manager);
-
-    Parser parser = Parser(manager);
-    size_t currentPosition = 0;
-    auto result = parser.expectLiteralNode(currentPosition,tokenizer.getTokens());
+    auto result = setup(view, &Parser::expectLiteralNode);
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->getType(), Node::Types::Literal);
     EXPECT_EQ(result->getInformation(), 1234);
@@ -115,6 +100,7 @@ TEST(TestParser, ExpectLiteralNodeValid){
 TEST(TestParser, ExpectLiteralNodeInvalid){
     std::cout << "Testing invalid literal:" << std::endl;
     checkInvalid("hello",  &Parser::expectLiteralNode);
+    std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectGenericNodeValid){
     checkGenericNode(";");
@@ -142,19 +128,14 @@ TEST(TestParser, ExpectGenericNodeInvalid){
 
     Parser parser = Parser(manager);
     size_t currentPosition = 0;
-    auto result = parser.expectGenericNode(";",currentPosition,tokenizer.getTokens());
+    auto result = parser.expectGenericNode(";",currentPosition,tokenizer.getTokens(), false);
     EXPECT_EQ(result, nullptr);
+    std::cout << "=========================================================" << std::endl;
 }
 //Non Terminal symbols -------------------------------------------------------------------------------------------
 TEST(TestParser, ExpectInitDeclaratorValid){
     std::string_view view("identifier = 1");
-    SourceCodeManager manager(view);
-    Tokenizer tokenizer = Tokenizer();
-    tokenizer.parse(manager);
-    Parser parser = Parser(manager);
-    size_t currentPosition = 0;
-
-    auto result = parser.expectInitDeclarator(currentPosition,tokenizer.getTokens());
+    auto result = setup(view, &Parser::expectInitDeclarator);
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->getType(), Node::Types::InitDeclarator);
     EXPECT_EQ(result->getChildren().size(), 3);
@@ -173,12 +154,13 @@ TEST(TestParser, ExpectInitDeclaratorInvalid){
     checkInvalid("identifier =", &Parser::expectInitDeclarator);
     checkInvalid("identifier = init", &Parser::expectInitDeclarator);
     checkInvalid("12 = 1234", &Parser::expectInitDeclarator);
-    checkInvalid("", &Parser::expectInitDeclarator);
+    checkInvalid("identifier 123", &Parser::expectInitDeclarator);
+    std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectDeclaratorListValid){
-    checkDeclaratorList("identifier");
-    checkDeclaratorList("identifier, identifier");
-    checkDeclaratorList("identifier, identifier, identifier");
+    checkDeclaratorList("identifier",1);
+    checkDeclaratorList("identifier, identifier",3);
+    checkDeclaratorList("identifier, identifier, identifier",5);
 }
 TEST(TestParser, ExpectDeclaratorListInvalid){
     std::cout << "Testing invalid declarator list:" << std::endl;
@@ -186,6 +168,7 @@ TEST(TestParser, ExpectDeclaratorListInvalid){
     checkInvalid("identifier, identifier,",  &Parser::expectDeclaratorList);
     checkInvalid("identifier, 1234, identifier",  &Parser::expectDeclaratorList);
     checkInvalid("identifier identifier",  &Parser::expectDeclaratorList);
+    std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectInitDeclaratorListValid){
     checkInitDeclaratorList("identifier = 1",1);
@@ -199,6 +182,53 @@ TEST(TestParser, ExpectInitDeclaratorListInvalid){
     checkInvalid("identifier = 1, 1234, identifier = 1",  &Parser::expectInitDeclaratorList);
     checkInvalid("identifier = 1, 1234 = 1,",  &Parser::expectInitDeclaratorList);
     checkInvalid("identifier = 1 identifier = 1",  &Parser::expectInitDeclaratorList);
+    std::cout << "=========================================================" << std::endl;
+}
+TEST(TestParser, ExpectParamDeclarationValid){
+    auto result = setup("PARAM a;", &Parser::expectParameterDeclaration);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 3);
+    result = setup("PARAM a,b;", &Parser::expectParameterDeclaration);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 3);
+}
+TEST(TestParser, ExpectParamDeclarationInvalid){
+    std::cout << "Testing invalid init parameter declarations:" << std::endl;
+    checkInvalid("PARAM a",  &Parser::expectParameterDeclaration);
+    checkInvalid("PARA a,b;",  &Parser::expectParameterDeclaration);
+    checkInvalid("PARAM a b;",  &Parser::expectParameterDeclaration);
+    std::cout << "=========================================================" << std::endl;
+}
+TEST(TestParser, ExpectVariableDeclarationValid){
+    auto result = setup("VAR a;", &Parser::expectVariableDeclaration);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 3);
+    result = setup("VAR a,b;", &Parser::expectVariableDeclaration);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 3);
+}
+TEST(TestParser, ExpectVariableDeclarationInvalid){
+    std::cout << "Testing invalid init variable declarations:" << std::endl;
+    checkInvalid("VAR a",  &Parser::expectVariableDeclaration);
+    checkInvalid("VA a,b;",  &Parser::expectVariableDeclaration);
+    checkInvalid("VAR a b;",  &Parser::expectVariableDeclaration);
+    std::cout << "=========================================================" << std::endl;
+}
+TEST(TestParser, ExpectConstantDeclarationValid){
+    auto result = setup("CONST a=1;", &Parser::expectConstantDeclaration);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 3);
+    result = setup("CONST a=1,b=2;", &Parser::expectConstantDeclaration);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 3);
+}
+TEST(TestParser, ExpectConstantDeclarationInvalid){
+    std::cout << "Testing invalid init constant declarations:" << std::endl;
+    checkInvalid("CONST a=5",  &Parser::expectConstantDeclaration);
+    checkInvalid("CONST a;",  &Parser::expectConstantDeclaration);
+    checkInvalid("CONS a = 4,b = 5;",  &Parser::expectConstantDeclaration);
+    checkInvalid("CONST a=4 b=5;",  &Parser::expectConstantDeclaration);
+    std::cout << "=========================================================" << std::endl;
 }
 
 
