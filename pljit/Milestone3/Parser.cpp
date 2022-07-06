@@ -124,28 +124,50 @@ std::unique_ptr<NonTerminalNode> Parser::expectConstantDeclaration(size_t& curre
         return nullptr;
     }
 }
-
+//------------------------------------------------------------------------------------------------------------------------------------
+std::unique_ptr<NonTerminalNode> Parser::refactorList(size_t& currentPos, std::vector<Token>& tokens,auto (Parser::*func)(size_t&, std::vector<Token>&), Node::Types nodeType, lexer::TokenTypes tokenType,std::string separatorType){
+    auto identifier = (*func)(currentPos,tokens);
+    if(identifier){
+        std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(nodeType,sourceCodeManager);
+        node->vec.push_back(std::move(identifier));
+        //check for more identifier
+        while (currentPos+1< tokens.size()&& (tokens[currentPos+1].getType() == lexer::TokenTypes::Separator || tokens[currentPos+1].getType() == tokenType)) {
+            auto separator = expectGenericNode(separatorType, ++currentPos, tokens);
+            if (!separator) {
+                return nullptr;
+            }
+            identifier = (*func)(++currentPos, tokens);
+            if(!identifier) {
+                return nullptr;
+            }
+            node->vec.push_back(std::move(separator));
+            node->vec.push_back(std::move(identifier));
+        }
+        return node;
+    }
+    return nullptr;
+}
 std::unique_ptr<NonTerminalNode> Parser::expectDeclaratorList(size_t& currentPos, std::vector<Token>& tokens){
     auto identifier = expectIdentifierNode(currentPos,tokens);
     if(identifier){
         std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::DeclaratorList,sourceCodeManager);
         node->vec.push_back(std::move(identifier));
         //check for more identifier
-        auto comma = expectGenericNode(",",++currentPos,tokens);
-        while(comma != nullptr){
-            node->vec.push_back(std::move(comma));
-            identifier = expectIdentifierNode(++currentPos,tokens);
-            if(identifier){
-                node->vec.push_back(std::move(identifier));
-            }else {
+        while (currentPos+1< tokens.size()&& (tokens[currentPos+1].getType() == lexer::TokenTypes::Separator || tokens[currentPos+1].getType() == lexer::TokenTypes::Identifier)) {
+            auto comma = expectGenericNode(",", ++currentPos, tokens);
+            if (!comma) {
                 return nullptr;
             }
-            comma = expectGenericNode(",",++currentPos,tokens);
+            identifier = expectIdentifierNode(++currentPos, tokens);
+            if(!identifier) {
+                return nullptr;
+            }
+            node->vec.push_back(std::move(comma));
+            node->vec.push_back(std::move(identifier));
         }
         return node;
-    } else {
-        return nullptr;
     }
+    return nullptr;
 }
 std::unique_ptr<NonTerminalNode> Parser::expectInitDeclaratorList(size_t& currentPos, std::vector<Token>& tokens){
     auto identifier = expectInitDeclarator(currentPos,tokens);
@@ -153,14 +175,17 @@ std::unique_ptr<NonTerminalNode> Parser::expectInitDeclaratorList(size_t& curren
         std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::InitDeclaratorList,sourceCodeManager);
         node->vec.push_back(std::move(identifier));
         //check for more identifier
-        for(auto comma = expectGenericNode(",",++currentPos,tokens); comma != nullptr;){
-            node->vec.push_back(std::move(comma));
-            identifier = expectInitDeclarator(++currentPos,tokens);
-            if(identifier){
-                node->vec.push_back(std::move(identifier));
-            }else {
+        while (currentPos+1< tokens.size() && (tokens[currentPos+1].getType() == lexer::TokenTypes::Separator || tokens[currentPos+1].getType() == lexer::TokenTypes::Identifier)) {
+            auto comma = expectGenericNode(",", ++currentPos, tokens);
+            if (!comma) {
                 return nullptr;
             }
+            identifier = expectInitDeclarator(++currentPos, tokens);
+            if(!identifier) {
+                return nullptr;
+            }
+            node->vec.push_back(std::move(comma));
+            node->vec.push_back(std::move(identifier));
         }
         return node;
     } else {
@@ -169,19 +194,20 @@ std::unique_ptr<NonTerminalNode> Parser::expectInitDeclaratorList(size_t& curren
 }
 std::unique_ptr<NonTerminalNode> Parser::expectInitDeclarator(size_t& currentPos, std::vector<Token>& tokens){
     auto identifier = expectIdentifierNode(currentPos,tokens);
-    auto equals = expectGenericNode("=",++currentPos,tokens);
-    auto literal = expectLiteralNode(++currentPos, tokens);
-    if(identifier && equals && literal){
-        std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::InitDeclarator,sourceCodeManager);
-        node->vec.push_back(std::move(identifier));
-        node->vec.push_back(std::move(equals));
-        node->vec.push_back(std::move(literal));
-        return node;
-    } else {
-        return nullptr;
+    if(identifier) {
+        auto equals = expectGenericNode("=", ++currentPos, tokens);
+        auto literal = expectLiteralNode(++currentPos, tokens);
+        if (equals && literal) {
+            std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::InitDeclarator, sourceCodeManager);
+            node->vec.push_back(std::move(identifier));
+            node->vec.push_back(std::move(equals));
+            node->vec.push_back(std::move(literal));
+            return node;
+        }
     }
+    return nullptr;
 }
-
+//------------------------------------------------------------------------------------------------------------------------------------
 std::unique_ptr<NonTerminalNode> Parser::expectCompoundStatement(size_t& currentPos, std::vector<Token>& tokens){
     auto begin = expectGenericNode("BEGIN",currentPos,tokens);
     auto statementList = expectStatementList(++currentPos,tokens);

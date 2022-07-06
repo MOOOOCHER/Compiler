@@ -46,6 +46,11 @@ class Parser{
     std::unique_ptr<NonTerminalNode> expectMultiplicativeExpression(size_t& currentPos, std::vector<Token>& tokens);
     std::unique_ptr<NonTerminalNode> expectUnaryExpression(size_t& currentPos, std::vector<Token>& tokens);
     std::unique_ptr<NonTerminalNode> expectPrimaryExpression(size_t& currentPos, std::vector<Token>& tokens);
+    private:
+    /*
+     * this function refactors grammar productions of this form, identifier{"," identifier}
+      */
+    std::unique_ptr<NonTerminalNode> refactorList(size_t& currentPos, std::vector<Token>& tokens,auto (Parser::*func)(size_t&, std::vector<Token>&), Node::Types NodeType, lexer::TokenTypes tokenType,std::string separatorType);
 };
 } // namespace parser
 #endif //PLJIT_PARSER_H
