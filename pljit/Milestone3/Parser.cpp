@@ -1,6 +1,10 @@
 #include "Parser.h"
 #include <charconv>
 namespace parser{
+//Helper
+void Parser::printErrorMsg(size_t location, std::string_view msg){
+    tokens[location].sourceCodeReference.printContext(msg,tokens[location].getText().size());
+}
 //Parser--------------------------------------------------------------------------------------------
 std::unique_ptr<NonTerminalNode> Parser::parse() {
     if(tokens.empty()) return nullptr;
@@ -13,7 +17,7 @@ std::unique_ptr<NonTerminalNode> Parser::refactorList(size_t& currentPos,auto (P
     auto identifier = (this->*func)(currentPos);
     if(identifier){
         std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(nodeType,sourceCodeManager);
-        node->vec.push_back(std::move(identifier));
+        node->children.push_back(std::move(identifier));
         //check for more identifier
 
         while (currentPos+1< tokens.size()) {
@@ -30,8 +34,8 @@ std::unique_ptr<NonTerminalNode> Parser::refactorList(size_t& currentPos,auto (P
                 if(!identifier) {
                     return nullptr;
                 }
-                node->vec.push_back(std::move(separator));
-                node->vec.push_back(std::move(identifier));
+                node->children.push_back(std::move(separator));
+                node->children.push_back(std::move(identifier));
             } else {
                 break;
             }
@@ -54,42 +58,43 @@ std::unique_ptr<NonTerminalNode> Parser::refactorAssignmentInit(size_t& currentP
         return nullptr;
     }
     std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(nodeType, sourceCodeManager);
-    node->vec.push_back(std::move(identifier));
-    node->vec.push_back(std::move(equals));
-    node->vec.push_back(std::move(expr));
+    node->children.push_back(std::move(identifier));
+    node->children.push_back(std::move(equals));
+    node->children.push_back(std::move(expr));
     return node;
 }
-std::unique_ptr<NonTerminalNode> Parser::refactorDeclaration(size_t& currentPos,auto (Parser::*func)(size_t&), Node::Types nodeType, const std::string& keywordType){
-    auto paramKeyword = expectGenericNode(keywordType,currentPos, false);
-    if(!paramKeyword){
+std::unique_ptr<NonTerminalNode> Parser::refactorDeclaration(size_t& currentPos,auto (Parser::*func)(size_t&), Node::Types nodeType, const std::string& keywordType,const std::string& endingKeyword){
+    auto keyword = expectGenericNode(keywordType,currentPos, false);
+    if(!keyword){
         return nullptr;
     }
     auto declList = (this->*func)(++currentPos);
     if(!declList){
         return nullptr;
     }
-    auto semikolon = expectGenericNode(";", ++currentPos, false);
-    if(!semikolon){
+    auto ending = expectGenericNode(endingKeyword, ++currentPos, false);
+    if(!ending){
         return nullptr;
     }
     std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(nodeType,sourceCodeManager);
-    node->vec.push_back(std::move(paramKeyword));
-    node->vec.push_back(std::move(declList));
-    node->vec.push_back(std::move(semikolon));
+    node->children.push_back(std::move(keyword));
+    node->children.push_back(std::move(declList));
+    node->children.push_back(std::move(ending));
     return node;
 }
 //-----------------------------------------------------------------------------------------------------------------------------------------------
+//TODO: Fehlermeldung für optional ausschalten
 std::unique_ptr<IdentifierNode> Parser::expectIdentifierNode(size_t& currentPos){
     if(tokens.empty()){
         return nullptr;
     } else if(currentPos>=tokens.size()){
-        tokens[tokens.size()-1].sourceCodeReference.printContext("error: an identifier is expected!",tokens[tokens.size()-1].getText().size());
+        printErrorMsg(tokens.size()-1,"error: an identifier is expected!");
         return nullptr;
     }
  if(tokens[currentPos].getType() == lexer::TokenTypes::Identifier){
      return std::make_unique<IdentifierNode>(tokens[currentPos].getText(),sourceCodeManager);
  } else {
-     tokens[currentPos].sourceCodeReference.printContext("error: an identifier is expected!",tokens[currentPos].getText().size());
+     printErrorMsg(currentPos,"error: an identifier is expected!");
      return nullptr;
  }
 }
@@ -98,7 +103,7 @@ std::unique_ptr<LiteralNode> Parser::expectLiteralNode(size_t& currentPos){
     if(tokens.empty()){
         return nullptr;
     } else if(currentPos>=tokens.size()){
-        tokens[tokens.size()-1].sourceCodeReference.printContext("error: a literal is expected!",tokens[tokens.size()-1].getText().size());
+        printErrorMsg(tokens.size()-1,"error: a literal is expected!");
         return nullptr;
     }
     if(currentPos<tokens.size()&&tokens[currentPos].getType() == lexer::TokenTypes::Literal){
@@ -107,7 +112,7 @@ std::unique_ptr<LiteralNode> Parser::expectLiteralNode(size_t& currentPos){
         std::from_chars(tokens[currentPos].getText().data(),tokens[currentPos].getText().data()+tokens[currentPos].getText().size(),value);
         return std::make_unique<LiteralNode>(value,sourceCodeManager);
     } else {
-        tokens[currentPos].sourceCodeReference.printContext("error: a literal is expected!",tokens[currentPos].getText().size());
+        printErrorMsg(currentPos,"error: a literal is expected!");
         return nullptr;
     }
 }
@@ -117,7 +122,7 @@ std::unique_ptr<GenericNode> Parser::expectGenericNode(const std::string& c, siz
         return nullptr;
     } else if(currentPos>=tokens.size()){
         if(!optional){
-            tokens[tokens.size()-1].sourceCodeReference.printContext("error: expected '"+c+"'",tokens[tokens.size()-1].getText().size());
+            printErrorMsg(tokens.size()-1,"error: expected '"+c+"'");
         }
         return nullptr;
     }
@@ -128,7 +133,7 @@ std::unique_ptr<GenericNode> Parser::expectGenericNode(const std::string& c, siz
         }
     }
     if(!optional) {
-        tokens[currentPos].sourceCodeReference.printContext("error: expected '" + c + "'", tokens[currentPos].getText().size());
+        printErrorMsg(currentPos,"error: expected '"+c+"'");
     }
     return nullptr;
 }
@@ -138,17 +143,17 @@ std::unique_ptr<NonTerminalNode> Parser::expectFunctionDefinition(){
     std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::FunctionDefinition,sourceCodeManager);
     auto paramDecl = expectParameterDeclaration(currentPosition);
     if(paramDecl){
-        node->vec.push_back(std::move(paramDecl));
+        node->children.push_back(std::move(paramDecl));
         ++currentPosition;
     }
     auto varDecl = expectVariableDeclaration(currentPosition);
     if(varDecl){
-        node->vec.push_back(std::move(varDecl));
+        node->children.push_back(std::move(varDecl));
         ++currentPosition;
     }
     auto constDecl = expectConstantDeclaration(currentPosition);
     if(constDecl){
-        node->vec.push_back(std::move(constDecl));
+        node->children.push_back(std::move(constDecl));
         ++currentPosition;
     }
     auto compStatement = expectCompoundStatement(currentPosition);
@@ -159,18 +164,18 @@ std::unique_ptr<NonTerminalNode> Parser::expectFunctionDefinition(){
     if(!dot){
         return nullptr;
     }
-    node->vec.push_back(std::move(compStatement));
-    node->vec.push_back(std::move(dot));
+    node->children.push_back(std::move(compStatement));
+    node->children.push_back(std::move(dot));
     return node;
 }
 std::unique_ptr<NonTerminalNode> Parser::expectParameterDeclaration(size_t& currentPos){
-    return refactorDeclaration(currentPos,&Parser::expectDeclaratorList,Node::Types::ParameterDeclaration, "PARAM");
+    return refactorDeclaration(currentPos,&Parser::expectDeclaratorList,Node::Types::ParameterDeclaration, "PARAM",";");
 }
 std::unique_ptr<NonTerminalNode> Parser::expectVariableDeclaration(size_t& currentPos){
-    return refactorDeclaration(currentPos,&Parser::expectDeclaratorList,Node::Types::VariableDeclaration, "VAR");
+    return refactorDeclaration(currentPos,&Parser::expectDeclaratorList,Node::Types::VariableDeclaration, "VAR",";");
 }
 std::unique_ptr<NonTerminalNode> Parser::expectConstantDeclaration(size_t& currentPos){
-    return refactorDeclaration(currentPos,&Parser::expectInitDeclaratorList,Node::Types::ConstantDeclaration, "CONST");
+    return refactorDeclaration(currentPos,&Parser::expectInitDeclaratorList,Node::Types::ConstantDeclaration, "CONST",";");
 }
 //------------------------------------------------------------------------------------------------------------------------------------
 std::unique_ptr<NonTerminalNode> Parser::expectDeclaratorList(size_t& currentPos){
@@ -184,21 +189,10 @@ std::unique_ptr<NonTerminalNode> Parser::expectInitDeclarator(size_t& currentPos
 }
 //------------------------------------------------------------------------------------------------------------------------------------
 std::unique_ptr<NonTerminalNode> Parser::expectCompoundStatement(size_t& currentPos){
-    auto begin = expectGenericNode("BEGIN",currentPos, false);
-    auto statementList = expectStatementList(++currentPos);
-    auto end = expectGenericNode("END", ++currentPos, false);
-    if(begin && statementList && end){
-        std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::CompoundStatement,sourceCodeManager);
-        node->vec.push_back(std::move(begin));
-        node->vec.push_back(std::move(statementList));
-        node->vec.push_back(std::move(end));
-        return node;
-    } else {
-        return nullptr;
-    }
+    return refactorDeclaration(currentPos,&Parser::expectStatementList,Node::Types::CompoundStatement, "BEGIN","END");
 }
 std::unique_ptr<NonTerminalNode> Parser::expectStatementList(size_t& currentPos){
-    return refactorList(currentPos, &Parser::expectStatement, Node::Types::Statement, lexer::TokenTypes::Identifier, ";");
+    return refactorList(currentPos, &Parser::expectStatement, Node::Types::StatementList, lexer::TokenTypes::Identifier, ";");
 }
 std::unique_ptr<NonTerminalNode> Parser::expectStatement(size_t& currentPos){
     std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::Statement,sourceCodeManager);
@@ -207,8 +201,8 @@ std::unique_ptr<NonTerminalNode> Parser::expectStatement(size_t& currentPos){
         //return additive expression
         auto addExpr = expectAdditiveExpression(++currentPos);
         if(addExpr){
-            node->vec.push_back(std::move(returnStatement));
-            node->vec.push_back(std::move(addExpr));
+            node->children.push_back(std::move(returnStatement));
+            node->children.push_back(std::move(addExpr));
             return node;
         } else{
             return nullptr;
@@ -216,115 +210,113 @@ std::unique_ptr<NonTerminalNode> Parser::expectStatement(size_t& currentPos){
     } else{
         auto assignment = expectAssignmentExpression(currentPos);
         if(assignment){
-            node->vec.push_back(std::move(assignment));
+            node->children.push_back(std::move(assignment));
             return node;
         } else{
             return nullptr;
         }
     }
 }
-
+//-------------------------------------------------------------------------------------------------------------------------
 std::unique_ptr<NonTerminalNode> Parser::expectAssignmentExpression(size_t& currentPos){
     return refactorAssignmentInit(currentPos,&Parser::expectAdditiveExpression,Node::Types::AssignmentExpression,":=");
 }
-
-std::unique_ptr<NonTerminalNode> Parser::expectAdditiveExpression(size_t& currentPos){
-    auto mulExpr = expectMultiplicativeExpression(currentPos);
-    if(mulExpr){
-        std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::AdditiveExpression,sourceCodeManager);
-        node->vec.push_back(std::move(mulExpr));
-        //check for optional
-        auto plusOperator = expectGenericNode("+",++currentPos, true);
-        auto minusOperator = expectGenericNode("-",++currentPos, true);
-        if(plusOperator){
-            node->vec.push_back(std::move(plusOperator));
-        } else if (minusOperator){
-            node->vec.push_back(std::move(minusOperator));
-        } else {    //no further options
-            return node;
-        }
-        auto addExpr = expectAdditiveExpression(++currentPos);
-        if(addExpr){
-            node->vec.push_back(std::move(addExpr));
-            return node;
-        }else{
-            return nullptr;
-        }
-    }else{
+std::unique_ptr<NonTerminalNode> Parser::refactorExpression(size_t& currentPos,auto (Parser::*func1)(size_t&),auto (Parser::*func2)(size_t&), Node::Types nodeType, const std::string& operator1, const std::string& operator2){
+    if(currentPos>= tokens.size()){
         return nullptr;
     }
+    auto firstExpr = (this->*func1)(currentPos);
+    if(!firstExpr){
+        return nullptr;
+    }
+    std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(nodeType,sourceCodeManager);
+    node->children.push_back(std::move(firstExpr));
+    //check for optional
+    auto firstOperator = expectGenericNode(operator1,++currentPos, true);
+    if(firstOperator){
+        node->children.push_back(std::move(firstOperator));
+    } else {
+        auto sndOperator = expectGenericNode(operator2,currentPos, true);
+        if(sndOperator) {
+            node->children.push_back(std::move(sndOperator));
+        } else {    //no optional elements
+            --currentPos;
+            return node;
+        }
+    }
+    auto sndExpr = (this->*func2)(++currentPos);
+    if(!sndExpr){
+        return nullptr;
+    }
+    node->children.push_back(std::move(sndExpr));
+    return node;
+}
+std::unique_ptr<NonTerminalNode> Parser::expectAdditiveExpression(size_t& currentPos){
+    auto result = refactorExpression(currentPos,&Parser::expectMultiplicativeExpression,&Parser::expectAdditiveExpression,Node::Types::AdditiveExpression,"+","-");
+    if(!result){
+        tokens[tokens.size()-1].sourceCodeReference.printContext("error: an additive expression is expected!",tokens[tokens.size()-1].getText().size());
+    }
+    return result;
 }
 std::unique_ptr<NonTerminalNode> Parser::expectMultiplicativeExpression(size_t& currentPos){
-    auto unaryExpr = expectUnaryExpression(currentPos);
-    if(unaryExpr){
-        std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::MultiplicativeExpression,sourceCodeManager);
-        node->vec.push_back(std::move(unaryExpr));
-        //check for optional
-        auto mulOperator = expectGenericNode("*",++currentPos, true);
-        auto divOperator = expectGenericNode("/",++currentPos, true);
-        if(mulOperator){
-            node->vec.push_back(std::move(mulOperator));
-        } else if (divOperator){
-            node->vec.push_back(std::move(divOperator));
-        } else {    //no further options
-            return node;
-        }
-        auto mulExpr = expectMultiplicativeExpression(++currentPos);
-        if(mulExpr){
-            node->vec.push_back(std::move(mulExpr));
-            return node;
-        }else{
-            return nullptr;
-        }
-    }else{
-        return nullptr;
+    auto result =  refactorExpression(currentPos,&Parser::expectUnaryExpression,&Parser::expectMultiplicativeExpression,Node::Types::MultiplicativeExpression,"*","/");
+    if(!result){
+        tokens[tokens.size()-1].sourceCodeReference.printContext("error: a multiplicative expression is expected!",tokens[tokens.size()-1].getText().size());
     }
+    return result;
 }
 std::unique_ptr<NonTerminalNode> Parser::expectUnaryExpression(size_t& currentPos){
     //check for optional
     std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::UnaryExpression,sourceCodeManager);
     auto plusOperator = expectGenericNode("+",currentPos, true);
-    auto minusOperator = expectGenericNode("-",currentPos, true);
     if(plusOperator){
-        node->vec.push_back(std::move(plusOperator));
-    } else if (minusOperator){
-        node->vec.push_back(std::move(minusOperator));
+        node->children.push_back(std::move(plusOperator));
+        ++currentPos;
+    } else {
+        auto minusOperator = expectGenericNode("-",currentPos, true);
+        if(minusOperator){
+            node->children.push_back(std::move(minusOperator));
+            ++currentPos;
+        }
     }
     auto primaryExpr = expectPrimaryExpression(currentPos);
     if(primaryExpr){
-        node->vec.push_back(std::move(primaryExpr));
+        node->children.push_back(std::move(primaryExpr));
         return node;
     } else {
         return nullptr;
     }
 }
 std::unique_ptr<NonTerminalNode> Parser::expectPrimaryExpression(size_t& currentPos){
-    std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::UnaryExpression,sourceCodeManager);
+    std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::PrimaryExpression,sourceCodeManager);
     auto bracketOpen = expectGenericNode("(",currentPos, true);
     if(bracketOpen){
-        auto addExpr = expectAdditiveExpression(currentPos);
+        node->children.push_back(std::move(bracketOpen));
+        auto addExpr = expectAdditiveExpression(++currentPos);
         if(!addExpr){
             return nullptr;
         }
-        auto bracketClose = expectGenericNode(")",currentPos,false);
+        auto bracketClose = expectGenericNode(")",++currentPos,false);
         if(!bracketClose){
             return nullptr;
         }
-        node->vec.push_back(std::move(addExpr));
-        node->vec.push_back(std::move(bracketClose));
+        node->children.push_back(std::move(addExpr));
+        node->children.push_back(std::move(bracketClose));
         return node;
-    } else{
-        auto identifier = expectIdentifierNode(currentPos);
-        auto literal = expectLiteralNode(currentPos);
-        if(identifier){
-            node->vec.push_back(std::move(identifier));
-        } else if (literal){
-            node->vec.push_back(std::move(literal));
-        }
-        else {
-            return nullptr;
-        }
     }
-    return node;
+    auto identifier = expectIdentifierNode(currentPos);
+    if(identifier) {
+        node->children.push_back(std::move(identifier));
+        return node;
+    }
+
+    auto literal = expectLiteralNode(currentPos);
+    if(literal){
+        node->children.push_back(std::move(literal));
+        return node;
+    }
+    //TODO:Korrekte Fehlermeldung
+    tokens[currentPos].sourceCodeReference.printContext("error: a primary expression is expected", tokens[currentPos].getText().size());
+    return nullptr;
 }
 } // namespace parser

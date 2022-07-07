@@ -65,16 +65,16 @@ using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
     //Non-Terminal Node-----------------------------------------------------------------------------------------------------------------------
     class NonTerminalNode: public Node{
         friend class Parser;
-        std::vector<std::unique_ptr<Node>> vec;
+        std::vector<std::unique_ptr<Node>> children;
 
         public:
         NonTerminalNode(typename Node::Types type, SourceCodeManager manager): Node(type, manager) {}
         std::vector<Node*> getChildren(){
-            std::vector<Node*> children;
-            for(auto& child: vec){
-                children.push_back(child.get());
+            std::vector<Node*> vec;
+            for(auto& child: children){
+                vec.push_back(child.get());
             }
-            return children;
+            return vec;
         }//only for testing
     };
 } // namespace parser

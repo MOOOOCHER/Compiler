@@ -18,6 +18,8 @@ class Parser{
     /*
      * The following three functions parse terminal symbols.
      * If there is a parsing error(e.g. a component is not found), a nullptr is returned
+     * PARAM:
+     * optional: is this an optional check, if so we don't need to print error messages TODO
      */
     std::unique_ptr<IdentifierNode> expectIdentifierNode(size_t& currentPos);
 
@@ -49,6 +51,10 @@ class Parser{
     std::unique_ptr<NonTerminalNode> expectPrimaryExpression(size_t& currentPos);
     private:
     /*
+     * this function prints error msgs for the parser
+     */
+    void printErrorMsg(size_t location, std::string_view msg);
+    /*
      * this function refactors grammar productions of this form, identifier{"," identifier}
      * PARAM
      * currentPos: current position within the token stream (which token we currently evaluate)
@@ -76,9 +82,12 @@ class Parser{
      * tokens: token stream
      * func*: the function pointer for the expectFunction mentioned above (e.g. identifier for declarator-list)
      * NodeType: the NodeType for the returned NonTerminalNode
-     * keywordType: type of the keyword,e.g. "PARAM"
+     * keywordType: type of the keyword that starts this expression,e.g. "PARAM", "BEGIN"
+     * endingKeyword:type of the keyword that ends this expression,e.g. ";", "END"
       */
-    std::unique_ptr<NonTerminalNode> refactorDeclaration(size_t& currentPos,auto (Parser::*func)(size_t&), Node::Types nodeType, const std::string& keywordType);
+    std::unique_ptr<NonTerminalNode> refactorDeclaration(size_t& currentPos,auto (Parser::*func)(size_t&), Node::Types nodeType, const std::string& keywordType,const std::string& endingKeyword);
+    std::unique_ptr<NonTerminalNode> refactorExpression(size_t& currentPos,auto (Parser::*func1)(size_t&),auto (Parser::*func2)(size_t&), Node::Types nodeType, const std::string& operator1, const std::string& operator2);
+
 };
 } // namespace parser
 #endif //PLJIT_PARSER_H
