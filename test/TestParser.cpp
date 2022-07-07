@@ -11,23 +11,17 @@ using Tokenizer = lexer::Tokenizer;
 using Parser = parser::Parser;
 using Node = parser::Node;
 
-static auto setup(const std::string_view& input, auto (Parser::*func)(size_t&, std::vector<Token>&)){
+static auto setup(const std::string_view& input, auto (Parser::*func)(size_t&)){
     SourceCodeManager manager(input);
     Tokenizer tokenizer = Tokenizer();
     tokenizer.parse(manager);
 
-    Parser parser = Parser(manager);
+    Parser parser = Parser(manager,tokenizer.getTokens());
     size_t currentPosition = 0;
-    return (parser.*func)(currentPosition,tokenizer.getTokens());
+    return (parser.*func)(currentPosition);
 }
-static void checkInvalid(const std::string& input, auto (Parser::*func)(size_t&, std::vector<Token>&)){
-    SourceCodeManager manager(input);
-    Tokenizer tokenizer = Tokenizer();
-    tokenizer.parse(manager);
-    Parser parser = Parser(manager);
-    size_t currentPosition = 0;
-
-    auto result = (parser.*func)(currentPosition,tokenizer.getTokens());
+static void checkInvalid(const std::string& input, auto (Parser::*func)(size_t&)){
+    auto result = setup(input,func);
     EXPECT_EQ(result, nullptr);
 }
 
@@ -36,9 +30,9 @@ static void checkGenericNode(const std::string& input){
     Tokenizer tokenizer = Tokenizer();
     tokenizer.parse(manager);
 
-    Parser parser = Parser(manager);
+    Parser parser = Parser(manager,tokenizer.getTokens());
     size_t currentPosition = 0;
-    auto result = parser.expectGenericNode(input,currentPosition,tokenizer.getTokens(),false);
+    auto result = parser.expectGenericNode(input,currentPosition,false);
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->getType(), Node::Types::Generic);
     EXPECT_EQ(result->getInformation(), input);
@@ -126,9 +120,9 @@ TEST(TestParser, ExpectGenericNodeInvalid){
     Tokenizer tokenizer = Tokenizer();
     tokenizer.parse(manager);
 
-    Parser parser = Parser(manager);
+    Parser parser = Parser(manager,tokenizer.getTokens());
     size_t currentPosition = 0;
-    auto result = parser.expectGenericNode(";",currentPosition,tokenizer.getTokens(), false);
+    auto result = parser.expectGenericNode(";",currentPosition, false);
     EXPECT_EQ(result, nullptr);
     std::cout << "=========================================================" << std::endl;
 }
@@ -229,6 +223,46 @@ TEST(TestParser, ExpectConstantDeclarationInvalid){
     checkInvalid("CONS a = 4,b = 5;",  &Parser::expectConstantDeclaration);
     checkInvalid("CONST a=4 b=5;",  &Parser::expectConstantDeclaration);
     std::cout << "=========================================================" << std::endl;
+}
+TEST(TestParser, ExpectPrimaryExpressionValid){
+    auto result = setup("identifier",&Parser::expectPrimaryExpression);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 1);
+    result = setup("1234",&Parser::expectPrimaryExpression);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 1);
+    result = setup("(1234)",&Parser::expectPrimaryExpression);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 3);
+}
+TEST(TestParser, ExpectPrimaryExpressionInvalid){
+    checkInvalid("RETURN", &Parser::expectPrimaryExpression);
+    checkInvalid("(identifier)", &Parser::expectPrimaryExpression);
+    checkInvalid("(1234", &Parser::expectPrimaryExpression);
+}
+TEST(TestParser, ExpectUnaryExpressionValid){
+    auto result = setup("+ identifier",&Parser::expectPrimaryExpression);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 1);
+    result = setup("-1234",&Parser::expectPrimaryExpression);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 1);
+    result = setup("(1234)",&Parser::expectPrimaryExpression);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 3);
+}
+TEST(TestParser, ExpectUnaryExpressionInvalid){
+    checkInvalid("+RETURN", &Parser::expectPrimaryExpression);
+    checkInvalid("-(identifier)", &Parser::expectPrimaryExpression);
+    checkInvalid("+ (1234", &Parser::expectPrimaryExpression);
+}
+TEST(TestParser, ExpectStatement){
+    auto result = setup("",&Parser::expectStatement);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 1);
+    result = setup("",&Parser::expectStatement);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 2);
 }
 
 
