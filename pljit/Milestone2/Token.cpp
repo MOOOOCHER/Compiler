@@ -33,6 +33,13 @@ static bool isDigit(const char& c){
 static bool isLetter(const char& c){
     return (c>='a' && c<='z')|| (c>='A'&&c<='Z');
 }
+static bool isValidGeneric(const char& c){
+    return  c ==';' || c =='.'|| c ==',' || c =='+'|| c =='-'|| c =='*'|| c =='/'
+        || c =='('|| c ==')'|| c ==':'|| c =='=';
+}
+static bool isValidChar(const char& c){
+    return isDigit(c) || isLetter(c) || isValidGeneric(c);
+}
 //Token-----------------------------------------------------------------------------------------------------------------------------
 TokenTypes Token::getType(){
     return type;
@@ -54,7 +61,10 @@ bool Tokenizer::isValidToken(std::string tokenText){
 /*
  * this function returns the next token
  */
-bool Tokenizer::next(size_t& position, const std::string_view& sourceCode, SourceCodeManager& manager) {
+Token Tokenizer::next(){
+    return next(manager.source.substr(position,manager.source.size()-position));
+}
+Token Tokenizer::next(const std::string_view& sourceCode) {
     std::string current;
     const char* ptr = nullptr;
     for(const char&c: sourceCode){
@@ -62,90 +72,77 @@ bool Tokenizer::next(size_t& position, const std::string_view& sourceCode, Sourc
             if(current.empty()){   //we save the location of the first non-whitespace char
                 ptr = &c;
             }
-            if(!isValidToken(current+c)){   //if not valid we need to save the token with the current text;
+            if(!isValidChar(c)){
+                auto s = SourceCodeReference(ptr,manager);
+                s.printContext("An invalid character has been used!", 1);
+                return Token(s,TokenTypes::Invalid,current);
+            } else if(!isValidToken(current+c)){   //if not valid we need to save the token with the current text;
                 break;
             }
             position++;
             current+=c;
             switch (c) {
                 case '.':{
-                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Separator,".");
-                    return true;
+                    return Token(SourceCodeReference(ptr,manager), TokenTypes::Separator,".");
                 }
                 case ';':{
-                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Separator,";");
-                    return true;
+                    return Token(SourceCodeReference(ptr,manager), TokenTypes::Separator,";");
                 }
                 case ',':{
-                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Separator,",");
-                    return true;
+                    return Token(SourceCodeReference(ptr,manager), TokenTypes::Separator,",");
                 }
                 case '+':{
-                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Operator,"+");
-                    return true;
+                    return Token(SourceCodeReference(ptr,manager), TokenTypes::Operator,"+");
                 }
                 case '-':{
-                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Operator,"-");
-                    return true;
+                    return Token(SourceCodeReference(ptr,manager),TokenTypes::Operator,"-");
                 }
                 case '/':{
-                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Operator,"/");
-                    return true;
+                    return Token(SourceCodeReference(ptr,manager),TokenTypes::Operator,"/");
                 }
                 case '*':{
-                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Operator,"*");
-                    return true;
+                    return Token(SourceCodeReference(ptr,manager),TokenTypes::Operator,"*");
                 }
                 case ':':{
                     break;
                 }
                 case '=':{
                     if(current == ":="){
-                        tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Operator,":=");
+                        return Token(SourceCodeReference(ptr,manager),TokenTypes::Operator,":=");
                     } else{
-                        tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Operator,"=");
+                        return Token(SourceCodeReference(ptr,manager),TokenTypes::Operator,"=");
                     }
-                        return true;
                 }
                 case '(':{
-                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Separator,"(");
-                    return true;
+                    return Token(SourceCodeReference(ptr,manager),TokenTypes::Separator,"(");
                 }
                 case ')':{
-                    tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Separator,")");
-                    return true;
+                    return Token(SourceCodeReference(ptr,manager),TokenTypes::Separator,")");
                 }
                 default:{
                     if(isDigit(c)){
                         if(hasOnlyLetters(current)){
-                            tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Identifier,current);
-                            return true;
+                            return Token(SourceCodeReference(ptr,manager),TokenTypes::Identifier,current);
                         }
-                    } else if( isLetter(c)||c !='_'){
+                    } else if( isLetter(c)){
                         if(hasOnlyDigits(current)){
-                            tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Literal,current);
-                            return true;
+                            return Token(SourceCodeReference(ptr,manager),TokenTypes::Literal,current);
                         }
-                    } else {
-                        //invalid char
-                        auto s = SourceCodeReference(ptr,manager);
-                        s.printContext("An invalid character has been used!", 1);
-                        return false;
                     }
                 }
             }
         } else if(!current.empty()){
             if(current =="PARAM"||current=="VAR"||current=="CONST"||current=="BEGIN"||current=="END"||current=="RETURN"){
                 //the position of the last character of the string is the given argument (line,linePos)
-                tokens.emplace_back(SourceCodeReference(ptr, manager), TokenTypes::Keyword,current);
+                return Token(SourceCodeReference(ptr, manager), TokenTypes::Keyword,current);
             } else if(hasOnlyDigits(current)){
                 //if there are only digit it has to be a literal
-                tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Literal,current);
-            } else{
-                tokens.emplace_back(SourceCodeReference(ptr, manager), TokenTypes::Identifier,current);
-            }
                 position++;
-                return true;
+                return Token(SourceCodeReference(ptr, manager), TokenTypes::Literal,current);
+            } else{
+                position++;
+                return Token(SourceCodeReference(ptr, manager), TokenTypes::Identifier,current);
+            }
         } else {
             position++;
         }
@@ -153,33 +150,19 @@ bool Tokenizer::next(size_t& position, const std::string_view& sourceCode, Sourc
     if(!current.empty()){
         if(current =="PARAM"||current=="VAR"||current=="CONST"||current=="BEGIN"||current=="END"||current=="RETURN"){
             //the position of the last character of the string is the given argument (line,linePos)
-            tokens.emplace_back(SourceCodeReference(ptr, manager), TokenTypes::Keyword,current);
-            return true;
+            return Token(SourceCodeReference(ptr, manager), TokenTypes::Keyword,current);
         } else if(hasOnlyDigits(current)){
             //if there are only digit it has to be a literal
-            tokens.emplace_back(SourceCodeReference(ptr, manager), TokenTypes::Literal,current);
-            return true;
-        } else if(hasOnlyLetters(current)){
-            tokens.emplace_back(SourceCodeReference(ptr,manager), TokenTypes::Identifier,current);
-            return true;
+            return Token(SourceCodeReference(ptr, manager), TokenTypes::Literal,current);
+        } else{
+            return Token(SourceCodeReference(ptr, manager), TokenTypes::Identifier,current);
         }
     }
     auto s = SourceCodeReference(ptr,manager);
     s.printContext("An invalid character has been used!", 1);
-    return false;
+    return Token(s,TokenTypes::Invalid,current);
 }
-void Tokenizer::parse(SourceCodeManager& sourceCode) {
-    const std::string_view& string = sourceCode.source;
-    for(size_t position = 0;position<string.size();){
-        std::string_view substring = string.substr(position,string.size()-position);
-        if(!next(position, substring, sourceCode)){
-            //if an invalid char has been found, we abort compilation
-            tokens.clear();
-            break;
-        }
-    }
-}
-std::vector<Token>& Tokenizer::getTokens(){
-    return tokens;
+bool Tokenizer::hasNext(){
+    return position<manager.source.size();
 }
 } // namespace lexer

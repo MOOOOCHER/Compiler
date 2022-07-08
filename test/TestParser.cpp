@@ -12,28 +12,24 @@ using Parser = parser::Parser;
 using Node = parser::Node;
 
 //helper functions-----------------------------------------------------------------------------------------
-static auto setup(const std::string_view& input, auto (Parser::*func)(size_t&)){
+static auto setup(const std::string_view& input, auto (Parser::*func)()){
     SourceCodeManager manager(input);
-    Tokenizer tokenizer = Tokenizer();
-    tokenizer.parse(manager);
+    Tokenizer tokenizer = Tokenizer(manager);
 
-    Parser parser = Parser(manager,tokenizer.getTokens());
-    size_t currentPosition = 0;
-    return (parser.*func)(currentPosition);
+    Parser parser = Parser(tokenizer);
+    return (parser.*func)();
 }
-static void checkInvalid(const std::string& input, auto (Parser::*func)(size_t&)){
+static void checkInvalid(const std::string& input, auto (Parser::*func)()){
     auto result = setup(input,func);
     EXPECT_EQ(result, nullptr);
 }
 
 static void checkGenericNode(const std::string& input){
     SourceCodeManager manager(input);
-    Tokenizer tokenizer = Tokenizer();
-    tokenizer.parse(manager);
+    Tokenizer tokenizer = Tokenizer(manager);
 
-    Parser parser = Parser(manager,tokenizer.getTokens());
-    size_t currentPosition = 0;
-    auto result = parser.expectGenericNode(input,currentPosition,false);
+    Parser parser = Parser(tokenizer);
+    auto result = parser.expectGenericNode(input,false);
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->getType(), Node::Types::Generic);
     EXPECT_EQ(result->getInformation(), input);
@@ -133,12 +129,10 @@ TEST(TestParser, ExpectGenericNodeInvalid){
     std::cout << "Testing invalid generic node:" << std::endl;
     std::string_view view(".");
     SourceCodeManager manager(view);
-    Tokenizer tokenizer = Tokenizer();
-    tokenizer.parse(manager);
+    Tokenizer tokenizer = Tokenizer(manager);
 
-    Parser parser = Parser(manager,tokenizer.getTokens());
-    size_t currentPosition = 0;
-    auto result = parser.expectGenericNode(";",currentPosition, false);
+    Parser parser = Parser(tokenizer);
+    auto result = parser.expectGenericNode(";", false);
     EXPECT_EQ(result, nullptr);
     std::cout << "=========================================================" << std::endl;
 }

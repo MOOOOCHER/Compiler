@@ -21,6 +21,10 @@ class Token{
     friend class Tokenizer;
     public:
     const SourceCodeReference sourceCodeReference;
+    /*
+     * constructs a "default" token pointing to the last character of the code
+     */
+    explicit Token(sourceCodeManagement::SourceCodeManager& manager): sourceCodeReference(SourceCodeReference(manager)),type(TokenTypes::Invalid){};
     Token(const SourceCodeReference characters, TokenTypes type, std::string text): sourceCodeReference(characters), type(type), text(std::move(text)){};
     TokenTypes getType();
     std::string getText();
@@ -32,21 +36,29 @@ class Token{
  * class for Tokenizing the source code
  */
 class Tokenizer{
-    std::vector<Token> tokens;
+    /*
+     * this function whether the token is invalid
+     */
+    static bool isValidToken(std::string tokenText);
+    size_t position = 0;
+    sourceCodeManagement::SourceCodeManager& manager;
+    public:
+    explicit Tokenizer(sourceCodeManagement::SourceCodeManager& manager): manager(manager){};
     /*
      * this function parses the next token and returns whether it is valid (only has letters or only has digits)
      */
-    bool next(size_t& position, const std::string_view& sourceCode, sourceCodeManagement::SourceCodeManager& manager);
+    Token next();
+    Token next(const std::string_view& sourceCode);
     /*
-     * this function wether the token is invalid
+     * this function parses the next token and returns whether it is valid (only has letters or only has digits)
      */
-    static bool isValidToken(std::string tokenText);
-    public:
-    /*
-     * this function parses the source code into a vector of tokens
-     */
-     void parse(sourceCodeManagement::SourceCodeManager& sourceCode);
-     std::vector<Token>& getTokens();
+    bool hasNext();
+    size_t getPosition(){
+        return position;
+    }
+    sourceCodeManagement::SourceCodeManager& getManager(){
+        return manager;
+    }
 };
 }//namespace lexer
 #endif //PLJIT_TOKEN_H

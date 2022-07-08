@@ -5,60 +5,57 @@
 #include "../Milestone2/Token.h"
 namespace parser{
 using Token = lexer::Token;
+using Tokenizer = lexer::Tokenizer;
 using Node = parser::Node;
 class Parser{
-    SourceCodeManager sourceCodeManager;
-    std::vector<Token>& tokens;
+    Tokenizer tokenizer;
     public:
-    explicit Parser(SourceCodeManager& sourceCodeManager,std::vector<Token>& tokens): sourceCodeManager(sourceCodeManager), tokens(tokens){};
-
-    std::unique_ptr<NonTerminalNode> parse();
-
+    explicit Parser(Tokenizer tokenizer): tokenizer(tokenizer){};
     //---------------------------------------------------------------------------------------------------
     /*
      * The following three functions parse terminal symbols.
      * If there is a parsing error(e.g. a component is not found), a nullptr is returned
      * PARAM:
-     * optional: is this an optional check, if so we don't need to print error messages TODO
+     * optional: is this an optional check, if so we don't need to print error messages
      */
-    std::unique_ptr<IdentifierNode> expectIdentifierNode(size_t& currentPos, bool optional);
-    std::unique_ptr<IdentifierNode> expectIdentifierNode(size_t& currentPos);
+    std::unique_ptr<IdentifierNode> expectIdentifierNode(bool optional);
+    std::unique_ptr<IdentifierNode> expectIdentifierNode();
 
-    std::unique_ptr<LiteralNode> expectLiteralNode(size_t& currentPos, bool optional);
-    std::unique_ptr<LiteralNode> expectLiteralNode(size_t& currentPos);
+    std::unique_ptr<LiteralNode> expectLiteralNode(bool optional);
+    std::unique_ptr<LiteralNode> expectLiteralNode();
 
-    std::unique_ptr<GenericNode> expectGenericNode(const std::string& c, size_t& currentPos, bool optional);
+    std::unique_ptr<GenericNode> expectGenericNode(const std::string& c, bool optional);
     //---------------------------------------------------------------------------------------------------------
     /*
      * The following functions parse non-terminal symbols.
      * If there is a parsing error(e.g. a component is not found), a nullptr is returned
      */
-    std::unique_ptr<NonTerminalNode> expectFunctionDefinition(size_t& currentPos);
-    std::unique_ptr<NonTerminalNode> expectParameterDeclaration(size_t& currentPos);
-    std::unique_ptr<NonTerminalNode> expectVariableDeclaration(size_t& currentPos);
-    std::unique_ptr<NonTerminalNode> expectConstantDeclaration(size_t& currentPos);
-    std::unique_ptr<NonTerminalNode> expectParameterDeclaration(size_t& currentPos, bool optional);
-    std::unique_ptr<NonTerminalNode> expectVariableDeclaration(size_t& currentPos, bool optional);
-    std::unique_ptr<NonTerminalNode> expectConstantDeclaration(size_t& currentPos, bool optional);
+    std::unique_ptr<NonTerminalNode> expectFunctionDefinition();
+    std::unique_ptr<NonTerminalNode> expectParameterDeclaration();
+    std::unique_ptr<NonTerminalNode> expectVariableDeclaration();
+    std::unique_ptr<NonTerminalNode> expectConstantDeclaration();
+    std::unique_ptr<NonTerminalNode> expectParameterDeclaration(bool optional);
+    std::unique_ptr<NonTerminalNode> expectVariableDeclaration( bool optional);
+    std::unique_ptr<NonTerminalNode> expectConstantDeclaration(bool optional);
 
-    std::unique_ptr<NonTerminalNode> expectDeclaratorList(size_t& currentPos);
-    std::unique_ptr<NonTerminalNode> expectInitDeclaratorList(size_t& currentPos);
-    std::unique_ptr<NonTerminalNode> expectInitDeclarator(size_t& currentPos);
+    std::unique_ptr<NonTerminalNode> expectDeclaratorList();
+    std::unique_ptr<NonTerminalNode> expectInitDeclaratorList();
+    std::unique_ptr<NonTerminalNode> expectInitDeclarator();
 
-    std::unique_ptr<NonTerminalNode> expectCompoundStatement(size_t& currentPos);
-    std::unique_ptr<NonTerminalNode> expectStatementList(size_t& currentPos);
-    std::unique_ptr<NonTerminalNode> expectStatement(size_t& currentPos);
-    std::unique_ptr<NonTerminalNode> expectAssignmentExpression(size_t& currentPos);
+    std::unique_ptr<NonTerminalNode> expectCompoundStatement();
+    std::unique_ptr<NonTerminalNode> expectStatementList();
+    std::unique_ptr<NonTerminalNode> expectStatement();
+    std::unique_ptr<NonTerminalNode> expectAssignmentExpression();
 
-    std::unique_ptr<NonTerminalNode> expectAdditiveExpression(size_t& currentPos);
-    std::unique_ptr<NonTerminalNode> expectMultiplicativeExpression(size_t& currentPos);
-    std::unique_ptr<NonTerminalNode> expectUnaryExpression(size_t& currentPos);
-    std::unique_ptr<NonTerminalNode> expectPrimaryExpression(size_t& currentPos);
+    std::unique_ptr<NonTerminalNode> expectAdditiveExpression();
+    std::unique_ptr<NonTerminalNode> expectMultiplicativeExpression();
+    std::unique_ptr<NonTerminalNode> expectUnaryExpression();
+    std::unique_ptr<NonTerminalNode> expectPrimaryExpression();
     private:
     /*
      * this function prints error msgs for the parser
      */
-    void printErrorMsg(size_t location, std::string_view msg);
+    static void printErrorMsg(Token token, std::string_view msg);
     /*
      * this function refactors grammar productions of this form, identifier{"," identifier}
      * PARAM
@@ -69,7 +66,7 @@ class Parser{
      * tokenType: the type for the token in the stream, which we need to check for invalid inputs (e.g. identifier identifier for declarator list)
      * separatorType: type of the separator between the elements of the list, e.g. "," or ";"
       */
-    std::unique_ptr<NonTerminalNode> refactorList(size_t& currentPos,auto (Parser::*func)(size_t&), Node::Types nodeType, lexer::TokenTypes tokenType,const std::string& separatorType);
+    std::unique_ptr<NonTerminalNode> refactorList(auto (Parser::*func)(), Node::Types nodeType, lexer::TokenTypes tokenType,const std::string& separatorType);
     /*
      * this function refactors grammar productions of this form, identifier assignmentOperator (literal | additive-expression)
      * PARAM
@@ -79,7 +76,7 @@ class Parser{
      * NodeType: the NodeType for the returned NonTerminalNode
      * separatorType: type of the assignment between the elements of the list, e.g. "=" or ":="
       */
-    std::unique_ptr<NonTerminalNode> refactorAssignmentInit(size_t& currentPos,auto (Parser::*func)(size_t&), Node::Types nodeType, const std::string& assignmentType);
+    std::unique_ptr<NonTerminalNode> refactorAssignmentInit(auto (Parser::*func)(), Node::Types nodeType, const std::string& assignmentType);
     /*
      * this function refactors grammar for parameter/variable/constant declarations
      * PARAM
@@ -90,8 +87,8 @@ class Parser{
      * keywordType: type of the keyword that starts this expression,e.g. "PARAM", "BEGIN"
      * endingKeyword:type of the keyword that ends this expression,e.g. ";", "END"
       */
-    std::unique_ptr<NonTerminalNode> refactorDeclaration(size_t& currentPos,auto (Parser::*func)(size_t&), Node::Types nodeType, const std::string& keywordType,const std::string& endingKeyword, bool optional);
-    std::unique_ptr<NonTerminalNode> refactorExpression(size_t& currentPos,auto (Parser::*func1)(size_t&),auto (Parser::*func2)(size_t&), Node::Types nodeType, const std::string& operator1, const std::string& operator2);
+    std::unique_ptr<NonTerminalNode> refactorDeclaration(auto (Parser::*func)(), Node::Types nodeType, const std::string& keywordType,const std::string& endingKeyword, bool optional);
+    std::unique_ptr<NonTerminalNode> refactorExpression(auto (Parser::*func1)(),auto (Parser::*func2)(), Node::Types nodeType, const std::string& operator1, const std::string& operator2);
 
 };
 } // namespace parser
