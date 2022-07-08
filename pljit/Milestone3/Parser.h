@@ -21,8 +21,10 @@ class Parser{
      * PARAM:
      * optional: is this an optional check, if so we don't need to print error messages TODO
      */
+    std::unique_ptr<IdentifierNode> expectIdentifierNode(size_t& currentPos, bool optional);
     std::unique_ptr<IdentifierNode> expectIdentifierNode(size_t& currentPos);
 
+    std::unique_ptr<LiteralNode> expectLiteralNode(size_t& currentPos, bool optional);
     std::unique_ptr<LiteralNode> expectLiteralNode(size_t& currentPos);
 
     std::unique_ptr<GenericNode> expectGenericNode(const std::string& c, size_t& currentPos, bool optional);
@@ -31,10 +33,13 @@ class Parser{
      * The following functions parse non-terminal symbols.
      * If there is a parsing error(e.g. a component is not found), a nullptr is returned
      */
-    std::unique_ptr<NonTerminalNode> expectFunctionDefinition();
+    std::unique_ptr<NonTerminalNode> expectFunctionDefinition(size_t& currentPos);
     std::unique_ptr<NonTerminalNode> expectParameterDeclaration(size_t& currentPos);
     std::unique_ptr<NonTerminalNode> expectVariableDeclaration(size_t& currentPos);
     std::unique_ptr<NonTerminalNode> expectConstantDeclaration(size_t& currentPos);
+    std::unique_ptr<NonTerminalNode> expectParameterDeclaration(size_t& currentPos, bool optional);
+    std::unique_ptr<NonTerminalNode> expectVariableDeclaration(size_t& currentPos, bool optional);
+    std::unique_ptr<NonTerminalNode> expectConstantDeclaration(size_t& currentPos, bool optional);
 
     std::unique_ptr<NonTerminalNode> expectDeclaratorList(size_t& currentPos);
     std::unique_ptr<NonTerminalNode> expectInitDeclaratorList(size_t& currentPos);
@@ -85,7 +90,7 @@ class Parser{
      * keywordType: type of the keyword that starts this expression,e.g. "PARAM", "BEGIN"
      * endingKeyword:type of the keyword that ends this expression,e.g. ";", "END"
       */
-    std::unique_ptr<NonTerminalNode> refactorDeclaration(size_t& currentPos,auto (Parser::*func)(size_t&), Node::Types nodeType, const std::string& keywordType,const std::string& endingKeyword);
+    std::unique_ptr<NonTerminalNode> refactorDeclaration(size_t& currentPos,auto (Parser::*func)(size_t&), Node::Types nodeType, const std::string& keywordType,const std::string& endingKeyword, bool optional);
     std::unique_ptr<NonTerminalNode> refactorExpression(size_t& currentPos,auto (Parser::*func1)(size_t&),auto (Parser::*func2)(size_t&), Node::Types nodeType, const std::string& operator1, const std::string& operator2);
 
 };

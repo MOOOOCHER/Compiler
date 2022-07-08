@@ -406,6 +406,7 @@ TEST(TestParser, ExpectStatementListInvalid){
     checkInvalid(" a := 1; a := 1;", &Parser::expectStatementList);
     checkInvalid(" a := 1, a := 1", &Parser::expectStatementList);
     checkInvalid(" a := 1 a := 1", &Parser::expectStatementList);
+    checkInvalid(" a := 1 RETURN a", &Parser::expectStatementList);
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectCompoundStatementValid){
@@ -428,6 +429,20 @@ TEST(TestParser, ExpectCompoundStatementInvalid){
     checkInvalid("a := 1 END;", &Parser::expectCompoundStatement);
     checkInvalid("BEGIN a := 1; a := 1", &Parser::expectCompoundStatement);
     std::cout << "=========================================================" << std::endl;
+}
+TEST(TestParser, ExpectFunctionDefinitionValid){
+    auto result = setup("BEGIN a := 1 END.", &Parser::expectFunctionDefinition);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 2);
+    result = setup("CONST c= 0; BEGIN a := 1 END.", &Parser::expectFunctionDefinition);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 3);
+    result = setup("VAR b; CONST c= 0; BEGIN a := 1 END.", &Parser::expectFunctionDefinition);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 4);
+    result = setup("PARAM width, height, depth;\nVAR volume;\nCONST density = 2400;\nBEGIN\nvolume :=width * height * depth;\nRETURN density*volume\nEND.", &Parser::expectFunctionDefinition);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 5);
 }
 
 
