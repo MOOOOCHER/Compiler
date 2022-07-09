@@ -62,7 +62,7 @@ TEST(TestParser, ExpectCompoundStatementInvalid){
     std::cout << "Testing invalid compound statement declarator:" << std::endl;
     checkInvalid("RETURN 1 END.");
     checkInvalid("BEGIN RETURN 1 .");
-    checkInvalid("CONST RETURN 1 END.");
+    checkInvalid("VAR a; RETURN 1 END.");
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectParamDeclarationValid){
@@ -132,11 +132,12 @@ TEST(TestParser, ExpectConstantDeclarationValid){
 }
 TEST(TestParser, ExpectConstantDeclarationInvalid){
     std::cout << "Testing invalid constant declaration:" << std::endl;
+    checkInvalid("CONST a;BEGIN a:=1 END.");
     checkInvalid("CONST a=1 BEGIN a:=1 END.");
     checkInvalid("CONST a 1; BEGIN a:=1 END.");
     checkInvalid("CONST a=a, b=2;BEGIN a:=1 END.");
     checkInvalid("CONST a=1 b=2;BEGIN a:=1 END.");
-    checkInvalid("CONST a=a, b=2;BEGIN a:=1 END.");
+
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectPrimaryExpressionValid){
@@ -150,17 +151,15 @@ TEST(TestParser, ExpectPrimaryExpressionValid){
 TEST(TestParser, ExpectPrimaryExpressionInvalid){
     std::cout << "Testing invalid primary expression:" << std::endl;
     checkInvalid("BEGIN RETURN END.");
-    checkInvalid("BEGIN(1234 END.");
+    checkInvalid("BEGIN RETURN (1234 END.");
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectUnaryExpressionValid){
     auto result = setup("BEGIN RETURN + identifier END.");
     EXPECT_NE(result, nullptr);
-
     result = setup("BEGIN RETURN-1234 END.");
     EXPECT_NE(result, nullptr);
-
-    result = setup("BEGIN RETURN (1234) END.");
+    result = setup("BEGIN a:= -(1234) END.");
     EXPECT_NE(result, nullptr);
 }
 TEST(TestParser, ExpectUnaryExpressionInvalid){

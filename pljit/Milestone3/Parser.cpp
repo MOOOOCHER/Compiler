@@ -105,7 +105,7 @@ std::unique_ptr<GenericNode> Parser::expectGenericNode(TokenTypes type){
     if(type == token.getType()){
         return std::make_unique<GenericNode>(token.sourceCodeReference,tokenizer.getManager(), getNodeTypeFromTokenType(type));
     }
-    printDefaultErrorMsg("error: expected"+returnCorrectGenericForErrorMsg(type));
+    printErrorMsg(token,"error: expected"+returnCorrectGenericForErrorMsg(type));
     return nullptr;
 }
 //----------------------------------------------------------------------------------------------------
@@ -122,7 +122,6 @@ std::unique_ptr<NonTerminalNode> Parser::expectFunctionDefinition(){
         if(!paramDecl){
             return nullptr;
         } else if(!tokenizer.hasNext()){
-            std::cout << "error: expected 'BEGIN'" << std::endl;
             return nullptr;
         }
         node->children.push_back(std::move(paramDecl));
@@ -134,7 +133,6 @@ std::unique_ptr<NonTerminalNode> Parser::expectFunctionDefinition(){
         if(!varDecl){
             return nullptr;
         }else if(!tokenizer.hasNext()){
-            std::cout << "error: expected 'BEGIN'" << std::endl;
             return nullptr;
         }
         node->children.push_back(std::move(varDecl));
@@ -146,14 +144,20 @@ std::unique_ptr<NonTerminalNode> Parser::expectFunctionDefinition(){
         if(!constDecl){
             return nullptr;
         }else if(!tokenizer.hasNext()){
-            std::cout << "error: expected 'BEGIN'" << std::endl;
             return nullptr;
         }
         node->children.push_back(std::move(constDecl));
         token = tokenizer.next();
     }
     if (token.getType() != TokenTypes::BEGIN){
-        printErrorMsg(token,"error: expected 'BEGIN'");
+        if(token.getType() == lexer::TokenTypes::Identifier){
+            printErrorMsg(token,"error: unknown keyword!");
+        }
+        else if(token.getType() != lexer::TokenTypes::VAR && token.getType() != lexer::TokenTypes::CONST &&  token.getType() != lexer::TokenTypes::PARAM){
+            printErrorMsg(token,"error: expected 'BEGIN'!");
+        } else {
+            printErrorMsg(token,"error: wrong order of keywords!");
+        }
         return nullptr;
     }
     backtrackToken = token;
@@ -384,7 +388,7 @@ std::unique_ptr<NonTerminalNode> Parser::expectStatement(){
 //-------------------------------------------------------------------------------------------------------------------------
 std::unique_ptr<NonTerminalNode> Parser::expectAssignmentExpression(){
     if(backtrackToken.getType() != TokenTypes::Identifier) {
-        printErrorMsg(backtrackToken,"error: expected identifier!");
+        printErrorMsg(backtrackToken,"error: expected identifier or 'RETURN' statement!");
         return nullptr;
     }
     std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::AssignmentExpression, tokenizer.getManager());
@@ -482,8 +486,10 @@ std::unique_ptr<NonTerminalNode> Parser::expectUnaryExpression(){
     if(token.getType() == lexer::TokenTypes::PlusOperator || token.getType() == lexer::TokenTypes::MinusOperator){
         node->children.push_back(std::make_unique<GenericNode>(token.sourceCodeReference, tokenizer.getManager(), getNodeTypeFromTokenType(token.getType())));
         resetBacktrackToken();
+    } else {
+        backtrackToken = token;
     }
-    backtrackToken = token;
+
     auto primaryExpr = expectPrimaryExpression();
     if(primaryExpr){
         node->children.push_back(std::move(primaryExpr));
@@ -526,7 +532,8 @@ std::unique_ptr<NonTerminalNode> Parser::expectPrimaryExpression(){
             }
             token2 = tokenizer.next();
         }
-        if(token2.getType() == lexer::TokenTypes::CloseBracket){
+        if(token2.getType() != lexer::TokenTypes::CloseBracket){
+            printErrorMsg(token2, "error: expected ')'!");
             return nullptr;
         }
         resetBacktrackToken();

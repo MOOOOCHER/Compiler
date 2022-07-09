@@ -133,5 +133,5 @@ TEST(TestLexer, ComplexLexer){
         ++iterations;
     }
     EXPECT_EQ(iterations, 7+3+5+1+8+4+2);
-
+    std::cout << "=========================================================" << std::endl;
 }
