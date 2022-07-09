@@ -437,7 +437,7 @@ std::unique_ptr<NonTerminalNode> Parser::expectAdditiveExpression(){
     }
     node->children.push_back(std::make_unique<GenericNode>(token.sourceCodeReference,tokenizer.getManager(), getNodeTypeFromTokenType(token.getType())));
     node->children.push_back(std::move(sndExpr));
-    resetBacktrackToken();
+    //resetBacktrackToken();
     return node;
 }
 std::unique_ptr<NonTerminalNode> Parser::expectMultiplicativeExpression(){
@@ -470,7 +470,6 @@ std::unique_ptr<NonTerminalNode> Parser::expectMultiplicativeExpression(){
     }
     node->children.push_back(std::make_unique<GenericNode>(token.sourceCodeReference,tokenizer.getManager(), getNodeTypeFromTokenType(token.getType())));
     node->children.push_back(std::move(sndExpr));
-    resetBacktrackToken();
     return node;
 }
 

@@ -161,11 +161,13 @@ TEST(TestParser, ExpectUnaryExpressionValid){
     EXPECT_NE(result, nullptr);
     result = setup("BEGIN a:= -(1234) END.");
     EXPECT_NE(result, nullptr);
+    result = setup("BEGIN a:= -(-(1234)) END.");
+    EXPECT_NE(result, nullptr);
 }
 TEST(TestParser, ExpectUnaryExpressionInvalid){
     checkInvalid("BEGIN RETURN -(identifier END.");
     checkInvalid("BEGIN RETURN +(1234 END.");
-    checkInvalid("BEGIN RETURN --(1234 END.");
+    checkInvalid("BEGIN RETURN --(1234) END.");
 }
 
 TEST(TestParser, ExpectAdditiveExpressionValid){
@@ -175,7 +177,7 @@ TEST(TestParser, ExpectAdditiveExpressionValid){
     EXPECT_NE(result, nullptr);
     result = setup("BEGIN RETURN a * a END.");
     EXPECT_NE(result, nullptr);
-    result = setup("BEGIN RETURN a:= a * a END.");
+    result = setup("BEGIN a:= a * a END.");
     EXPECT_NE(result, nullptr);
 }
 TEST(TestParser, ExpectAdditiveExpressionInvalid){
@@ -190,29 +192,29 @@ TEST(TestParser, ExpectAdditiveExpressionInvalid){
 }
 
 TEST(TestParser, ExpectMultiplicativeExpressionValid){
-    auto result = setup("BEGIN RETURN +a END;");
+    auto result = setup("BEGIN RETURN +a END.");
     EXPECT_NE(result, nullptr);
 
-    result = setup("BEGIN RETURN a * a * a END;");
+    result = setup("BEGIN RETURN a * a * a END.");
     EXPECT_NE(result, nullptr);
 
-    result = setup("BEGIN RETURN a * (a + a * (super))END;");
+    result = setup("BEGIN RETURN a * (a + a * (super))END.");
     EXPECT_NE(result, nullptr);
-    result = setup("BEGIN a:= +a END;");
-    EXPECT_NE(result, nullptr);
-
-    result = setup("BEGIN a:= a * a * a END;");
+    result = setup("BEGIN a:= +a END.");
     EXPECT_NE(result, nullptr);
 
-    result = setup("BEGIN a:= a * (a + a * (super))END;");
+    result = setup("BEGIN a:= a * a * a END.");
+    EXPECT_NE(result, nullptr);
+
+    result = setup("BEGIN a:= a * (a + a * (super))END.");
     EXPECT_NE(result, nullptr);
 }
 TEST(TestParser, ExpectMultiplicativeExpressionInvalid){
     std::cout << "Testing invalid multiplicative expression:" << std::endl;
-    checkInvalid("BEGIN a:= --adas END;");
-    checkInvalid("BEGIN a:= a * (a * a + (super) END;");
+    checkInvalid("BEGIN a:= --adas END.");
+    checkInvalid("BEGIN a:= a * (a * a + (super) END.");
     checkInvalid("BEGIN RETURN --adas END;");
-    checkInvalid("BEGIN RETURN a * (a * a + (super) END;");
+    checkInvalid("BEGIN RETURN a * (a * a + (super) END.");
     std::cout << "=========================================================" << std::endl;
 }
 /*
