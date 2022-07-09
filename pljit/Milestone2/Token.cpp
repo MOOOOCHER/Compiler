@@ -45,11 +45,7 @@ TokenTypes Token::getType(){
     return type;
 }
 std::string Token::getText(){
-    std::string result ="";
-    for(size_t i=0;i<textLength;i++){
-        result+= *(sourceCodeReference.getLocation()+i);
-    }
-    return result;
+    return sourceCodeReference.getText();
 }
 //Tokenizer-------------------------------------------------------------------------------------------------------------------------
 bool Tokenizer::isValidToken(std::string tokenText){
@@ -77,9 +73,9 @@ Token Tokenizer::next(const std::string_view& sourceCode) {
                 ptr = &c;
             }
             if(!isValidChar(c)){
-                auto s = SourceCodeReference(ptr,manager);
-                s.printContext("An invalid character has been used!", 1);
-                return Token(s,TokenTypes::Invalid,0);
+                auto s = SourceCodeReference(ptr,manager,1);
+                s.printContext("An invalid character has been used!");
+                return Token(s,TokenTypes::Invalid);
             } else if(!isValidToken(current+c)){   //if not valid we need to save the token with the current text;
                 break;
             }
@@ -87,86 +83,90 @@ Token Tokenizer::next(const std::string_view& sourceCode) {
             current+=c;
             switch (c) {
                 case '.':{
-                    return Token(SourceCodeReference(ptr,manager), TokenTypes::Separator,1);
+                    return Token(SourceCodeReference(ptr,manager,1), TokenTypes::Dot);
                 }
                 case ';':{
-                    return Token(SourceCodeReference(ptr,manager), TokenTypes::Separator,1);
+                    return Token(SourceCodeReference(ptr,manager,1), TokenTypes::Semicolon);
                 }
                 case ',':{
-                    return Token(SourceCodeReference(ptr,manager), TokenTypes::Separator,1);
+                    return Token(SourceCodeReference(ptr,manager,1), TokenTypes::Comma);
                 }
                 case '+':{
-                    return Token(SourceCodeReference(ptr,manager), TokenTypes::Operator,1);
+                    return Token(SourceCodeReference(ptr,manager,1), TokenTypes::PlusOperator);
                 }
                 case '-':{
-                    return Token(SourceCodeReference(ptr,manager),TokenTypes::Operator,1);
+                    return Token(SourceCodeReference(ptr,manager,1),TokenTypes::MinusOperator);
                 }
                 case '/':{
-                    return Token(SourceCodeReference(ptr,manager),TokenTypes::Operator,1);
+                    return Token(SourceCodeReference(ptr,manager,1),TokenTypes::DivOperator);
                 }
                 case '*':{
-                    return Token(SourceCodeReference(ptr,manager),TokenTypes::Operator,1);
+                    return Token(SourceCodeReference(ptr,manager,1),TokenTypes::MulOperator);
                 }
                 case ':':{
                     break;
                 }
                 case '=':{
                     if(current == ":="){
-                        return Token(SourceCodeReference(ptr,manager),TokenTypes::Operator,2);
+                        return Token(SourceCodeReference(ptr,manager,2),TokenTypes::AssignEquals);
                     } else{
-                        return Token(SourceCodeReference(ptr,manager),TokenTypes::Operator,1);
+                        return Token(SourceCodeReference(ptr,manager,1),TokenTypes::InitEquals);
                     }
                 }
                 case '(':{
-                    return Token(SourceCodeReference(ptr,manager),TokenTypes::Separator,1);
+                    return Token(SourceCodeReference(ptr,manager,1),TokenTypes::OpenBracket);
                 }
                 case ')':{
-                    return Token(SourceCodeReference(ptr,manager),TokenTypes::Separator,1);
+                    return Token(SourceCodeReference(ptr,manager,1),TokenTypes::CloseBracket);
                 }
                 default:{
                     if(isDigit(c)){
                         if(hasOnlyLetters(current)){
-                            return Token(SourceCodeReference(ptr,manager),TokenTypes::Identifier,current.size());
+                            return Token(SourceCodeReference(ptr,manager,current.size()),TokenTypes::Identifier);
                         }
                     } else if( isLetter(c)){
                         if(hasOnlyDigits(current)){
-                            return Token(SourceCodeReference(ptr,manager),TokenTypes::Literal,current.size());
+                            return Token(SourceCodeReference(ptr,manager,current.size()),TokenTypes::Literal);
                         }
                     }
                 }
             }
         } else if(!current.empty()){
-            if(current =="PARAM"||current=="VAR"||current=="CONST"||current=="BEGIN"||current=="END"||current=="RETURN"){
-                //the position of the last character of the string is the given argument (line,linePos)
-                return Token(SourceCodeReference(ptr, manager), TokenTypes::Keyword,current.size());
-            } else if(hasOnlyDigits(current)){
-                //if there are only digit it has to be a literal
-                position++;
-                return Token(SourceCodeReference(ptr, manager), TokenTypes::Literal,current.size());
-            } else{
-                position++;
-                return Token(SourceCodeReference(ptr, manager), TokenTypes::Identifier,current.size());
-            }
+           break;
         } else {
             position++;
         }
     }
     if(!current.empty()){
-        if(current =="PARAM"||current=="VAR"||current=="CONST"||current=="BEGIN"||current=="END"||current=="RETURN"){
+        if(current =="PARAM"){
             //the position of the last character of the string is the given argument (line,linePos)
-            return Token(SourceCodeReference(ptr, manager), TokenTypes::Keyword,current.size());
-        } else if(hasOnlyDigits(current)){
+            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::PARAM);
+        } else if (current=="VAR"){
+            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::VAR);
+        }
+        else if (current=="CONST"){
+            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::CONST);
+        }
+        else if (current=="BEGIN"){
+            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::BEGIN);
+        }
+        else if (current=="END"){
+            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::END);
+        }
+        else if (current=="RETURN"){
+            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::RETURN);
+        }else if(hasOnlyDigits(current)){
             //if there are only digit it has to be a literal
-            return Token(SourceCodeReference(ptr, manager), TokenTypes::Literal,current.size());
+            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::Literal);
         } else{
-            return Token(SourceCodeReference(ptr, manager), TokenTypes::Identifier,current.size());
+            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::Identifier);
         }
     }
-    auto s = SourceCodeReference(ptr,manager);
-    s.printContext("An invalid character has been used!", 1);
-    return Token(s,TokenTypes::Invalid,0);
+    auto s = SourceCodeReference(ptr,manager,1);
+    s.printContext("An invalid character has been used!");
+    return Token(s,TokenTypes::Invalid);
 }
-bool Tokenizer::hasNext(){
+bool Tokenizer::hasNext() const{
     return position<manager.source.size();
 }
 } // namespace lexer

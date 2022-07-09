@@ -9,10 +9,24 @@ using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
     enum class TokenTypes {
         Identifier,
         Literal,
-        Operator,
-        Separator,
-        Keyword,
         Invalid,
+        Dot,
+        Comma,
+        Semicolon,
+        InitEquals,
+        AssignEquals,
+        OpenBracket,
+        CloseBracket,
+        PlusOperator,
+        MinusOperator,
+        MulOperator,
+        DivOperator,
+        RETURN,
+        VAR,
+        PARAM,
+        CONST,
+        BEGIN,
+        END,
     };
 /*
  * base class for tokens
@@ -24,14 +38,13 @@ class Token{
     /*
      * constructs a "default" token pointing to the last character of the code
      */
-    explicit Token(sourceCodeManagement::SourceCodeManager& manager): sourceCodeReference(SourceCodeReference(manager)),type(TokenTypes::Invalid), textLength(0){};
-    Token(const SourceCodeReference characters, TokenTypes type, size_t textLength): sourceCodeReference(characters), type(type), textLength(textLength){};
-    Token(const Token& other): sourceCodeReference(other.sourceCodeReference), type(other.type), textLength(other.textLength){}
+    explicit Token(sourceCodeManagement::SourceCodeManager& manager): sourceCodeReference(SourceCodeReference(manager)),type(TokenTypes::Invalid){};
+    Token(const SourceCodeReference characters, TokenTypes type): sourceCodeReference(characters), type(type){};
+    Token(const Token& other): sourceCodeReference(other.sourceCodeReference), type(other.type){}
     Token operator=(const Token& other){
         if(&other != this){
             sourceCodeReference = other.sourceCodeReference;
             type = other.type;
-            textLength = other.textLength;
         }
         return *this;
     }
@@ -40,7 +53,6 @@ class Token{
     std::string getText();
     private:
     TokenTypes type;
-    size_t textLength = 0;
 };
 /*
  * class for Tokenizing the source code
@@ -62,7 +74,7 @@ class Tokenizer{
     /*
      * this function parses the next token and returns whether it is valid (only has letters or only has digits)
      */
-    bool hasNext();
+    bool hasNext() const;
     size_t getPosition(){
         return position;
     }

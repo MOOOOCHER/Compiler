@@ -21,7 +21,7 @@ namespace sourceCodeManagement{
         }
         return {};
     }
-    void SourceCodeReference::printContext(std::string_view errorMsg, size_t lengthOfString) const {
+    void SourceCodeReference::printContext(std::string_view errorMsg) const {
         std::pair<size_t,size_t> position = resolveLocation();
         //getContext
         std::cout << position.first<<":"<<position.second<<": " << errorMsg<<std::endl;
@@ -52,5 +52,12 @@ namespace sourceCodeManagement{
             len++;
         }
         std::cout << std::endl;
+    }
+    std::string SourceCodeReference::getText() {
+            std::string result;
+            for(size_t i=0;i<lengthOfString;i++){
+                result+= *(location+i);
+            }
+            return result;
     }
 } // namespace sourceCodeManagement

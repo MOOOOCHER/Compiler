@@ -26,7 +26,25 @@ using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
             AdditiveExpression,
             MultiplicativeExpression,
             UnaryExpression,
-            PrimaryExpression
+            PrimaryExpression,
+            Dot,
+            Comma,
+            Semicolon,
+            InitEquals,
+            AssignEquals,
+            OpenBracket,
+            CloseBracket,
+            PlusOperator,
+            MinusOperator,
+            MulOperator,
+            DivOperator,
+            RETURN,
+            VAR,
+            PARAM,
+            CONST,
+            BEGIN,
+            END,
+            Invalid
         };
         Types getType(){
             return type;
@@ -41,25 +59,23 @@ using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
     //Terminal Node---------------------------------------------------------------------------------------------------------------------
     template<typename T>
     class TerminalNode: public Node{
-        //for testing purposes
-        public:
-        T getInformation() { return information;}
-
         protected:
         T information;
         TerminalNode(T information, typename Node::Types type, SourceCodeManager manager): Node(type, manager), information(information){}
     };
-    class IdentifierNode: public TerminalNode<std::string>{
+    class IdentifierNode: public TerminalNode<sourceCodeManagement::SourceCodeReference>{
         public:
-        IdentifierNode(std::string information, SourceCodeManager manager): TerminalNode<std::string>(std::move(information), Node::Types::Identifier, manager){}
+        IdentifierNode(sourceCodeManagement::SourceCodeReference information, SourceCodeManager manager): TerminalNode<sourceCodeManagement::SourceCodeReference>(information, Node::Types::Identifier, manager){}
+
     };
     class LiteralNode: public TerminalNode<unsigned long>{
         public:
         LiteralNode(unsigned long information, SourceCodeManager manager): TerminalNode<unsigned long>(information, Node::Types::Literal, manager){}
+        unsigned long getInformation() { return information;}
     };
-    class GenericNode: public TerminalNode<std::string>{
+    class GenericNode: public TerminalNode<sourceCodeManagement::SourceCodeReference>{
         public:
-        GenericNode(std::string information, SourceCodeManager manager): TerminalNode<std::string>(std::move(information), Node::Types::Generic, manager){}
+        GenericNode(sourceCodeManagement::SourceCodeReference information, SourceCodeManager manager,  Types type): TerminalNode<sourceCodeManagement::SourceCodeReference>(information, type, manager){}
     };
 
     //Non-Terminal Node-----------------------------------------------------------------------------------------------------------------------

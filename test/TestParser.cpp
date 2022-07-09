@@ -50,15 +50,13 @@ TEST(TestParser, ExpectCompoundStatementValid){
     EXPECT_EQ(result->getType(), Node::Types::FunctionDefinition);
     EXPECT_EQ(result->getChildren().size(), 2);
     EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::CompoundStatement);
-    EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::Generic);
-    parser::GenericNode* genericNode = dynamic_cast<parser::GenericNode*>(result->getChildren()[1]);
-    EXPECT_EQ(genericNode->getInformation(), ".");
+    EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::Dot);
     result = setup("BEGIN RETURN 1 END.");
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->getType(), Node::Types::FunctionDefinition);
     EXPECT_EQ(result->getChildren().size(), 2);
     EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::CompoundStatement);
-    EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::Generic);
+    EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::Dot);
 }
 TEST(TestParser, ExpectCompoundStatementInvalid){
     std::cout << "Testing invalid compound statement declarator:" << std::endl;
@@ -84,7 +82,7 @@ TEST(TestParser, ExpectParamDeclarationValid){
     EXPECT_EQ(declListChild->getType(), Node::Types::DeclaratorList);
     EXPECT_EQ(declListChild->getChildren().size(), 5);
     EXPECT_EQ(declListChild->getChildren()[0]->getType(), Node::Types::Identifier);
-    EXPECT_EQ(declListChild->getChildren()[1]->getType(), Node::Types::Generic);
+    EXPECT_EQ(declListChild->getChildren()[1]->getType(), Node::Types::Comma);
 }
 TEST(TestParser, ExpectParamDeclarationInvalid){
     std::cout << "Testing invalid init parameter declarations:" << std::endl;
@@ -119,109 +117,107 @@ TEST(TestParser, ExpectConstantDeclarationValid){
     EXPECT_NE(result, nullptr);
     child = static_cast<parser::NonTerminalNode*>(result->getChildren()[0]);
     EXPECT_EQ(child->getChildren().size(), 3);
+    auto declListChild = static_cast<parser::NonTerminalNode*>(child->getChildren()[1]);
+    EXPECT_EQ(declListChild->getType(), Node::Types::InitDeclaratorList);
+    EXPECT_EQ(declListChild->getChildren().size(), 3);
+    EXPECT_EQ(declListChild->getChildren()[0]->getType(), Node::Types::InitDeclarator);
+    EXPECT_EQ(declListChild->getChildren()[1]->getType(), Node::Types::Comma);
+    EXPECT_EQ(declListChild->getChildren()[2]->getType(), Node::Types::InitDeclarator);
+    auto initDeclChild = static_cast<parser::NonTerminalNode*>(declListChild->getChildren()[0]);
+    EXPECT_EQ(initDeclChild->getType(), Node::Types::InitDeclarator);
+    EXPECT_EQ(initDeclChild->getChildren().size(), 3);
+    EXPECT_EQ(initDeclChild->getChildren()[0]->getType(), Node::Types::Identifier);
+    EXPECT_EQ(initDeclChild->getChildren()[1]->getType(), Node::Types::InitEquals);
+    EXPECT_EQ(initDeclChild->getChildren()[2]->getType(), Node::Types::Literal);
 }
 TEST(TestParser, ExpectConstantDeclarationInvalid){
+    std::cout << "Testing invalid constant declaration:" << std::endl;
     checkInvalid("CONST a=1 BEGIN a:=1 END.");
     checkInvalid("CONST a 1; BEGIN a:=1 END.");
     checkInvalid("CONST a=a, b=2;BEGIN a:=1 END.");
     checkInvalid("CONST a=1 b=2;BEGIN a:=1 END.");
     checkInvalid("CONST a=a, b=2;BEGIN a:=1 END.");
+    std::cout << "=========================================================" << std::endl;
 }
-/*
-
- TEST(TestParser, ExpectPrimaryExpressionValid){
-   auto result = setup("identifier");
-   EXPECT_NE(result, nullptr);
-   EXPECT_EQ(result->getChildren().size(), 1);
-   EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::Identifier);
-   result = setup("1234");
-   EXPECT_NE(result, nullptr);
-   EXPECT_EQ(result->getChildren().size(), 1);
-   EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::Literal);
-   result = setup("(1234)");
-   EXPECT_NE(result, nullptr);
-   EXPECT_EQ(result->getChildren().size(), 3);
-   EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::Generic);
-   EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::AdditiveExpression);
-   EXPECT_EQ(result->getChildren()[2]->getType(), Node::Types::Generic);
+TEST(TestParser, ExpectPrimaryExpressionValid){
+    auto result = setup("BEGIN RETURN identifier END.");
+    EXPECT_NE(result, nullptr);
+    result = setup("BEGIN RETURN1234 END.");
+    EXPECT_NE(result, nullptr);
+    result = setup("BEGIN RETURN (1234) END.");
+    EXPECT_NE(result, nullptr);
 }
 TEST(TestParser, ExpectPrimaryExpressionInvalid){
     std::cout << "Testing invalid primary expression:" << std::endl;
-    checkInvalid("RETURN", &Parser::expectPrimaryExpression);
-    checkInvalid("(1234", &Parser::expectPrimaryExpression);
+    checkInvalid("BEGIN RETURN END.");
+    checkInvalid("BEGIN(1234 END.");
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectUnaryExpressionValid){
-    auto result = setup("+ identifier",&Parser::expectUnaryExpression);
+    auto result = setup("BEGIN RETURN + identifier END.");
     EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->getChildren().size(), 2);
-    EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::Generic);
-    EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::PrimaryExpression);
 
-    result = setup("-1234",&Parser::expectUnaryExpression);
+    result = setup("BEGIN RETURN-1234 END.");
     EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->getChildren().size(), 2);
-    EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::Generic);
-    EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::PrimaryExpression);
 
-    result = setup("(1234)",&Parser::expectUnaryExpression);
+    result = setup("BEGIN RETURN (1234) END.");
     EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->getChildren().size(), 1);
-    EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::PrimaryExpression);
 }
 TEST(TestParser, ExpectUnaryExpressionInvalid){
-    std::cout << "Testing invalid unary expression:" << std::endl;
-    checkInvalid("+RETURN", &Parser::expectUnaryExpression);
-    checkInvalid("-(identifier", &Parser::expectUnaryExpression);
-    checkInvalid("+ (1234", &Parser::expectUnaryExpression);
-    checkInvalid("-- (1234", &Parser::expectUnaryExpression);
-    std::cout << "=========================================================" << std::endl;
+    checkInvalid("BEGIN RETURN -(identifier END.");
+    checkInvalid("BEGIN RETURN +(1234 END.");
+    checkInvalid("BEGIN RETURN --(1234 END.");
 }
-TEST(TestParser, ExpectMultiplicativeExpressionValid){
-    auto result = setup("+a",&Parser::expectMultiplicativeExpression);
-    EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->getChildren().size(), 1);
-    EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::UnaryExpression);
 
-    result = setup("a * a * a",&Parser::expectMultiplicativeExpression);
-    EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->getChildren().size(), 3);
-    EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::UnaryExpression);
-    EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::Generic);
-    EXPECT_EQ(result->getChildren()[2]->getType(), Node::Types::MultiplicativeExpression);
-
-    result = setup("a * (a + a * (super))",&Parser::expectMultiplicativeExpression);
-    EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->getChildren().size(), 3);
-    EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::UnaryExpression);
-    EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::Generic);
-    EXPECT_EQ(result->getChildren()[2]->getType(), Node::Types::MultiplicativeExpression);
-}
-TEST(TestParser, ExpectMultiplicativeExpressionInvalid){
-    std::cout << "Testing invalid multiplicative expression:" << std::endl;
-    checkInvalid("--adas", &Parser::expectMultiplicativeExpression);
-    checkInvalid("a * (a * a + (super)", &Parser::expectMultiplicativeExpression);
-    std::cout << "=========================================================" << std::endl;
-}
 TEST(TestParser, ExpectAdditiveExpressionValid){
-    auto result = setup("a + a - b",&Parser::expectAdditiveExpression);
+    auto result = setup("BEGIN RETURN a + a - b END.");
     EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->getChildren().size(), 3);
-    EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::MultiplicativeExpression);
-    EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::Generic);
-    EXPECT_EQ(result->getChildren()[2]->getType(), Node::Types::AdditiveExpression);
-    result = setup("a * a",&Parser::expectAdditiveExpression);
+    result = setup("BEGIN a:= a + a - b END.");
     EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->getChildren().size(), 1);
-    EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::MultiplicativeExpression);
+    result = setup("BEGIN RETURN a * a END.");
+    EXPECT_NE(result, nullptr);
+    result = setup("BEGIN RETURN a:= a * a END.");
+    EXPECT_NE(result, nullptr);
 }
 TEST(TestParser, ExpectAdditiveExpressionInvalid){
     std::cout << "Testing invalid additive expression:" << std::endl;
-    checkInvalid("a + a +*b",&Parser::expectAdditiveExpression);
-    checkInvalid("((a + a) -b",&Parser::expectAdditiveExpression);
-    checkInvalid("a + a * b -1234+",&Parser::expectAdditiveExpression);
+    checkInvalid("BEGIN RETURN a + a +*b END.");
+    checkInvalid("BEGIN RETURN ((a + a) -b END.");
+    checkInvalid("BEGIN RETURN a + a * b -1234+ END.");
+    checkInvalid("BEGIN a:= a + a +*b END.");
+    checkInvalid("BEGIN a:= ((a + a) -b END.");
+    checkInvalid("BEGIN a:= a + a * b -1234+ END.");
     std::cout << "=========================================================" << std::endl;
 }
+
+TEST(TestParser, ExpectMultiplicativeExpressionValid){
+    auto result = setup("BEGIN RETURN +a END;");
+    EXPECT_NE(result, nullptr);
+
+    result = setup("BEGIN RETURN a * a * a END;");
+    EXPECT_NE(result, nullptr);
+
+    result = setup("BEGIN RETURN a * (a + a * (super))END;");
+    EXPECT_NE(result, nullptr);
+    result = setup("BEGIN a:= +a END;");
+    EXPECT_NE(result, nullptr);
+
+    result = setup("BEGIN a:= a * a * a END;");
+    EXPECT_NE(result, nullptr);
+
+    result = setup("BEGIN a:= a * (a + a * (super))END;");
+    EXPECT_NE(result, nullptr);
+}
+TEST(TestParser, ExpectMultiplicativeExpressionInvalid){
+    std::cout << "Testing invalid multiplicative expression:" << std::endl;
+    checkInvalid("BEGIN a:= --adas END;");
+    checkInvalid("BEGIN a:= a * (a * a + (super) END;");
+    checkInvalid("BEGIN RETURN --adas END;");
+    checkInvalid("BEGIN RETURN a * (a * a + (super) END;");
+    std::cout << "=========================================================" << std::endl;
+}
+/*
+
 
 TEST(TestParser, ExpectAssignmentExpressionValid){
     auto result = setup("a := a * (a * a + (super))",&Parser::expectAssignmentExpression);

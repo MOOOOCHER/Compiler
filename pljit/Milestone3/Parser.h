@@ -50,7 +50,7 @@ class Parser{
 
     std::unique_ptr<LiteralNode> expectLiteralNode();
 
-    std::unique_ptr<GenericNode> expectGenericNode(const std::string& c);
+    std::unique_ptr<GenericNode> expectGenericNode(TokenTypes type);
     /*
      * this function prints error msgs for the parser
      */
