@@ -47,7 +47,7 @@ using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
 
         protected:
         T information;
-        TerminalNode(T information, typename Node::Types type, SourceCodeManager manager): Node( type, manager), information(information){}
+        TerminalNode(T information, typename Node::Types type, SourceCodeManager manager): Node(type, manager), information(information){}
     };
     class IdentifierNode: public TerminalNode<std::string>{
         public:

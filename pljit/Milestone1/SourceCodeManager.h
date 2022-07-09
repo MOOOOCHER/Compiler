@@ -6,8 +6,10 @@ namespace sourceCodeManagement{
 class SourceCodeReference;
 
 struct SourceCodeManager{
-    const std::string_view source = "";
+    std::string_view source = "";
     explicit SourceCodeManager(std::string_view source);
+    SourceCodeManager(const SourceCodeManager& other) = default;
+    SourceCodeManager& operator=(const SourceCodeManager& other)= default;
 };
 class SourceCodeReference{
     friend struct SourceCodeManager;
@@ -22,11 +24,21 @@ class SourceCodeReference{
      * This function takes an error message and the length of the marked string (if >1 then we have a range)
      */
     void printContext(std::string_view errorMsg, size_t lengthOfString) const;
+    const char* getLocation() const { return location;}
     /*
      * standard construct pointing to the last element of the code
      */
     SourceCodeReference(SourceCodeManager& manager): location(manager.source.data()+manager.source.size()-1), manager(manager){}
     SourceCodeReference(const char* location,SourceCodeManager& manager): location(location), manager(manager){}
+
+    SourceCodeReference(const SourceCodeReference& other) = default;
+    SourceCodeReference& operator=(const SourceCodeReference& other){
+        if(&other!= this){
+            location = other.location;
+            manager = other.manager;
+        }
+        return *this;
+    }
 };
 } // namespace sourceCodeManagement
 #endif //FINAL_SOURCECODEMANAGER_H
