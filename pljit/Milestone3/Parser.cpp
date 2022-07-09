@@ -1,5 +1,4 @@
 #include "Parser.h"
-#include <charconv>
 #include <iostream>
 namespace parser{
 //Helper
@@ -87,9 +86,7 @@ std::unique_ptr<LiteralNode> Parser::expectLiteralNode(){
     auto token = tokenizer.next();
     if(token.getType() == lexer::TokenTypes::Literal){
         //get number from string
-        unsigned long value;
-        std::from_chars(token.getText().data(),token.getText().data()+token.getText().size(),value);
-        return std::make_unique<LiteralNode>(value,tokenizer.getManager());
+        return std::make_unique<LiteralNode>(token.getValue(),tokenizer.getManager());
     } else {
         printErrorMsg(token, "error: a literal is expected!");
         return nullptr;
@@ -512,9 +509,7 @@ std::unique_ptr<NonTerminalNode> Parser::expectPrimaryExpression(){
         resetBacktrackToken();
         return node;
     } else if(token.getType() == TokenTypes::Literal){
-        unsigned long value;
-        std::from_chars(token.getText().data(),token.getText().data()+token.getText().size(),value);
-        node->children.push_back(std::make_unique<LiteralNode>(value,tokenizer.getManager()));
+        node->children.push_back(std::make_unique<LiteralNode>(token.getValue(),tokenizer.getManager()));
         resetBacktrackToken();
         return node;
     } else if (token.getType() == TokenTypes::OpenBracket){

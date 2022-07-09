@@ -1,4 +1,5 @@
 #include "Token.h"
+#include <charconv>
 namespace lexer{
 using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
 using SourceCodeManager=sourceCodeManagement::SourceCodeManager;
@@ -43,9 +44,6 @@ static bool isValidChar(const char& c){
 //Token-----------------------------------------------------------------------------------------------------------------------------
 TokenTypes Token::getType(){
     return type;
-}
-std::string Token::getText(){
-    return sourceCodeReference.getText();
 }
 //Tokenizer-------------------------------------------------------------------------------------------------------------------------
 bool Tokenizer::isValidToken(std::string tokenText){
@@ -126,7 +124,9 @@ Token Tokenizer::next(const std::string_view& sourceCode) {
                         }
                     } else if( isLetter(c)){
                         if(hasOnlyDigits(current)){
-                            return Token(SourceCodeReference(ptr,manager,current.size()),TokenTypes::Literal);
+                            unsigned long value;
+                            std::from_chars(current.data(),current.data()+current.size(),value);
+                            return Token(SourceCodeReference(ptr,manager,current.size()), TokenTypes::Literal, value);
                         }
                     }
                 }
@@ -157,7 +157,9 @@ Token Tokenizer::next(const std::string_view& sourceCode) {
             return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::RETURN);
         }else if(hasOnlyDigits(current)){
             //if there are only digit it has to be a literal
-            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::Literal);
+            unsigned long value;
+            std::from_chars(current.data(),current.data()+current.size(),value);
+            return Token(SourceCodeReference(ptr,manager,current.size()), TokenTypes::Literal, value);
         } else{
             return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::Identifier);
         }

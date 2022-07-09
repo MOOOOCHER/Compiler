@@ -40,19 +40,23 @@ class Token{
      */
     explicit Token(sourceCodeManagement::SourceCodeManager& manager): sourceCodeReference(SourceCodeReference(manager)),type(TokenTypes::Invalid){};
     Token(const SourceCodeReference characters, TokenTypes type): sourceCodeReference(characters), type(type){};
-    Token(const Token& other): sourceCodeReference(other.sourceCodeReference), type(other.type){}
-    Token operator=(const Token& other){
+    Token(const SourceCodeReference characters, TokenTypes type, unsigned long value): sourceCodeReference(characters), type(type), value(value){};
+
+    Token(const Token& other) = default;
+    Token& operator=(const Token& other){
         if(&other != this){
             sourceCodeReference = other.sourceCodeReference;
             type = other.type;
+            value = other.value;
         }
         return *this;
     }
 
     TokenTypes getType();
-    std::string getText();
+    unsigned long getValue() const{ return value;}
     private:
     TokenTypes type;
+    unsigned long value = 0;
 };
 /*
  * class for Tokenizing the source code
@@ -75,7 +79,7 @@ class Tokenizer{
      * this function parses the next token and returns whether it is valid (only has letters or only has digits)
      */
     bool hasNext() const;
-    size_t getPosition(){
+    size_t getPosition() const{
         return position;
     }
     sourceCodeManagement::SourceCodeManager& getManager(){
