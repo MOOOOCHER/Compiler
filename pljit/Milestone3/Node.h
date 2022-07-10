@@ -6,12 +6,13 @@
 #include "../Milestone1/SourceCodeManager.h"
 namespace parser{
 using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
+class ParseTreeVisitor;
+class ParseTreePrintVisitor;
     class Node{
         public:
         enum Types{
             Identifier,
             Literal,
-            Generic,
             FunctionDefinition,
             ParameterDeclaration,
             VariableDeclaration,
@@ -46,10 +47,11 @@ using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
             END,
             Invalid
         };
-        Types getType(){
+        Types getType() const{
             return type;
         };
         virtual ~Node() = default;
+        virtual void accept(ParseTreeVisitor& visitor) const = 0;
         protected:
         Types type;
         sourceCodeManagement::SourceCodeManager sourceCodeManager;
@@ -57,25 +59,35 @@ using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
     };
 
     //Terminal Node---------------------------------------------------------------------------------------------------------------------
-    template<typename T>
     class TerminalNode: public Node{
         protected:
-        T information;
-        TerminalNode(T information, typename Node::Types type, SourceCodeManager manager): Node(type, manager), information(information){}
+        sourceCodeManagement::SourceCodeReference sourceCodeReference;
+        TerminalNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, typename Node::Types type, SourceCodeManager manager): Node(type, manager), sourceCodeReference(sourceCodeReference){}
     };
-    class IdentifierNode: public TerminalNode<sourceCodeManagement::SourceCodeReference>{
+    class IdentifierNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        std::string getText() const{
+            return sourceCodeReference.getText();
+        }
         public:
-        IdentifierNode(sourceCodeManagement::SourceCodeReference information, SourceCodeManager manager): TerminalNode<sourceCodeManagement::SourceCodeReference>(information, Node::Types::Identifier, manager){}
-
+        IdentifierNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, SourceCodeManager manager): TerminalNode(sourceCodeReference, Node::Types::Identifier, manager){}
+        void accept(ParseTreeVisitor& visitor) const override;
     };
-    class LiteralNode: public TerminalNode<unsigned long>{
+    class LiteralNode: public TerminalNode{
+        unsigned long value;
         public:
-        LiteralNode(unsigned long information, SourceCodeManager manager): TerminalNode<unsigned long>(information, Node::Types::Literal, manager){}
-        unsigned long getInformation() { return information;}
+        LiteralNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, SourceCodeManager manager, unsigned long value): TerminalNode(sourceCodeReference, Node::Types::Literal, manager), value(value){}
+        unsigned long getValue() const{ return value;}
+        void accept(ParseTreeVisitor& visitor) const override;
     };
-    class GenericNode: public TerminalNode<sourceCodeManagement::SourceCodeReference>{
+    class GenericNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        std::string getText() const{
+           return sourceCodeReference.getText();
+        }
         public:
-        GenericNode(sourceCodeManagement::SourceCodeReference information, SourceCodeManager manager,  Types type): TerminalNode<sourceCodeManagement::SourceCodeReference>(information, type, manager){}
+        GenericNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, SourceCodeManager manager,  Types type): TerminalNode(sourceCodeReference, type, manager){}
+        void accept(ParseTreeVisitor& visitor) const override;
     };
 
     //Non-Terminal Node-----------------------------------------------------------------------------------------------------------------------
@@ -85,13 +97,14 @@ using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
 
         public:
         NonTerminalNode(typename Node::Types type, SourceCodeManager manager): Node(type, manager) {}
-        std::vector<Node*> getChildren(){
+        std::vector<Node*> getChildren() const{
             std::vector<Node*> vec;
             for(auto& child: children){
                 vec.push_back(child.get());
             }
             return vec;
         }//only for testing
+        void accept(ParseTreeVisitor& visitor) const override;
     };
 } // namespace parser
 #endif //PLJIT_NODE_H

@@ -73,7 +73,7 @@ Token Tokenizer::next(const std::string_view& sourceCode) {
             if(!isValidChar(c)){
                 auto s = SourceCodeReference(ptr,manager,1);
                 s.printContext("An invalid character has been used!");
-                return Token(s,TokenTypes::Invalid);
+                return {s,TokenTypes::Invalid};
             } else if(!isValidToken(current+c)){   //if not valid we need to save the token with the current text;
                 break;
             }
@@ -81,52 +81,52 @@ Token Tokenizer::next(const std::string_view& sourceCode) {
             current+=c;
             switch (c) {
                 case '.':{
-                    return Token(SourceCodeReference(ptr,manager,1), TokenTypes::Dot);
+                    return {SourceCodeReference(ptr,manager,1), TokenTypes::Dot};
                 }
                 case ';':{
-                    return Token(SourceCodeReference(ptr,manager,1), TokenTypes::Semicolon);
+                    return {SourceCodeReference(ptr,manager,1), TokenTypes::Semicolon};
                 }
                 case ',':{
-                    return Token(SourceCodeReference(ptr,manager,1), TokenTypes::Comma);
+                    return {SourceCodeReference(ptr,manager,1), TokenTypes::Comma};
                 }
                 case '+':{
-                    return Token(SourceCodeReference(ptr,manager,1), TokenTypes::PlusOperator);
+                    return {SourceCodeReference(ptr,manager,1), TokenTypes::PlusOperator};
                 }
                 case '-':{
-                    return Token(SourceCodeReference(ptr,manager,1),TokenTypes::MinusOperator);
+                    return {SourceCodeReference(ptr,manager,1),TokenTypes::MinusOperator};
                 }
                 case '/':{
-                    return Token(SourceCodeReference(ptr,manager,1),TokenTypes::DivOperator);
+                    return {SourceCodeReference(ptr,manager,1),TokenTypes::DivOperator};
                 }
                 case '*':{
-                    return Token(SourceCodeReference(ptr,manager,1),TokenTypes::MulOperator);
+                    return {SourceCodeReference(ptr,manager,1),TokenTypes::MulOperator};
                 }
                 case ':':{
                     break;
                 }
                 case '=':{
                     if(current == ":="){
-                        return Token(SourceCodeReference(ptr,manager,2),TokenTypes::AssignEquals);
+                        return {SourceCodeReference(ptr,manager,2),TokenTypes::AssignEquals};
                     } else{
-                        return Token(SourceCodeReference(ptr,manager,1),TokenTypes::InitEquals);
+                        return {SourceCodeReference(ptr,manager,1),TokenTypes::InitEquals};
                     }
                 }
                 case '(':{
-                    return Token(SourceCodeReference(ptr,manager,1),TokenTypes::OpenBracket);
+                    return {SourceCodeReference(ptr,manager,1),TokenTypes::OpenBracket};
                 }
                 case ')':{
-                    return Token(SourceCodeReference(ptr,manager,1),TokenTypes::CloseBracket);
+                    return {SourceCodeReference(ptr, manager, 1), TokenTypes::CloseBracket};
                 }
                 default:{
                     if(isDigit(c)){
                         if(hasOnlyLetters(current)){
-                            return Token(SourceCodeReference(ptr,manager,current.size()),TokenTypes::Identifier);
+                            return {SourceCodeReference(ptr, manager, current.size()), TokenTypes::Identifier};
                         }
                     } else if( isLetter(c)){
                         if(hasOnlyDigits(current)){
                             unsigned long value;
                             std::from_chars(current.data(),current.data()+current.size(),value);
-                            return Token(SourceCodeReference(ptr,manager,current.size()), TokenTypes::Literal, value);
+                            return {SourceCodeReference(ptr, manager, current.size()), TokenTypes::Literal, value};
                         }
                     }
                 }
@@ -140,33 +140,33 @@ Token Tokenizer::next(const std::string_view& sourceCode) {
     if(!current.empty()){
         if(current =="PARAM"){
             //the position of the last character of the string is the given argument (line,linePos)
-            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::PARAM);
+            return {SourceCodeReference(ptr, manager, current.size()), TokenTypes::PARAM};
         } else if (current=="VAR"){
-            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::VAR);
+            return {SourceCodeReference(ptr, manager, current.size()), TokenTypes::VAR};
         }
         else if (current=="CONST"){
-            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::CONST);
+            return {SourceCodeReference(ptr, manager, current.size()), TokenTypes::CONST};
         }
         else if (current=="BEGIN"){
-            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::BEGIN);
+            return {SourceCodeReference(ptr, manager, current.size()), TokenTypes::BEGIN};
         }
         else if (current=="END"){
-            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::END);
+            return {SourceCodeReference(ptr, manager, current.size()), TokenTypes::END};
         }
         else if (current=="RETURN"){
-            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::RETURN);
+            return {SourceCodeReference(ptr, manager, current.size()), TokenTypes::RETURN};
         }else if(hasOnlyDigits(current)){
             //if there are only digit it has to be a literal
             unsigned long value;
             std::from_chars(current.data(),current.data()+current.size(),value);
-            return Token(SourceCodeReference(ptr,manager,current.size()), TokenTypes::Literal, value);
+            return {SourceCodeReference(ptr, manager, current.size()), TokenTypes::Literal, value};
         } else{
-            return Token(SourceCodeReference(ptr, manager,current.size()), TokenTypes::Identifier);
+            return {SourceCodeReference(ptr, manager, current.size()), TokenTypes::Identifier};
         }
     }
     auto s = SourceCodeReference(ptr,manager,1);
     s.printContext("An invalid character has been used!");
-    return Token(s,TokenTypes::Invalid);
+    return {s, TokenTypes::Invalid};
 }
 bool Tokenizer::hasNext() const{
     return position<manager.source.size();

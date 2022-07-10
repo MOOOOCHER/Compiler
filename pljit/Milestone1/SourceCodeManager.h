@@ -25,7 +25,7 @@ class SourceCodeReference{
      * This function takes an error message and the length of the marked string (if >1 then we have a range)
      */
     void printContext(std::string_view errorMsg) const;
-    std::string getText();
+    std::string getText() const;
     /*
      * standard construct pointing to the last element of the code
      */

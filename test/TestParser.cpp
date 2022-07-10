@@ -2,6 +2,7 @@
 #include "pljit/Milestone2/Token.h"
 #include "pljit/Milestone3/Parser.h"
 #include "pljit/Milestone3/Node.h"
+#include "pljit/Milestone3/ParseTreePrintVisitor.h"
 #include <gtest/gtest.h>
 #include <iostream>
 
@@ -217,80 +218,43 @@ TEST(TestParser, ExpectMultiplicativeExpressionInvalid){
     checkInvalid("BEGIN RETURN a * (a * a + (super) END.");
     std::cout << "=========================================================" << std::endl;
 }
-/*
-
 
 TEST(TestParser, ExpectAssignmentExpressionValid){
-    auto result = setup("a := a * (a * a + (super))",&Parser::expectAssignmentExpression);
+    auto result = setup("BEGIN a := a * (a * a + (super)) END.");
     EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->getChildren().size(), 3);
-    EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::Identifier);
-    EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::Generic);
-    EXPECT_EQ(result->getChildren()[2]->getType(), Node::Types::AdditiveExpression);
-    result = setup("a := 1234",&Parser::expectAssignmentExpression);
-    EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->getChildren().size(), 3);
-    EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::Identifier);
-    EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::Generic);
-    EXPECT_EQ(result->getChildren()[2]->getType(), Node::Types::AdditiveExpression);
 }
 TEST(TestParser, ExpectAssignmentExpressionInvalid){
     std::cout << "Testing invalid assignment expression:" << std::endl;
-    checkInvalid(" a := --adas", &Parser::expectAssignmentExpression);
-    checkInvalid("a := a * (a * a + (super)", &Parser::expectAssignmentExpression);
-    checkInvalid(" a = 1", &Parser::expectAssignmentExpression);
-    checkInvalid("1234 := a * (a * a + (super))", &Parser::expectAssignmentExpression);
-    std::cout << "=========================================================" << std::endl;
-}
-TEST(TestParser, ExpectStatementValid){
-    auto result = setup("a := 1",&Parser::expectStatement);
-    EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->getChildren().size(), 1);
-    EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::AssignmentExpression);
-    result = setup("RETURN (a+b * 2/(123+4))",&Parser::expectStatement);
-    EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->getChildren().size(), 2);
-    EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::Generic);
-    EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::AdditiveExpression);
-}
-TEST(TestParser, ExpectStatementInvalid){
-    std::cout << "Testing invalid statement:" << std::endl;
-    checkInvalid(" a := --adas", &Parser::expectStatement);
-    checkInvalid("a := a * (a * a + (super)", &Parser::expectStatement);
-    checkInvalid(" RETURN a + a +*b", &Parser::expectStatement);
-    checkInvalid(" BEGIN a + a +*b", &Parser::expectStatement);
+    checkInvalid("BEGIN a := --adas END.");
+    checkInvalid("BEGIN a := a * (a * a + (super) END.");
+    checkInvalid("BEGIN a = 1 END.");
+    checkInvalid("BEGIN 1234 := a * (a * a + (super)) END.");
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectStatementListValid){
-    checkStatementList("a := 1", 1);
-    checkStatementList("RETURN (a+b * 2/(123+4))", 1);
-    checkStatementList("a := 1; RETURN (a+b * 2/(123+4))", 3);
-    checkStatementList("a := 1; a := 1; RETURN (a+b * 2/(123+4))", 5);
+    auto result = setup("BEGIN RETURN (a+b * 2/(123+4)) END.");
+    EXPECT_NE(result, nullptr);
+    result = setup("BEGIN a:= 1; RETURN (a+b * 2/(123+4)) END.");
+    EXPECT_NE(result, nullptr);
+    result = setup("BEGIN a := 1; a := 1; RETURN (a+b * 2/(123+4))END.");
+    EXPECT_NE(result, nullptr);
 }
 TEST(TestParser, ExpectStatementListInvalid){
     std::cout << "Testing invalid statement:" << std::endl;
-    checkInvalid(" a = 1", &Parser::expectStatementList);
-    checkInvalid("a := 1;", &Parser::expectStatementList);
-    checkInvalid(" a := 1; a := 1;", &Parser::expectStatementList);
-    checkInvalid(" a := 1, a := 1", &Parser::expectStatementList);
-    checkInvalid(" a := 1 a := 1", &Parser::expectStatementList);
-    checkInvalid(" a := 1 RETURN a", &Parser::expectStatementList);
+    checkInvalid("BEGIN a = 1 END.");
+    checkInvalid("BEGIN a := 1; END.");
+    checkInvalid("BEGIN a := 1; a := 1; END.");
+    checkInvalid("BEGIN a := 1, a := 1 END.");
+    checkInvalid("BEGIN a := 1 a := 1 END.");
+    checkInvalid("BEGIN a := 1 RETURN a END.");
     std::cout << "=========================================================" << std::endl;
 }
-TEST(TestParser, ExpectFunctionDefinitionValid){
-    auto result = setup("BEGIN a := 1 END.", &Parser::expectFunctionDefinition);
-    EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->getChildren().size(), 2);
-    result = setup("CONST c= 0; BEGIN a := 1 END.", &Parser::expectFunctionDefinition);
-    EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->getChildren().size(), 3);
-    result = setup("VAR b; CONST c= 0; BEGIN a := 1 END.", &Parser::expectFunctionDefinition);
-    EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->getChildren().size(), 4);
-    result = setup("PARAM width, height, depth;\nVAR volume;\nCONST density = 2400;\nBEGIN\nvolume :=width * height * depth;\nRETURN density*volume\nEND.", &Parser::expectFunctionDefinition);
+TEST(TestParser, ExpectComplexFunctionDefinitionValid){
+    auto result = setup("PARAM width, height, depth;\nVAR volume;\nCONST density = 2400;\nBEGIN\nvolume :=width * height * depth;\nRETURN density*volume\nEND.");
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->getChildren().size(), 5);
+    auto visitor = parser::ParseTreePrintVisitor();
+    visitor.printTree(*result);
 }
-*/
 
 

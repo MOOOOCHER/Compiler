@@ -53,7 +53,7 @@ namespace sourceCodeManagement{
         }
         std::cout << std::endl;
     }
-    std::string SourceCodeReference::getText() {
+    std::string SourceCodeReference::getText() const {
             std::string result;
             for(size_t i=0;i<lengthOfString;i++){
                 result+= *(location+i);

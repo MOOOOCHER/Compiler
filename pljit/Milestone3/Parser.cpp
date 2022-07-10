@@ -86,7 +86,7 @@ std::unique_ptr<LiteralNode> Parser::expectLiteralNode(){
     auto token = tokenizer.next();
     if(token.getType() == lexer::TokenTypes::Literal){
         //get number from string
-        return std::make_unique<LiteralNode>(token.getValue(),tokenizer.getManager());
+        return std::make_unique<LiteralNode>(token.sourceCodeReference,tokenizer.getManager(),token.getValue());
     } else {
         printErrorMsg(token, "error: a literal is expected!");
         return nullptr;
@@ -337,7 +337,7 @@ std::unique_ptr<NonTerminalNode> Parser::expectStatementList(){
             } else if(separator.getType() == lexer::TokenTypes::END){
                 backtrackToken = separator;
                 return node;
-            } else if(separator.getType()==TokenTypes::Semicolon){
+            } else if(separator.getType()!=TokenTypes::Semicolon){
                 //in case of other separators
                 printErrorMsg(separator,"error: expected ';'");
                 return nullptr;
@@ -509,7 +509,7 @@ std::unique_ptr<NonTerminalNode> Parser::expectPrimaryExpression(){
         resetBacktrackToken();
         return node;
     } else if(token.getType() == TokenTypes::Literal){
-        node->children.push_back(std::make_unique<LiteralNode>(token.getValue(),tokenizer.getManager()));
+        node->children.push_back(std::make_unique<LiteralNode>(token.sourceCodeReference,tokenizer.getManager(),token.getValue()));
         resetBacktrackToken();
         return node;
     } else if (token.getType() == TokenTypes::OpenBracket){
