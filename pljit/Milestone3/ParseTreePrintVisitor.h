@@ -3,6 +3,7 @@
 #include "ParseTreeVisitor.h"
 namespace parser{
     class ParseTreePrintVisitor: public ParseTreeVisitor{
+        size_t index = 0;
         public:
         void visit(const NonTerminalNode& node)override;
         void visit(const GenericNode& node) override;

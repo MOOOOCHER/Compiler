@@ -234,6 +234,8 @@ TEST(TestParser, ExpectAssignmentExpressionInvalid){
 TEST(TestParser, ExpectStatementListValid){
     auto result = setup("BEGIN RETURN (a+b * 2/(123+4)) END.");
     EXPECT_NE(result, nullptr);
+    auto visitor = parser::ParseTreePrintVisitor();
+    visitor.printTree(*result);
     result = setup("BEGIN a:= 1; RETURN (a+b * 2/(123+4)) END.");
     EXPECT_NE(result, nullptr);
     result = setup("BEGIN a := 1; a := 1; RETURN (a+b * 2/(123+4))END.");
@@ -253,8 +255,8 @@ TEST(TestParser, ExpectComplexFunctionDefinitionValid){
     auto result = setup("PARAM width, height, depth;\nVAR volume;\nCONST density = 2400;\nBEGIN\nvolume :=width * height * depth;\nRETURN density*volume\nEND.");
     EXPECT_NE(result, nullptr);
     EXPECT_EQ(result->getChildren().size(), 5);
-    auto visitor = parser::ParseTreePrintVisitor();
-    visitor.printTree(*result);
+    //auto visitor = parser::ParseTreePrintVisitor();
+    //visitor.printTree(*result);
 }
 
 
