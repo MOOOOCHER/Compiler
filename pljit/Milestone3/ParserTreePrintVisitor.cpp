@@ -44,7 +44,8 @@ static std::string convertTypeToString(Node::Types type){
 void ParseTreePrintVisitor::visit(const NonTerminalNode& node) {
     size_t currentIndex = index;
     for(auto child: node.getChildren()){
-        std::cout << "\t" << convertTypeToString(node.getType())<<currentIndex << " -> " << convertTypeToString(child->getType())<<index+1 << ";" << std::endl;
+        std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(child->getType())<< "\"];" << std::endl;
+        std::cout << "\t" << currentIndex << " -> " << index+1 << ";" << std::endl;
         ++index;
         child->accept(*this);
     }
@@ -52,13 +53,18 @@ void ParseTreePrintVisitor::visit(const NonTerminalNode& node) {
 void ParseTreePrintVisitor::visit(const GenericNode&) {
 }
 void ParseTreePrintVisitor::visit(const LiteralNode& node) {
-    std::cout << "\t" << convertTypeToString(node.getType())<<index << " -> " << node.getValue() << ";" << std::endl;
+    std::cout << "\t" << index+1 << " [label=\"" << node.getValue()<< "\"];" << std::endl;
+    std::cout << "\t" << index << " -> " << index+1 << ";" << std::endl;
+    index++;
 }
 void ParseTreePrintVisitor::visit(const IdentifierNode& node) {
-    std::cout << "\t" << convertTypeToString(node.getType())<<index << " -> " << node.getText() << ";" << std::endl;
+    std::cout << "\t" << index+1 << " [label=\"" << node.getText()<< "\"];" << std::endl;
+    std::cout << "\t" << index << " -> " << index+1 << ";" << std::endl;
+    index++;;
 }
 void ParseTreePrintVisitor::printTree(const Node& node){
     std::cout << "digraph {" << std::endl;
+    std::cout << "\t" << index << " [label=\"" << convertTypeToString(node.getType())<< "\"];" << std::endl;
     node.accept(*this);
     std::cout << "}" << std::endl;
 }
