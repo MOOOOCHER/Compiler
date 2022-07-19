@@ -8,8 +8,11 @@ class SourceCodeReference;
 struct SourceCodeManager{
     std::string_view source = "";
     explicit SourceCodeManager(std::string_view source);
+
     SourceCodeManager(const SourceCodeManager& other) = default;
     SourceCodeManager& operator=(const SourceCodeManager& other)= default;
+    public:
+    SourceCodeManager() = default;
 };
 class SourceCodeReference{
     friend struct SourceCodeManager;

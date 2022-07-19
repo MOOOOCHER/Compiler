@@ -63,6 +63,10 @@ class ParseTreePrintVisitor;
         protected:
         sourceCodeManagement::SourceCodeReference sourceCodeReference;
         TerminalNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, typename Node::Types type, SourceCodeManager manager): Node(type, manager), sourceCodeReference(sourceCodeReference){}
+        public:
+        sourceCodeManagement::SourceCodeReference getReference(){
+            return sourceCodeReference;
+        }
     };
     class IdentifierNode: public TerminalNode{
         friend class ParseTreePrintVisitor;
@@ -94,7 +98,6 @@ class ParseTreePrintVisitor;
     class NonTerminalNode: public Node{
         friend class Parser;
         std::vector<std::unique_ptr<Node>> children;
-
         public:
         NonTerminalNode(typename Node::Types type, SourceCodeManager manager): Node(type, manager) {}
         std::vector<Node*> getChildren() const{

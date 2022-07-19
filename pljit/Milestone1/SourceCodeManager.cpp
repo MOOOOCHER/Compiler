@@ -22,6 +22,10 @@ namespace sourceCodeManagement{
         return {};
     }
     void SourceCodeReference::printContext(std::string_view errorMsg) const {
+        if(manager.source == "") {
+            std::cout << 0<<":"<<0<<": " << errorMsg<<std::endl;
+            return;
+        }
         std::pair<size_t,size_t> position = resolveLocation();
         //getContext
         std::cout << position.first<<":"<<position.second<<": " << errorMsg<<std::endl;

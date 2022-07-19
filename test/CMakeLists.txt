@@ -1,6 +1,6 @@
 set(TEST_SOURCES
     # add your source files here
-    Tester.cpp TestLexer.cpp TestParser.cpp)
+    Tester.cpp TestLexer.cpp TestParser.cpp TestSemantic.cpp)
 
 add_executable(tester ${TEST_SOURCES})
 target_link_libraries(tester PUBLIC

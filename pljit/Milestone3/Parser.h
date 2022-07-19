@@ -20,7 +20,6 @@ class Parser{
      * If there is a parsing error(e.g. a component is not found), a nullptr is returned
      */
     std::unique_ptr<NonTerminalNode> expectFunctionDefinition();
-
     private:
     std::unique_ptr<NonTerminalNode> expectParameterDeclaration();
     std::unique_ptr<NonTerminalNode> expectVariableDeclaration();
