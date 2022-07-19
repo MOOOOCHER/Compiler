@@ -154,7 +154,7 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
         } else {
             auto operatorType = parseNode.getChildren()[1]->getType();
             parser::NonTerminalNode* firstExpr = static_cast<parser::NonTerminalNode*>(parseNode.getChildren()[0]);
-            parser::NonTerminalNode* sndExpr = static_cast<parser::NonTerminalNode*>(parseNode.getChildren()[0]);
+            parser::NonTerminalNode* sndExpr = static_cast<parser::NonTerminalNode*>(parseNode.getChildren()[2]);
             auto astFirstExpr = analyzeExpression(*firstExpr);
             auto astSndExpr = analyzeExpression(*sndExpr);
             if(!astFirstExpr || !astSndExpr) return nullptr;

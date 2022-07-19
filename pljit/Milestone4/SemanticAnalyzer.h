@@ -18,6 +18,7 @@ class SemanticAnalyzer {
     public:
     std::unique_ptr<ASTFunctionNode> analyzeFunction(parser::NonTerminalNode& parseNode);
     SemanticAnalyzer(): table(ASTSymbolTable()){}
+    //TODO: If there is no initialization of param and const
 };
 }//semantic
 #endif //PLJIT_SEMANTICANALYZER_H

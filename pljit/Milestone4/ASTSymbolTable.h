@@ -31,12 +31,21 @@ class ASTSymbolTable {
         ASTSymbolWrappedEntry(ASTSymbolEntry entry, std::unique_ptr<ASTSymbolWrappedEntry> next): entry(std::move(entry)), next(std::move(next)){}
     };
     std::vector<std::unique_ptr<ASTSymbolWrappedEntry>> buckets;
+    size_t sizeOfTable = 0;
     ASTSymbolTable();
     ~ASTSymbolTable();
     /*
-     * this function computes the Hashfunction  TODO: change hashfunction, so that we can rehash
+     * this function computes the Hashfunction
      */
     size_t computeHash(std::string_view node);
+    /*
+     * this function rehashes the table
+     */
+    void rehash();
+    /*
+     * this function initializes the buckets
+     */
+    void initBuckets(size_t size);
     /*
      * inserts a node into the hashtable
      */

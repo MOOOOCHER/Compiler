@@ -3,10 +3,13 @@
 namespace semantic {
     //helper function for hashing
     //One bucket for every Letter
-    ASTSymbolTable::ASTSymbolTable(){
-        for(size_t i=0;i<27;i++){
+    void ASTSymbolTable::initBuckets(size_t size){
+        for(size_t i=0;i<size;i++){
             buckets.push_back(nullptr);
         }
+    }
+    ASTSymbolTable::ASTSymbolTable(){
+        initBuckets(10);
     }
     ASTSymbolTable::~ASTSymbolTable(){
         for(auto& bucket: buckets){
@@ -16,7 +19,22 @@ namespace semantic {
             }
         }
     }
+    void ASTSymbolTable::rehash() {
+        std::vector<std::unique_ptr<ASTSymbolWrappedEntry>> oldBuckets = std::move(buckets);
+        std::vector<std::unique_ptr<ASTSymbolWrappedEntry>> newBuckets;
+        buckets = std::move(newBuckets);
+        initBuckets(2*oldBuckets.size());
 
+        for(auto& current: oldBuckets){
+            while(current != nullptr){
+                size_t index = computeHash(current->entry.name);
+                std::unique_ptr<ASTSymbolWrappedEntry> next = std::move(current->next);
+                current->next = std::move(std::move(buckets[index]));
+                buckets[index] = std::move(current);
+                current = std::move(next);
+            }
+        }
+    }
     size_t ASTSymbolTable::computeHash(std::string_view node){
         size_t result = 0;
         size_t factor = 1;
@@ -28,12 +46,17 @@ namespace semantic {
     }
 
     void ASTSymbolTable::insert(ASTSymbolEntry entry){
+        ++sizeOfTable;
+        if(static_cast<double>(sizeOfTable)/ static_cast<double>(buckets.size())>0.5){
+            rehash();
+        }
         size_t index = computeHash(entry.name);
         ASTSymbolWrappedEntry* indexBucket = buckets[index].get();
         while(indexBucket != nullptr){
             indexBucket = indexBucket->next.get();
         }
         buckets[index] = std::make_unique<ASTSymbolWrappedEntry>(entry, std::move(buckets[index]));
+
     }
     void ASTSymbolTable::insert(ASTNode::ASTNodeType identifierType, SourceCodeReference sourceCodeReference){
         insert(ASTSymbolEntry(identifierType,sourceCodeReference));
