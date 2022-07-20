@@ -86,9 +86,6 @@ class ParseTreePrintVisitor;
     };
     class GenericNode: public TerminalNode{
         friend class ParseTreePrintVisitor;
-        std::string getText() const{
-           return sourceCodeReference.getText();
-        }
         public:
         GenericNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, SourceCodeManager manager,  Types type): TerminalNode(sourceCodeReference, type, manager){}
         void accept(ParseTreeVisitor& visitor) const override;

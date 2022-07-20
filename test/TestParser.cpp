@@ -138,7 +138,6 @@ TEST(TestParser, ExpectConstantDeclarationInvalid){
     checkInvalid("CONST a 1; BEGIN a:=1 END.");
     checkInvalid("CONST a=a, b=2;BEGIN a:=1 END.");
     checkInvalid("CONST a=1 b=2;BEGIN a:=1 END.");
-
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectPrimaryExpressionValid){
@@ -166,9 +165,11 @@ TEST(TestParser, ExpectUnaryExpressionValid){
     EXPECT_NE(result, nullptr);
 }
 TEST(TestParser, ExpectUnaryExpressionInvalid){
+    std::cout << "Testing invalid unary expression:" << std::endl;
     checkInvalid("BEGIN RETURN -(identifier END.");
     checkInvalid("BEGIN RETURN +(1234 END.");
     checkInvalid("BEGIN RETURN --(1234) END.");
+    std::cout << "=========================================================" << std::endl;
 }
 
 TEST(TestParser, ExpectAdditiveExpressionValid){
@@ -234,8 +235,6 @@ TEST(TestParser, ExpectAssignmentExpressionInvalid){
 TEST(TestParser, ExpectStatementListValid){
     auto result = setup("BEGIN RETURN (a+b * 2/(123+4)) END.");
     EXPECT_NE(result, nullptr);
-    auto visitor = parser::ParseTreePrintVisitor();
-    visitor.printTree(*result);
     result = setup("BEGIN a:= 1; RETURN (a+b * 2/(123+4)) END.");
     EXPECT_NE(result, nullptr);
     result = setup("BEGIN a := 1; a := 1; RETURN (a+b * 2/(123+4))END.");

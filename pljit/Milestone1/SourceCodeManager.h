@@ -15,7 +15,6 @@ struct SourceCodeManager{
     SourceCodeManager() = default;
 };
 class SourceCodeReference{
-    friend struct SourceCodeManager;
     const char* location;
     SourceCodeManager& manager;
     size_t lengthOfString = 0;

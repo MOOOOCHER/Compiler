@@ -42,8 +42,6 @@ class Parser{
     /*
      * The following three functions parse terminal symbols.
      * If there is a parsing error(e.g. a component is not found), a nullptr is returned
-     * PARAM:
-     * optional: is this an optional check, if so we don't need to print error messages
      */
     std::unique_ptr<IdentifierNode> expectIdentifierNode();
 
@@ -59,38 +57,30 @@ class Parser{
      */
     void printDefaultErrorMsg(std::string_view msg);
     /*
-     * this function refactors grammar productions of this form, identifier{"," identifier}
-     * PARAM
-     * currentPos: current position within the token stream (which token we currently evaluate)
-     * tokens: token stream
-     * func*: the function pointer for the expectFunction mentioned above (e.g. identifier for declarator-list)
+     * this function refactors grammar productions of this form, identifier{"," identifier} for declaratorList and InitDeclaratorList
+     * PARAM:
+     * func*: the function pointer for the expectFunction, that gets the elements of the list, mentioned above (e.g. identifier for declarator-list)
      * NodeType: the NodeType for the returned NonTerminalNode
-     * tokenType: the type for the token in the stream, which we need to check for invalid inputs (e.g. identifier identifier for declarator list)
-     * separatorType: type of the separator between the elements of the list, e.g. "," or ";"
       */
-    //std::unique_ptr<NonTerminalNode> refactorList(auto (Parser::*func)(), Node::Types nodeType, lexer::TokenTypes tokenType,const std::string& separatorType);
-    /*
-     * this function refactors grammar productions of this form, identifier assignmentOperator (literal | additive-expression)
-     * PARAM
-     * currentPos: current position within the token stream (which token we currently evaluate)
-     * tokens: token stream
-     * func*: the function pointer for the expectFunction mentioned above (e.g. identifier for declarator-list)
-     * NodeType: the NodeType for the returned NonTerminalNode
-     * separatorType: type of the assignment between the elements of the list, e.g. "=" or ":="
-      */
-    //std::unique_ptr<NonTerminalNode> refactorAssignmentInit(auto (Parser::*func)(), Node::Types nodeType, const std::string& assignmentType);
+    std::unique_ptr<NonTerminalNode> refactorDeclList(auto (Parser::*func)(), Node::Types nodeType);
+
     /*
      * this function refactors grammar for parameter/variable/constant declarations
-     * PARAM
-     * currentPos: current position within the token stream (which token we currently evaluate)
-     * tokens: token stream
+     * PARAM:
      * func*: the function pointer for the expectFunction mentioned above (e.g. identifier for declarator-list)
      * NodeType: the NodeType for the returned NonTerminalNode
      * keywordType: type of the keyword that starts this expression,e.g. "PARAM", "BEGIN"
      * endingKeyword:type of the keyword that ends this expression,e.g. ";", "END"
       */
-    //std::unique_ptr<NonTerminalNode> refactorDeclaration(auto (Parser::*func)(), Node::Types nodeType, const std::string& keywordType,const std::string& endingKeyword, bool optional);
-    std::unique_ptr<NonTerminalNode> refactorExpression(auto (Parser::*func1)(),auto (Parser::*func2)(), Node::Types nodeType, const std::string& operator1, const std::string& operator2);
+    std::unique_ptr<NonTerminalNode> refactorDeclaration(auto (Parser::*func)(), Node::Types nodeType, Node::Types startingKeyword, TokenTypes endingKeyword);
+    /*
+     * this function refactors grammar productions of this form, identifier assignmentOperator (literal | additive-expression)
+     * PARAM:
+     * *func1, *func2: the function pointer for the expectFunction mentioned above (e.g. identifier for declarator-list)
+     * NodeType: the NodeType for the returned NonTerminalNode
+     * operator1, operator2: token type of the operator, e.g. "*","+"
+      */
+    std::unique_ptr<NonTerminalNode> refactorExpression(auto (Parser::*func1)(),auto (Parser::*func2)(), Node::Types nodeType, const TokenTypes operator1, const TokenTypes operator2);
     /*
      * this helper function resets the backtrack token
      */

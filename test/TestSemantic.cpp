@@ -26,27 +26,36 @@ TEST(TestSemantic, AnalyzeFunctionSimpleValid){
     EXPECT_NE(result, nullptr);
 }
 TEST(TestSemantic, AnalyzeFunctionDoubleDeclaration){
+    std::cout << "Testing double declaration:" << std::endl;
     auto result = setup("PARAM ab, ab; BEGIN ab := 1; RETURN ab END.");
     EXPECT_EQ(result, nullptr);
+    std::cout << "=========================================================" << std::endl;
 }
 TEST(TestSemantic, AnalyzeFunctionUndeclaredIdentifier){
+    std::cout << "Testing undeclared identifier:" << std::endl;
     auto result = setup("PARAM ab, a; BEGIN c := 1; RETURN c END.");
     EXPECT_EQ(result, nullptr);
+    std::cout << "=========================================================" << std::endl;
 }
 TEST(TestSemantic, AnalyzeFunctionAssignToConstant){
+    std::cout << "Testing assign to constant:" << std::endl;
     auto result = setup("CONST a = 1; BEGIN a := 2; RETURN a END.");
     EXPECT_EQ(result, nullptr);
+    std::cout << "=========================================================" << std::endl;
 }
 TEST(TestSemantic, AnalyzeFunctionNoReturn){
+    std::cout << "Testing no return statement:" << std::endl;
     auto result = setup("VAR a; BEGIN a := 2 END.");
     EXPECT_EQ(result, nullptr);
     result = setup("VAR a; BEGIN a := 2 ; a:=a *5 END.");
     EXPECT_EQ(result, nullptr);
+    std::cout << "=========================================================" << std::endl;
 }
 /*TEST(TestSemantic, AnalyzeFunctionNoInitialization){
-
+std::cout << "Testing no initialization for constant and parameter:" << std::endl;
 auto result = setup("PARAM b; CONST a; BEGIN b := a +2; RETURN b END.");
 EXPECT_EQ(result, nullptr);
+ std::cout << "=========================================================" << std::endl;
 }*/
 TEST(TestSemantic, AnalyzeFunctionValid){
     auto result = setup("VAR a,b,c,d,e,f,z,g,i,j,ab,aaa ; BEGIN ab := 1 ;RETURN ab END.");
