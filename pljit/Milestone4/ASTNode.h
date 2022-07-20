@@ -156,10 +156,5 @@ namespace semantic{
         ASTUnaryExpression(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTUnaryNode(type, std::move(child)){};
         void accept(ASTTreeVisitor& visitor) const override;
     };
-    class ASTPrimaryExpression: public ASTUnaryNode{
-        public:
-        explicit ASTPrimaryExpression(std::unique_ptr<ASTNode> child): ASTUnaryNode(PrimaryExpression, std::move(child)){};
-        void accept(ASTTreeVisitor& visitor) const override;
-    };
 } // namespace semantic
 #endif //PLJIT_ASTNODE_H

@@ -15,7 +15,6 @@ class ASTTreePrintVisitor: public ASTTreeVisitor {
      void visit(const semantic::ASTInitDeclaratorListNode& node) override;
      void visit(const semantic::ASTAssignmentExpression& node) override;
      void visit(const semantic::ASTCompoundStatement& node) override;
-     void visit(const semantic::ASTPrimaryExpression& node) override;
      void visit(const semantic::ASTUnaryExpression& node) override;
      void printTree(const ASTNode& node);
 };

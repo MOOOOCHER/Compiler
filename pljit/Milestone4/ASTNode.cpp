@@ -34,7 +34,4 @@ void ASTAssignmentExpression::accept(ASTTreeVisitor& visitor) const {
 void ASTUnaryExpression::accept(ASTTreeVisitor& visitor) const {
     visitor.visit(*this);
 }
-void ASTPrimaryExpression::accept(ASTTreeVisitor& visitor) const {
-    visitor.visit(*this);
-}
 } // namespace semantic

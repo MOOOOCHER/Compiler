@@ -20,5 +20,5 @@ class SemanticAnalyzer {
     SemanticAnalyzer(): table(ASTSymbolTable()){}
     //TODO: If there is no initialization of param and const
 };
-}//semantic
+} // namespace semantic
 #endif //PLJIT_SEMANTICANALYZER_H

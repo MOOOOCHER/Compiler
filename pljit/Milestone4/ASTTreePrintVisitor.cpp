@@ -111,12 +111,6 @@ void ASTTreePrintVisitor::visit(const semantic::ASTCompoundStatement& node) {
         child->accept(*this);
     }
 }
-void ASTTreePrintVisitor::visit(const semantic::ASTPrimaryExpression& node) {
-    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.getChild()->getType())<< "\"];" << std::endl;
-    std::cout << "\t" << index << " -> " << index+1 << ";" << std::endl;
-    index++;
-    node.getChild()->accept(*this);
-}
 void ASTTreePrintVisitor::visit(const semantic::ASTUnaryExpression& node) {
     std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.getChild()->getType())<< "\"];" << std::endl;
     std::cout << "\t" << index << " -> " << index+1 << ";" << std::endl;

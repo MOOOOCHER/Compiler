@@ -2,7 +2,6 @@
 
 namespace semantic {
     //helper function for hashing
-    //One bucket for every Letter
     void ASTSymbolTable::initBuckets(size_t size){
         for(size_t i=0;i<size;i++){
             buckets.push_back(nullptr);
