@@ -18,5 +18,5 @@ class ASTTreeVisitor{
     virtual void visit(const semantic::ASTPrimaryExpression& node) = 0;
     virtual void visit(const semantic::ASTUnaryExpression& node) = 0;
 };
-}
+} // namespace semantic
 #endif //PLJIT_ASTTREEVISITOR_H

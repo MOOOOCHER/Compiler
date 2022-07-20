@@ -19,5 +19,5 @@ class ASTTreePrintVisitor: public ASTTreeVisitor {
      void visit(const semantic::ASTUnaryExpression& node) override;
      void printTree(const ASTNode& node);
 };
-}
+} // namespace semantic
 #endif //PLJIT_ASTTREEPRINTVISITOR_H

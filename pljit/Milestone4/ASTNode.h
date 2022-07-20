@@ -1,6 +1,7 @@
 #ifndef PLJIT_ASTNODE_H
 #define PLJIT_ASTNODE_H
 #include <memory>
+#include <utility>
 #include <vector>
 namespace semantic{
     class SemanticAnalyzer;
@@ -69,7 +70,7 @@ namespace semantic{
         friend class SemanticAnalyzer;
         protected:
         std::vector<std::unique_ptr<ASTNode>> children;
-        MultiASTNode(ASTNodeType type): ASTNode(type){}
+        explicit MultiASTNode(ASTNodeType type): ASTNode(type){}
         public:
         std::vector<ASTNode*> getChildren() const{
             std::vector<ASTNode*> vec;
@@ -83,7 +84,7 @@ namespace semantic{
     class ASTValueNode: public ASTNode{
         T value;
         public:
-        ASTValueNode(ASTNodeType type, T value) : ASTNode(type), value(value){};
+        ASTValueNode(ASTNodeType type, T value) : ASTNode(type), value(std::move(value)){};
         T getValue() const{return value;}
     };
     //------------------------------------------------------------------------------------------------------------------------------------
@@ -100,7 +101,7 @@ namespace semantic{
     };
     class ASTLiteralNode: public ASTValueNode<unsigned long>{
         public:
-        ASTLiteralNode(unsigned long value): ASTValueNode(LiteralConstant, std::move(value)){};
+        explicit ASTLiteralNode(unsigned long value): ASTValueNode(LiteralConstant, value){};
         void accept(ASTTreeVisitor& visitor) const override;
     };
     //----------------------------------------------------------------------------------------------------------------------------
@@ -141,7 +142,7 @@ namespace semantic{
         /*
          * constructor with one children, if the optional component doesn't exist
          */
-        ASTOperationExpressionNode(std::unique_ptr<ASTNode> left): ASTBinaryNode(NoOperator,std::move(left), nullptr) {};
+        explicit ASTOperationExpressionNode(std::unique_ptr<ASTNode> left): ASTBinaryNode(NoOperator,std::move(left), nullptr) {};
         void accept(ASTTreeVisitor& visitor) const override;
     };
     class ASTAssignmentExpression: public ASTBinaryNode{
@@ -157,7 +158,7 @@ namespace semantic{
     };
     class ASTPrimaryExpression: public ASTUnaryNode{
         public:
-        ASTPrimaryExpression(std::unique_ptr<ASTNode> child): ASTUnaryNode(PrimaryExpression, std::move(child)){};
+        explicit ASTPrimaryExpression(std::unique_ptr<ASTNode> child): ASTUnaryNode(PrimaryExpression, std::move(child)){};
         void accept(ASTTreeVisitor& visitor) const override;
     };
 } // namespace semantic
