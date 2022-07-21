@@ -7,6 +7,8 @@ namespace semantic{
     class SemanticAnalyzer;
     class ASTTreePrintVisitor;
     class ASTTreeVisitor;
+    class ASTEvaluator;
+
     class ASTNode{
         friend class SemanticAnalyzer;
         friend class ASTSymbolTable;
@@ -42,6 +44,7 @@ namespace semantic{
         ASTNodeType getType() const{ return type;}
         explicit ASTNode(ASTNodeType type): type(type){}
         virtual void accept(ASTTreeVisitor& visitor)const = 0;
+        virtual long acceptEvaluation(ASTEvaluator& visitor)const = 0;
     };
     class ASTUnaryNode: public ASTNode{
         friend class SemanticAnalyzer;
@@ -93,16 +96,19 @@ namespace semantic{
         public:
         ASTFunctionNode(): MultiASTNode(FunctionDefinition){};
         void accept(ASTTreeVisitor& visitor) const override;
+        long acceptEvaluation(ASTEvaluator& visitor)const override;
     };
     class ASTIdentifierNode: public ASTValueNode<std::string>{
         public:
         ASTIdentifierNode(ASTNodeType type, std::string value): ASTValueNode<std::string>(type, std::move(value)){};
         void accept(ASTTreeVisitor& visitor) const override;
+        long acceptEvaluation(ASTEvaluator& visitor)const override;
     };
     class ASTLiteralNode: public ASTValueNode<unsigned long>{
         public:
         explicit ASTLiteralNode(unsigned long value): ASTValueNode(LiteralConstant, value){};
         void accept(ASTTreeVisitor& visitor) const override;
+        long acceptEvaluation(ASTEvaluator& visitor)const override;
     };
     //----------------------------------------------------------------------------------------------------------------------------
 
@@ -110,26 +116,31 @@ namespace semantic{
         public:
         ASTDeclaratorListNode(): MultiASTNode(DeclaratorList){};
         void accept(ASTTreeVisitor& visitor) const override;
+        long acceptEvaluation(ASTEvaluator& visitor)const override;
     };
     class ASTInitDeclaratorListNode: public MultiASTNode{
         public:
         ASTInitDeclaratorListNode(): MultiASTNode(InitDeclaratorList){};
         void accept(ASTTreeVisitor& visitor) const override;
+        long acceptEvaluation(ASTEvaluator& visitor)const override;
     };
     class ASTInitDeclaratorNode: public ASTBinaryNode{
         public:
         ASTInitDeclaratorNode(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTBinaryNode(InitDeclarator,std::move(left), std::move(right)){};
         void accept(ASTTreeVisitor& visitor) const override;
+        long acceptEvaluation(ASTEvaluator& visitor)const override;
     };
     class ASTCompoundStatement: public MultiASTNode{
         public:
         ASTCompoundStatement(): MultiASTNode(CompoundStatement){};
         void accept(ASTTreeVisitor& visitor) const override;
+        long acceptEvaluation(ASTEvaluator& visitor)const override;
     };
     class ASTStatementNode: public ASTUnaryNode{
         public:
         ASTStatementNode(ASTNodeType type, std::unique_ptr<ASTNode> child): ASTUnaryNode(type, std::move(child)){};
         void accept(ASTTreeVisitor& visitor) const override;
+        long acceptEvaluation(ASTEvaluator& visitor)const override;
     };
 
     class ASTOperationExpressionNode: public ASTBinaryNode{
@@ -144,17 +155,20 @@ namespace semantic{
          */
         explicit ASTOperationExpressionNode(std::unique_ptr<ASTNode> left): ASTBinaryNode(NoOperator,std::move(left), nullptr) {};
         void accept(ASTTreeVisitor& visitor) const override;
+        long acceptEvaluation(ASTEvaluator& visitor)const override;
     };
     class ASTAssignmentExpression: public ASTBinaryNode{
         public:
         ASTAssignmentExpression(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTBinaryNode(AssignmentExpression,std::move(left), std::move(right)){}
         void accept(ASTTreeVisitor& visitor) const override;
+        long acceptEvaluation(ASTEvaluator& visitor)const override;
     };
     class ASTUnaryExpression: public ASTUnaryNode{
         //type should only be UnaryPlus or UnaryMinus
         public:
         ASTUnaryExpression(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTUnaryNode(type, std::move(child)){};
         void accept(ASTTreeVisitor& visitor) const override;
+        long acceptEvaluation(ASTEvaluator& visitor)const override;
     };
 } // namespace semantic
 #endif //PLJIT_ASTNODE_H

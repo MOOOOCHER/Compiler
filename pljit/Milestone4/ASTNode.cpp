@@ -1,5 +1,6 @@
 #include "ASTNode.h"
 #include "ASTTreePrintVisitor.h"
+#include "../Milestone5/ASTEvaluator.h"
 namespace semantic{
 void ASTFunctionNode::accept(ASTTreeVisitor& visitor) const {
     visitor.visit(*this);
@@ -33,5 +34,43 @@ void ASTAssignmentExpression::accept(ASTTreeVisitor& visitor) const {
 }
 void ASTUnaryExpression::accept(ASTTreeVisitor& visitor) const {
     visitor.visit(*this);
+}
+//Evaluation
+long ASTFunctionNode::acceptEvaluation(ASTEvaluator& visitor) const {
+    return visitor.evaluate(*this);
+}
+long ASTIdentifierNode::acceptEvaluation(ASTEvaluator& visitor) const {
+    return visitor.evaluate(*this);
+}
+long ASTLiteralNode::acceptEvaluation(ASTEvaluator& visitor) const {
+    return visitor.evaluate(*this);
+}
+long ASTDeclaratorListNode::acceptEvaluation(ASTEvaluator& visitor) const {
+    visitor.evaluate(*this);
+    return 0;   //return code 0;
+}
+long ASTInitDeclaratorListNode::acceptEvaluation(ASTEvaluator& visitor) const {
+    visitor.evaluate(*this);
+    return 0;   //return code 0;
+}
+long ASTInitDeclaratorNode::acceptEvaluation(ASTEvaluator& visitor) const {
+    visitor.evaluate(*this);
+    return 0;   //return code 0;
+}
+long ASTCompoundStatement::acceptEvaluation(ASTEvaluator& visitor) const {
+    return visitor.evaluate(*this);
+}
+long ASTStatementNode::acceptEvaluation(ASTEvaluator& visitor) const {
+    return visitor.evaluate(*this);
+}
+long ASTOperationExpressionNode::acceptEvaluation(ASTEvaluator& visitor) const {
+    return visitor.evaluate(*this);
+}
+long ASTAssignmentExpression::acceptEvaluation(ASTEvaluator& visitor) const {
+    visitor.evaluate(*this);
+    return 0;   //return code 0;
+}
+long ASTUnaryExpression::acceptEvaluation(ASTEvaluator& visitor) const {
+    return visitor.evaluate(*this);
 }
 } // namespace semantic
