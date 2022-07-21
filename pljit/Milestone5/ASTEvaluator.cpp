@@ -9,6 +9,8 @@ long ASTEvaluator::evaluate(const semantic::ASTFunctionNode& node){
         }
         child->acceptEvaluation(*this);
     }
+    std::cout<< "something has gone wrong!"<<std::endl;
+    return -1;
 }
 void ASTEvaluator::evaluate(const semantic::ASTDeclaratorListNode& node){
     for(auto child: node.getChildren()){
@@ -33,6 +35,7 @@ long ASTEvaluator::evaluate(const semantic::ASTIdentifierNode& node){
     if(!variables.contains(node.getValue())){
         //we are in the initialization phase
         variables.insert(std::pair<std::string,std::optional<long>>(node.getValue(),std::optional<long>()));
+        return 0;
     } else {
         //we are in the statement evaluation phase => return value for variable
         return variables.find(node.getValue())->second.value();
@@ -60,6 +63,7 @@ long ASTEvaluator::evaluate(const semantic::ASTOperationExpressionNode& node){
         return leftExpr / rightExpr;
     } else {
         std::cout<< "something has gone wrong!"<<std::endl;
+        return -1;
     }
 }
 long ASTEvaluator::evaluate(const semantic::ASTStatementNode& node){
@@ -83,6 +87,8 @@ long ASTEvaluator::evaluate(const semantic::ASTCompoundStatement& node){
         }
         child->acceptEvaluation(*this);
     }
+    std::cout<< "something has gone wrong!"<<std::endl;
+    return -1;
 }
 long ASTEvaluator::evaluate(const semantic::ASTUnaryExpression& node){
     long result = node.getChild()->acceptEvaluation(*this);
