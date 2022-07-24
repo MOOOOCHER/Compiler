@@ -17,24 +17,27 @@ namespace semantic{
         friend class ASTStatementNode;
         friend class ASTOperationExpressionNode;
 
-        std::map<std::string, std::optional<long>> variables;
+        std::map<std::string, std::optional<double>> variables;
         /*
          * these functions are needed for setting up variable storing
          */
-        void evaluate(const semantic::ASTDeclaratorListNode& node);
-        long evaluate(const semantic::ASTFunctionNode& node);
-        void evaluate(const semantic::ASTInitDeclaratorNode& node);
-        void evaluate(const semantic::ASTInitDeclaratorListNode& node);
+        std::optional<double> evaluate( semantic::ASTFunctionNode& node);
+        std::optional<double> evaluate(const semantic::ASTDeclaratorListNode& node);
+        std::optional<double> evaluate(const semantic::ASTInitDeclaratorNode& node);
+        std::optional<double> evaluate(const semantic::ASTInitDeclaratorListNode& node);
         /*
          * these functions are needed for the actual computation
          */
-        long evaluate(const semantic::ASTIdentifierNode& node);
-        long evaluate(const semantic::ASTLiteralNode& node);
-        long evaluate(const semantic::ASTOperationExpressionNode& node);
-        long evaluate(const semantic::ASTStatementNode& node);
-        long evaluate(const semantic::ASTAssignmentExpression& node) ;
-        long evaluate(const semantic::ASTCompoundStatement& node) ;
-        long evaluate(const semantic::ASTUnaryExpression& node);
+        std::optional<double> evaluate( semantic::ASTIdentifierNode& node);
+        std::optional<double> evaluate( semantic::ASTLiteralNode& node);
+        std::optional<double> evaluate( semantic::ASTOperationExpressionNode& node);
+        std::optional<double> evaluate( semantic::ASTStatementNode& node);
+        std::optional<double> evaluate( semantic::ASTAssignmentExpression& node) ;
+        std::optional<double> evaluate( semantic::ASTCompoundStatement& node) ;
+        std::optional<double> evaluate( semantic::ASTUnaryExpression& node);
+
+        public:
+        std::optional<double> evaluateFunction(semantic::ASTNode& node);
     };
 } // namespace semantic
 

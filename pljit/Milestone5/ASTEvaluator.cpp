@@ -1,8 +1,16 @@
 #include "ASTEvaluator.h"
 #include <iostream>
 #include "../Milestone1/SourceCodeManager.h"
+#include "OptimizationPass.h"
 namespace semantic{
-long ASTEvaluator::evaluate(const semantic::ASTFunctionNode& node){
+std::optional<double> ASTEvaluator::evaluateFunction(semantic::ASTNode& node){
+    DeadCodeEliminationPass pass = DeadCodeEliminationPass();
+    pass.optimize(node);
+    ConstantPropagationPass constantPropagationPass = ConstantPropagationPass();
+    constantPropagationPass.optimize(node);
+    return node.acceptEvaluation(*this);
+}
+std::optional<double> ASTEvaluator::evaluate( semantic::ASTFunctionNode& node){
     for(auto child: node.getChildren()){
         if(child->getType() == ASTNode::CompoundStatement){
             return child->acceptEvaluation(*this);
@@ -10,90 +18,97 @@ long ASTEvaluator::evaluate(const semantic::ASTFunctionNode& node){
         child->acceptEvaluation(*this);
     }
     std::cout<< "something has gone wrong!"<<std::endl;
-    return -1;
+    return std::optional<double>();
 }
-void ASTEvaluator::evaluate(const semantic::ASTDeclaratorListNode& node){
+std::optional<double> ASTEvaluator::evaluate(const semantic::ASTDeclaratorListNode& node){
     for(auto child: node.getChildren()){
         child->acceptEvaluation(*this);
     }
+    return std::optional<double>();
 }
-void ASTEvaluator::evaluate(const semantic::ASTInitDeclaratorListNode& node){
+std::optional<double> ASTEvaluator::evaluate(const semantic::ASTInitDeclaratorListNode& node){
     for(auto child: node.getChildren()){
         child->acceptEvaluation(*this);
     }
+    return std::optional<double>();
 }
-void ASTEvaluator::evaluate(const semantic::ASTInitDeclaratorNode& node){
+std::optional<double> ASTEvaluator::evaluate(const semantic::ASTInitDeclaratorNode& node){
   //we are in the initialization phase, Init Declarator only applies to constants
     node.getLeftChild()->acceptEvaluation(*this);
     auto astLeft = static_cast<ASTIdentifierNode*>(node.getLeftChild());
     auto variableName = astLeft->getValue();
 
-    long rightLiteral = node.getLeftChild()->acceptEvaluation(*this);
-    variables.find(astLeft->getValue())->second = std::make_optional<long>(rightLiteral);
+    auto rightLiteral = node.getLeftChild()->acceptEvaluation(*this);
+    variables.find(astLeft->getValue())->second = rightLiteral;
+    return std::optional<double>();
 }
-long ASTEvaluator::evaluate(const semantic::ASTIdentifierNode& node){
+std::optional<double> ASTEvaluator::evaluate( semantic::ASTIdentifierNode& node){
     if(!variables.contains(node.getValue())){
         //we are in the initialization phase
-        variables.insert(std::pair<std::string,std::optional<long>>(node.getValue(),std::optional<long>()));
+        variables.insert(std::pair<std::string,std::optional<double>>(node.getValue(),std::optional<double>()));
         return 0;
     } else {
         //we are in the statement evaluation phase => return value for variable
         return variables.find(node.getValue())->second.value();
     }
 }
-long ASTEvaluator::evaluate(const semantic::ASTLiteralNode& node){
+std::optional<double> ASTEvaluator::evaluate( semantic::ASTLiteralNode& node){
     return node.getValue();
 }
-long ASTEvaluator::evaluate(const semantic::ASTOperationExpressionNode& node){
+std::optional<double> ASTEvaluator::evaluate( semantic::ASTOperationExpressionNode& node){
     auto leftExpr = node.getLeftChild()->acceptEvaluation(*this);
     auto rightExpr = node.getRightChild()->acceptEvaluation(*this);
-    if(node.getType() == ASTNode::PlusOperator){
-        return leftExpr + rightExpr;
+    if(!leftExpr.has_value() || !rightExpr.has_value()){
+        return std::optional<double>();
+    } else if(node.getType() == ASTNode::PlusOperator){
+        return leftExpr.value() + rightExpr.value();
     } else if(node.getType() == ASTNode::MinusOperator){
-        return leftExpr - rightExpr;
+        return leftExpr.value() - rightExpr.value();
     } else if(node.getType() == ASTNode::MulOperator){
-        return leftExpr * rightExpr;
+        return leftExpr.value() * rightExpr.value();
     } else if(node.getType() == ASTNode::DivOperator){
         if(rightExpr == 0){
             sourceCodeManagement::SourceCodeManager defaultManager = sourceCodeManagement::SourceCodeManager();
             sourceCodeManagement::SourceCodeReference a = sourceCodeManagement::SourceCodeReference (defaultManager);
             a.printContext("error: division by zero!");
-            return -1; //todo: abort computation
+            return std::optional<double>(); //abort compilation
         }
-        return leftExpr / rightExpr;
+        return leftExpr.value() / rightExpr.value();
     } else {
         std::cout<< "something has gone wrong!"<<std::endl;
         return -1;
     }
 }
-long ASTEvaluator::evaluate(const semantic::ASTStatementNode& node){
+std::optional<double> ASTEvaluator::evaluate( semantic::ASTStatementNode& node){
     return node.getChild()->acceptEvaluation(*this);
 }
-long ASTEvaluator::evaluate(const semantic::ASTAssignmentExpression& node){
+std::optional<double> ASTEvaluator::evaluate( semantic::ASTAssignmentExpression& node){
     if(node.getLeftChild()->getType() == ASTNode::Variable ||node.getLeftChild()->getType() == ASTNode::Parameter ){
         auto astLeft = static_cast<ASTIdentifierNode*>(node.getLeftChild());
         auto variableName = astLeft->getValue();
 
-        long rightLiteral = node.getLeftChild()->acceptEvaluation(*this);
-        variables.find(astLeft->getValue())->second = std::make_optional<long>(rightLiteral);
-        return 0;
+        auto rightLiteral = node.getRightChild()->acceptEvaluation(*this);
+        if(!rightLiteral.has_value()) return std::optional<double>();
+        variables.find(astLeft->getValue())->second = rightLiteral;
+        return 0; //return code that it went smoothly
     }
-    return -1;
+    return std::optional<double>();
 }
-long ASTEvaluator::evaluate(const semantic::ASTCompoundStatement& node){
+std::optional<double> ASTEvaluator::evaluate( semantic::ASTCompoundStatement& node){
     for(auto child: node.getChildren()){
+        auto astChild = child->acceptEvaluation(*this);
+        if(!astChild.has_value()) return std::optional<double>();
         if(child->getType() == ASTNode::ReturnStatement){
-            return child->acceptEvaluation(*this);
+            return astChild;
         }
-        child->acceptEvaluation(*this);
     }
-    std::cout<< "something has gone wrong!"<<std::endl;
-    return -1;
+    std::cout<<"something has gone wrong!"<<std::endl;
+    return std::optional<double>();
 }
-long ASTEvaluator::evaluate(const semantic::ASTUnaryExpression& node){
-    long result = node.getChild()->acceptEvaluation(*this);
-    if(node.getType() == ASTNode::UnaryMinus){
-        result *= -1;
+std::optional<double> ASTEvaluator::evaluate( semantic::ASTUnaryExpression& node){
+    auto result = node.getChild()->acceptEvaluation(*this);
+    if(result.has_value() && node.getType() == ASTNode::UnaryMinus){
+        result.value() *= -1;
     }
     return result;
 }

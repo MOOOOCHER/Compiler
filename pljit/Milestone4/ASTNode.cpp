@@ -36,41 +36,40 @@ void ASTUnaryExpression::accept(ASTTreeVisitor& visitor) const {
     visitor.visit(*this);
 }
 //Evaluation
-long ASTFunctionNode::acceptEvaluation(ASTEvaluator& visitor) const {
+std::optional<double> ASTFunctionNode::acceptEvaluation(ASTEvaluator& visitor)  {
     return visitor.evaluate(*this);
 }
-long ASTIdentifierNode::acceptEvaluation(ASTEvaluator& visitor) const {
+std::optional<double> ASTIdentifierNode::acceptEvaluation(ASTEvaluator& visitor)  {
     return visitor.evaluate(*this);
 }
-long ASTLiteralNode::acceptEvaluation(ASTEvaluator& visitor) const {
+std::optional<double> ASTLiteralNode::acceptEvaluation(ASTEvaluator& visitor)  {
     return visitor.evaluate(*this);
 }
-long ASTDeclaratorListNode::acceptEvaluation(ASTEvaluator& visitor) const {
+std::optional<double> ASTDeclaratorListNode::acceptEvaluation(ASTEvaluator& visitor)  {
     visitor.evaluate(*this);
     return 0;   //return code 0;
 }
-long ASTInitDeclaratorListNode::acceptEvaluation(ASTEvaluator& visitor) const {
+std::optional<double> ASTInitDeclaratorListNode::acceptEvaluation(ASTEvaluator& visitor)  {
     visitor.evaluate(*this);
     return 0;   //return code 0;
 }
-long ASTInitDeclaratorNode::acceptEvaluation(ASTEvaluator& visitor) const {
+std::optional<double> ASTInitDeclaratorNode::acceptEvaluation(ASTEvaluator& visitor)  {
     visitor.evaluate(*this);
     return 0;   //return code 0;
 }
-long ASTCompoundStatement::acceptEvaluation(ASTEvaluator& visitor) const {
+std::optional<double> ASTCompoundStatement::acceptEvaluation(ASTEvaluator& visitor)  {
     return visitor.evaluate(*this);
 }
-long ASTStatementNode::acceptEvaluation(ASTEvaluator& visitor) const {
+std::optional<double> ASTStatementNode::acceptEvaluation(ASTEvaluator& visitor)  {
     return visitor.evaluate(*this);
 }
-long ASTOperationExpressionNode::acceptEvaluation(ASTEvaluator& visitor) const {
+std::optional<double> ASTOperationExpressionNode::acceptEvaluation(ASTEvaluator& visitor)  {
     return visitor.evaluate(*this);
 }
-long ASTAssignmentExpression::acceptEvaluation(ASTEvaluator& visitor) const {
-    visitor.evaluate(*this);
-    return 0;   //return code 0;
+std::optional<double> ASTAssignmentExpression::acceptEvaluation(ASTEvaluator& visitor)  {
+    return visitor.evaluate(*this);   //return code 0;
 }
-long ASTUnaryExpression::acceptEvaluation(ASTEvaluator& visitor) const {
+std::optional<double> ASTUnaryExpression::acceptEvaluation(ASTEvaluator& visitor)  {
     return visitor.evaluate(*this);
 }
 } // namespace semantic

@@ -3,11 +3,13 @@
 #include <memory>
 #include <utility>
 #include <vector>
+#include <optional>
 namespace semantic{
     class SemanticAnalyzer;
     class ASTTreePrintVisitor;
     class ASTTreeVisitor;
     class ASTEvaluator;
+    class ConstantPropagationPass;
 
     class ASTNode{
         friend class SemanticAnalyzer;
@@ -44,10 +46,12 @@ namespace semantic{
         ASTNodeType getType() const{ return type;}
         explicit ASTNode(ASTNodeType type): type(type){}
         virtual void accept(ASTTreeVisitor& visitor)const = 0;
-        virtual long acceptEvaluation(ASTEvaluator& visitor)const = 0;
+        virtual std::optional<double> acceptEvaluation(ASTEvaluator& visitor) = 0;
     };
     class ASTUnaryNode: public ASTNode{
         friend class SemanticAnalyzer;
+        friend class ConstantPropagationPass;
+
         std::unique_ptr<ASTNode> child;
         protected:
         ASTUnaryNode(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTNode(type),child(std::move(child)){}
@@ -96,19 +100,19 @@ namespace semantic{
         public:
         ASTFunctionNode(): MultiASTNode(FunctionDefinition){};
         void accept(ASTTreeVisitor& visitor) const override;
-        long acceptEvaluation(ASTEvaluator& visitor)const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     class ASTIdentifierNode: public ASTValueNode<std::string>{
         public:
         ASTIdentifierNode(ASTNodeType type, std::string value): ASTValueNode<std::string>(type, std::move(value)){};
         void accept(ASTTreeVisitor& visitor) const override;
-        long acceptEvaluation(ASTEvaluator& visitor)const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     class ASTLiteralNode: public ASTValueNode<unsigned long>{
         public:
         explicit ASTLiteralNode(unsigned long value): ASTValueNode(LiteralConstant, value){};
         void accept(ASTTreeVisitor& visitor) const override;
-        long acceptEvaluation(ASTEvaluator& visitor)const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     //----------------------------------------------------------------------------------------------------------------------------
 
@@ -116,36 +120,39 @@ namespace semantic{
         public:
         ASTDeclaratorListNode(): MultiASTNode(DeclaratorList){};
         void accept(ASTTreeVisitor& visitor) const override;
-        long acceptEvaluation(ASTEvaluator& visitor)const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     class ASTInitDeclaratorListNode: public MultiASTNode{
         public:
         ASTInitDeclaratorListNode(): MultiASTNode(InitDeclaratorList){};
         void accept(ASTTreeVisitor& visitor) const override;
-        long acceptEvaluation(ASTEvaluator& visitor)const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     class ASTInitDeclaratorNode: public ASTBinaryNode{
         public:
         ASTInitDeclaratorNode(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTBinaryNode(InitDeclarator,std::move(left), std::move(right)){};
         void accept(ASTTreeVisitor& visitor) const override;
-        long acceptEvaluation(ASTEvaluator& visitor)const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     class ASTCompoundStatement: public MultiASTNode{
         public:
         ASTCompoundStatement(): MultiASTNode(CompoundStatement){};
+        void pop_back_child(){ children.pop_back(); };
         void accept(ASTTreeVisitor& visitor) const override;
-        long acceptEvaluation(ASTEvaluator& visitor)const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     class ASTStatementNode: public ASTUnaryNode{
+        friend class ConstantPropagationPass;
         public:
         ASTStatementNode(ASTNodeType type, std::unique_ptr<ASTNode> child): ASTUnaryNode(type, std::move(child)){};
         void accept(ASTTreeVisitor& visitor) const override;
-        long acceptEvaluation(ASTEvaluator& visitor)const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
 
     class ASTOperationExpressionNode: public ASTBinaryNode{
-        //rightChild could be nullptr
+        friend class ConstantPropagationPass;
         public:
+        //rightChild could be nullptr
         /*
          * constructor with two children
          */
@@ -155,20 +162,21 @@ namespace semantic{
          */
         explicit ASTOperationExpressionNode(std::unique_ptr<ASTNode> left): ASTBinaryNode(NoOperator,std::move(left), nullptr) {};
         void accept(ASTTreeVisitor& visitor) const override;
-        long acceptEvaluation(ASTEvaluator& visitor)const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     class ASTAssignmentExpression: public ASTBinaryNode{
+        friend class ConstantPropagationPass;
         public:
         ASTAssignmentExpression(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTBinaryNode(AssignmentExpression,std::move(left), std::move(right)){}
         void accept(ASTTreeVisitor& visitor) const override;
-        long acceptEvaluation(ASTEvaluator& visitor)const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     class ASTUnaryExpression: public ASTUnaryNode{
         //type should only be UnaryPlus or UnaryMinus
         public:
         ASTUnaryExpression(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTUnaryNode(type, std::move(child)){};
         void accept(ASTTreeVisitor& visitor) const override;
-        long acceptEvaluation(ASTEvaluator& visitor)const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
 } // namespace semantic
 #endif //PLJIT_ASTNODE_H
