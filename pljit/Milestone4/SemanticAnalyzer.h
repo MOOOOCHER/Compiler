@@ -15,7 +15,7 @@ class SemanticAnalyzer {
     std::unique_ptr<ASTIdentifierNode> analyzeInitIdentifier(ASTNode::ASTNodeType type, parser::IdentifierNode& parseNode);
     std::unique_ptr<ASTIdentifierNode> analyzeIdentifier(parser::IdentifierNode& parseNode);
     std::unique_ptr<ASTNode> analyzeInitDeclarator(parser::NonTerminalNode& parseNode);
-    std::unique_ptr<ASTParamIdentifierNode> analyzeParamIdentifier(double value, parser::IdentifierNode& parseNode);
+    std::unique_ptr<ASTParamIdentifierNode> analyzeParamIdentifier(parser::IdentifierNode& parseNode);
     public:
     std::unique_ptr<ASTFunctionNode> analyzeFunction(const std::vector<double>& arg, parser::NonTerminalNode& parseNode);
     SemanticAnalyzer(): table(ASTSymbolTable()){}

@@ -16,7 +16,7 @@ namespace semantic{
         friend class ASTDeclaratorListNode;
         friend class ASTStatementNode;
         friend class ASTOperationExpressionNode;
-
+        friend class ASTParamIdentifierNode;
         std::map<std::string, std::optional<double>> variables;
         /*
          * these functions are needed for setting up variable storing
@@ -35,10 +35,13 @@ namespace semantic{
         std::optional<double> evaluate( semantic::ASTAssignmentExpression& node) ;
         std::optional<double> evaluate( semantic::ASTCompoundStatement& node) ;
         std::optional<double> evaluate( semantic::ASTUnaryExpression& node);
-
-        public:
-        std::optional<double> evaluateFunction(semantic::ASTNode& node);
         std::optional<double> evaluate( semantic::ASTParamIdentifierNode& node);
+        /*
+         * this function initializes the parameters with the arguments;
+         */
+        void initArguments(std::vector<double> arg,semantic::ASTNode& node);
+        public:
+        std::optional<double> evaluateFunction(std::vector<double> arg,semantic::ASTNode& node);
     };
 } // namespace semantic
 

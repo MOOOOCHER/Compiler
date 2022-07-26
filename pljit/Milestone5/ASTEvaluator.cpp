@@ -1,15 +1,27 @@
 #include "ASTEvaluator.h"
 #include <iostream>
 #include "../Milestone1/SourceCodeManager.h"
-#include "OptimizationPass.h"
 namespace semantic{
-std::optional<double> ASTEvaluator::evaluateFunction(semantic::ASTNode& node){
-    DeadCodeEliminationPass pass = DeadCodeEliminationPass();
-    pass.optimize(node);
-    ConstantPropagationPass constantPropagationPass = ConstantPropagationPass();
-    constantPropagationPass.optimize(node);
+std::optional<double> ASTEvaluator::evaluateFunction(std::vector<double> arg,semantic::ASTNode& node){
+    initArguments(arg,node);
     return node.acceptEvaluation(*this);
 }
+void ASTEvaluator::initArguments(std::vector<double> arg, semantic::ASTNode& node) {
+    auto functionDefinition = static_cast<ASTFunctionNode*>(&node);
+    for(auto child: functionDefinition->getChildren()){
+        if(child->getType() == ASTNode::DeclaratorList){
+            auto declList = static_cast<ASTDeclaratorListNode*>(child);
+            if(declList->getChildren()[0]->getType() == ASTNode::Parameter){
+                for(size_t i=0;i<arg.size();i++){
+                    auto parameterNode = static_cast<ASTParamIdentifierNode*>(declList->getChildren()[i]);
+                    parameterNode->paramValue = arg[i];
+                }
+            }
+            break;
+        }
+    }
+}
+//-------------------------------------------------------------------------------------------------
 std::optional<double> ASTEvaluator::evaluate( semantic::ASTFunctionNode& node){
     for(auto child: node.getChildren()){
         if(child->getType() == ASTNode::CompoundStatement){

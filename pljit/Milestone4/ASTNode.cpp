@@ -80,7 +80,4 @@ void ASTParamIdentifierNode::accept(ASTTreeVisitor& visitor) const{
 std::optional<double> ASTParamIdentifierNode::acceptEvaluation(ASTEvaluator& visitor) {
     return visitor.evaluate(*this);
 }
-double ASTParamIdentifierNode::getParamValue(){
-    return paramValue;
-}
 } // namespace semantic

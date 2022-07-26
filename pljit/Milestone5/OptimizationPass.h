@@ -9,17 +9,21 @@ namespace semantic{
     };
     class DeadCodeEliminationPass: public AbstractOptimizationPass {
         friend class ASTEvaluator;
+
+        public:
         void optimize(ASTNode& node) override;
     };
     class ConstantPropagationPass: public AbstractOptimizationPass {
         friend class ASTEvaluator;
         std::map<std::string, double> variables;
-        void optimize(ASTNode& node) override;
         /*
          * helper function for constant propagation, returns whether the expression/statement is a constant
          */
         std::optional<double> optimizeStatement(ASTNode& node);
         std::optional<double> optimizeExpression(ASTNode& node);
+
+        public:
+        void optimize(ASTNode& node) override;
     };
 } // namespace semantic
 #endif //PLJIT_OPTIMIZATIONPASS_H

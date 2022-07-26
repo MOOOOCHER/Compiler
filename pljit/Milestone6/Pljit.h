@@ -8,13 +8,15 @@
 #include "../Milestone3/Parser.h"
 #include "../Milestone4/SemanticAnalyzer.h"
 #include "../Milestone5/ASTEvaluator.h"
-
+#include "../Milestone5/OptimizationPass.h"
 namespace pljit {
 using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
 using Tokenizer = lexer::Tokenizer;
 using Parser = parser::Parser;
 using SemanticAnalyzer = semantic::SemanticAnalyzer;
 using ASTEvaluator = semantic::ASTEvaluator;
+using DeadCodeEliminationPass = semantic::DeadCodeEliminationPass;
+using ConstantPropagationPass = semantic::ConstantPropagationPass;
 
 class PljitHandle;
 
@@ -51,15 +53,19 @@ class PljitHandle{
             auto parseNode = parser.expectFunctionDefinition();
             SemanticAnalyzer semantic = SemanticAnalyzer();
             auto node = semantic.analyzeFunction(vec,*parseNode);
-            //TODO: optimization
+            //optimization
+            DeadCodeEliminationPass pass = DeadCodeEliminationPass();
+            pass.optimize(*node);
+            ConstantPropagationPass constantPropagationPass = ConstantPropagationPass();
+            constantPropagationPass.optimize(*node);
             jit.astNode = std::move(node);
         }
         ASTEvaluator evaluator = ASTEvaluator();
-        auto result = evaluator.evaluateFunction(*jit.astNode);
+        auto result = evaluator.evaluateFunction(vec,*jit.astNode);
         if(!result.has_value()){
             return;
         }
-        return evaluator.evaluateFunction(*jit.astNode).value();
+        return result.value();
     }
 };
 } // namespace pljit
