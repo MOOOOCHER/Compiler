@@ -72,4 +72,15 @@ std::optional<double> ASTAssignmentExpression::acceptEvaluation(ASTEvaluator& vi
 std::optional<double> ASTUnaryExpression::acceptEvaluation(ASTEvaluator& visitor)  {
     return visitor.evaluate(*this);
 }
+
+
+void ASTParamIdentifierNode::accept(ASTTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+std::optional<double> ASTParamIdentifierNode::acceptEvaluation(ASTEvaluator& visitor) {
+    return visitor.evaluate(*this);
+}
+double ASTParamIdentifierNode::getParamValue(){
+    return paramValue;
+}
 } // namespace semantic

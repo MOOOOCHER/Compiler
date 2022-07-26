@@ -27,15 +27,15 @@ static void checkInvalid(const std::string& input){
 //--------------------------------------------------------------------------------------------------------------------
 TEST(TestParser, ExpectFunctionDefinitionValid){
     auto result = setup("BEGIN a := 1 END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     EXPECT_EQ(result->getChildren().size(), 2);
     result = setup("CONST c= 0; BEGIN a := 1 END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     EXPECT_EQ(result->getChildren().size(), 3);
     result = setup("VAR b; CONST c= 0; BEGIN a := 1 END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     result = setup("PARAM a; VAR b; CONST c= 0; BEGIN a := 1 END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     EXPECT_EQ(result->getChildren().size(), 5);
 }
 TEST(TestParser, ExpectFunctionDefinitionInvalid){
@@ -47,13 +47,13 @@ TEST(TestParser, ExpectFunctionDefinitionInvalid){
 }
 TEST(TestParser, ExpectCompoundStatementValid){
     auto result = setup("BEGIN a:=1 END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     EXPECT_EQ(result->getType(), Node::Types::FunctionDefinition);
     EXPECT_EQ(result->getChildren().size(), 2);
     EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::CompoundStatement);
     EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::Dot);
     result = setup("BEGIN RETURN 1 END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     EXPECT_EQ(result->getType(), Node::Types::FunctionDefinition);
     EXPECT_EQ(result->getChildren().size(), 2);
     EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::CompoundStatement);
@@ -68,15 +68,15 @@ TEST(TestParser, ExpectCompoundStatementInvalid){
 }
 TEST(TestParser, ExpectParamDeclarationValid){
     auto result = setup("PARAM a;BEGIN a:=1 END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     auto paramChild = static_cast<parser::NonTerminalNode*>(result->getChildren()[0]);
     EXPECT_EQ(paramChild->getChildren().size(), 3);
     result = setup("PARAM a,b;BEGIN a:=1 END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     paramChild = static_cast<parser::NonTerminalNode*>(result->getChildren()[0]);
     EXPECT_EQ(paramChild->getChildren().size(), 3);
     result = setup("PARAM a,b,c;BEGIN a:=1 END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     paramChild = static_cast<parser::NonTerminalNode*>(result->getChildren()[0]);
     EXPECT_EQ(paramChild->getChildren().size(), 3);
     auto declListChild = static_cast<parser::NonTerminalNode*>(paramChild->getChildren()[1]);
@@ -94,11 +94,11 @@ TEST(TestParser, ExpectParamDeclarationInvalid){
 }
 TEST(TestParser, ExpectVariableDeclarationValid){
     auto result = setup("VAR a;BEGIN a:=1 END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     auto child = static_cast<parser::NonTerminalNode*>(result->getChildren()[0]);
     EXPECT_EQ(child->getChildren().size(), 3);
     result = setup("VAR a,b;BEGIN a:=1 END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     child = static_cast<parser::NonTerminalNode*>(result->getChildren()[0]);
     EXPECT_EQ(child->getChildren().size(), 3);
 }
@@ -111,11 +111,11 @@ TEST(TestParser, ExpectVariableDeclarationInvalid){
 }
 TEST(TestParser, ExpectConstantDeclarationValid){
     auto result = setup("CONST a=1; BEGIN a:=1 END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     auto child = static_cast<parser::NonTerminalNode*>(result->getChildren()[0]);
     EXPECT_EQ(child->getChildren().size(), 3);
     result = setup("CONST a=1,b=2;BEGIN a:=1 END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     child = static_cast<parser::NonTerminalNode*>(result->getChildren()[0]);
     EXPECT_EQ(child->getChildren().size(), 3);
     auto declListChild = static_cast<parser::NonTerminalNode*>(child->getChildren()[1]);
@@ -156,13 +156,13 @@ TEST(TestParser, ExpectPrimaryExpressionInvalid){
 }
 TEST(TestParser, ExpectUnaryExpressionValid){
     auto result = setup("BEGIN RETURN + identifier END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     result = setup("BEGIN RETURN-1234 END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     result = setup("BEGIN a:= -(1234) END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     result = setup("BEGIN a:= -(-(1234)) END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
 }
 TEST(TestParser, ExpectUnaryExpressionInvalid){
     std::cout << "Testing invalid unary expression:" << std::endl;
@@ -174,13 +174,13 @@ TEST(TestParser, ExpectUnaryExpressionInvalid){
 
 TEST(TestParser, ExpectAdditiveExpressionValid){
     auto result = setup("BEGIN RETURN a + a - b END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     result = setup("BEGIN a:= a + a - b END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     result = setup("BEGIN RETURN a * a END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     result = setup("BEGIN a:= a * a END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
 }
 TEST(TestParser, ExpectAdditiveExpressionInvalid){
     std::cout << "Testing invalid additive expression:" << std::endl;
@@ -195,21 +195,21 @@ TEST(TestParser, ExpectAdditiveExpressionInvalid){
 
 TEST(TestParser, ExpectMultiplicativeExpressionValid){
     auto result = setup("BEGIN RETURN +a END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
 
     result = setup("BEGIN RETURN a * a * a END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
 
     result = setup("BEGIN RETURN a * (a + a * (super))END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     result = setup("BEGIN a:= +a END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
 
     result = setup("BEGIN a:= a * a * a END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
 
     result = setup("BEGIN a:= a * (a + a * (super))END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
 }
 TEST(TestParser, ExpectMultiplicativeExpressionInvalid){
     std::cout << "Testing invalid multiplicative expression:" << std::endl;
@@ -222,7 +222,7 @@ TEST(TestParser, ExpectMultiplicativeExpressionInvalid){
 
 TEST(TestParser, ExpectAssignmentExpressionValid){
     auto result = setup("BEGIN a := a * (a * a + (super)) END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
 }
 TEST(TestParser, ExpectAssignmentExpressionInvalid){
     std::cout << "Testing invalid assignment expression:" << std::endl;
@@ -234,11 +234,11 @@ TEST(TestParser, ExpectAssignmentExpressionInvalid){
 }
 TEST(TestParser, ExpectStatementListValid){
     auto result = setup("BEGIN RETURN (a+b * 2/(123+4)) END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     result = setup("BEGIN a:= 1; RETURN (a+b * 2/(123+4)) END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     result = setup("BEGIN a := 1; a := 1; RETURN (a+b * 2/(123+4))END.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
 }
 TEST(TestParser, ExpectStatementListInvalid){
     std::cout << "Testing invalid statement:" << std::endl;
@@ -252,7 +252,7 @@ TEST(TestParser, ExpectStatementListInvalid){
 }
 TEST(TestParser, ExpectComplexFunctionDefinitionValid){
     auto result = setup("PARAM width, height, depth;\nVAR volume;\nCONST density = 2400;\nBEGIN\nvolume :=width * height * depth;\nRETURN density*volume\nEND.");
-    EXPECT_NE(result, nullptr);
+    ASSERT_NE(result, nullptr);
     EXPECT_EQ(result->getChildren().size(), 5);
     //auto visitor = parser::ParseTreePrintVisitor();
     //visitor.printTree(*result);

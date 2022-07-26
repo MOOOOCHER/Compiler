@@ -20,7 +20,7 @@ static auto setup(const std::string_view& input){
     auto parseNode = parser.expectFunctionDefinition();
     SemanticAnalyzer semantic = SemanticAnalyzer();
     semantic::ASTEvaluator evaluator = semantic::ASTEvaluator();
-    return evaluator.evaluateFunction(*semantic.analyzeFunction(*parseNode));
+    return evaluator.evaluateFunction(*semantic.analyzeFunction(std::vector<double>(),*parseNode));
 }
 TEST(TestEvaluation, ValidEvaluation){
     auto result = setup("VAR a,b,c,d,e,f,z,g,i,j,ab,aaa ; BEGIN ab := 1 ;RETURN ab END.");

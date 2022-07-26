@@ -38,6 +38,7 @@ namespace semantic{
 
         public:
         std::optional<double> evaluateFunction(semantic::ASTNode& node);
+        std::optional<double> evaluate( semantic::ASTParamIdentifierNode& node);
     };
 } // namespace semantic
 

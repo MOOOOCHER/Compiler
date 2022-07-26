@@ -47,6 +47,7 @@ namespace semantic{
             for(auto child: compoundStatement->getChildren()){
                     optimizeStatement(*child);
             }
+            //TODO: if return statement is constant, we could omit the evaluation
         }
     }
     std::optional<double> ConstantPropagationPass::optimizeStatement(ASTNode& node){

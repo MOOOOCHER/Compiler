@@ -117,6 +117,11 @@ void ASTTreePrintVisitor::visit(const semantic::ASTUnaryExpression& node) {
     ++index;
     node.getChild()->accept(*this);
 }
+void ASTTreePrintVisitor::visit(const semantic::ASTParamIdentifierNode& node) {
+    std::cout << "\t" << index+1 << " [label=\"" << node.getValue()<< "\"];" << std::endl;
+    std::cout << "\t" << index << " -> " << index+1 << ";" << std::endl;
+    index++;
+}
 void ASTTreePrintVisitor::printTree(const ASTNode& node){
     std::cout << "digraph {" << std::endl;
     std::cout << "\t" << index << " [label=\"" << convertTypeToString(node.getType())<< "\"];" << std::endl;

@@ -2,13 +2,13 @@
 namespace semantic {
 using NodeType = parser::Node::Types;
 
-std::unique_ptr<ASTFunctionNode> SemanticAnalyzer::analyzeFunction(parser::NonTerminalNode& parseNode){
+std::unique_ptr<ASTFunctionNode> SemanticAnalyzer::analyzeFunction(const std::vector<double>& arg,parser::NonTerminalNode& parseNode){
     std::unique_ptr<ASTFunctionNode> node = std::make_unique<ASTFunctionNode>();
     if(parseNode.getType() == NodeType::FunctionDefinition){
         for(auto child: parseNode.getChildren()){
             if(child->getType() == NodeType::ParameterDeclaration){
                 parser::NonTerminalNode* nonTerminalNode = static_cast<parser::NonTerminalNode*>(child);
-                auto astParam = analyzeParameterDeclaration(*nonTerminalNode);
+                auto astParam = analyzeParameterDeclaration(arg,*nonTerminalNode);
                 if(!astParam) return nullptr;
                 node->children.push_back(std::move(astParam));
             } else if(child->getType() == NodeType::VariableDeclaration){
@@ -32,15 +32,23 @@ std::unique_ptr<ASTFunctionNode> SemanticAnalyzer::analyzeFunction(parser::NonTe
     }
     return nullptr;
 }
-std::unique_ptr<ASTDeclaratorListNode> SemanticAnalyzer::analyzeParameterDeclaration(parser::NonTerminalNode& parseNode){
+std::unique_ptr<ASTDeclaratorListNode> SemanticAnalyzer::analyzeParameterDeclaration(const std::vector<double>& arg,parser::NonTerminalNode& parseNode){
     std::unique_ptr<ASTDeclaratorListNode> node = std::make_unique<ASTDeclaratorListNode>();
     auto declList = parseNode.getChildren()[1];
     if(declList->getType() == NodeType::DeclaratorList){
         parser::NonTerminalNode* decl = static_cast<parser::NonTerminalNode*>(declList);
-        for(auto child: decl->getChildren()){
+        if(decl->getChildren().size()/2+1 != arg.size()){   //we should have arg.size()-1 commas as children => decl->getChildren().size()/2+1 when they are not included
+            //if parameters size don't match
+            sourceCodeManagement::SourceCodeManager defaultManager = sourceCodeManagement::SourceCodeManager();
+            SourceCodeReference a = SourceCodeReference (defaultManager);
+            a.printContext("error: parameter size doesn't match with argument size!");
+            return nullptr;
+        }
+        for(size_t i=0;i<arg.size();i++){
+            auto child = decl->getChildren()[2*i];  //every second child is a comma node => omit those
             if(child->getType() == NodeType::Identifier){
                 parser::IdentifierNode* identifierNode = static_cast<parser::IdentifierNode*>(child);
-                auto astIdentifier = analyzeInitIdentifier(ASTNode::ASTNodeType::Parameter,*identifierNode);
+                auto astIdentifier = analyzeParamIdentifier(arg[i],*identifierNode);
                 if(!astIdentifier) return nullptr;
                 node->children.push_back(std::move(astIdentifier));
             }
@@ -197,6 +205,15 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
         }
     }
     return nullptr;
+}
+std::unique_ptr<ASTParamIdentifierNode> SemanticAnalyzer::analyzeParamIdentifier(double value, parser::IdentifierNode& parseNode){
+    if(table.contains(parseNode.getReference().getText())){
+        //double declaration
+        parseNode.getReference().printContext("error: '"+ parseNode.getReference().getText() +"' is already declared!");
+        return nullptr;
+    }
+    table.insert(ASTNode::ASTNodeType::Parameter,parseNode.getReference());
+    return std::make_unique<ASTParamIdentifierNode>(parseNode.getReference().getText(),value);
 }
 std::unique_ptr<ASTIdentifierNode> SemanticAnalyzer::analyzeInitIdentifier(ASTNode::ASTNodeType type, parser::IdentifierNode& parseNode){
     if(table.contains(parseNode.getReference().getText())){

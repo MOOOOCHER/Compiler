@@ -112,4 +112,14 @@ std::optional<double> ASTEvaluator::evaluate( semantic::ASTUnaryExpression& node
     }
     return result;
 }
+std::optional<double> ASTEvaluator::evaluate( semantic::ASTParamIdentifierNode& node){
+    if(!variables.contains(node.getValue())){
+        //we are in the initialization phase
+        variables.insert(std::pair<std::string,std::optional<double>>(node.getValue(),std::optional<double>()));
+        return 0;
+    } else {
+        //we are in the statement evaluation phase => return value for variable
+        return variables.find(node.getValue())->second.value();
+    }
+}
 } // namespace semantic
