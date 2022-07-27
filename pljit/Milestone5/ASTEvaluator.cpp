@@ -7,6 +7,7 @@ std::optional<double> ASTEvaluator::evaluateFunction(std::vector<double> arg,sem
     return node.acceptEvaluation(*this);
 }
 void ASTEvaluator::initArguments(std::vector<double> arg, semantic::ASTNode& node) {
+    //initialize Parameter
     auto functionDefinition = static_cast<ASTFunctionNode*>(&node);
     for(auto child: functionDefinition->getChildren()){
         if(child->getType() == ASTNode::DeclaratorList){
@@ -38,10 +39,8 @@ std::optional<double> ASTEvaluator::evaluate(const semantic::ASTDeclaratorListNo
     }
     return std::optional<double>();
 }
-std::optional<double> ASTEvaluator::evaluate(const semantic::ASTInitDeclaratorListNode& node){
-    for(auto child: node.getChildren()){
-        child->acceptEvaluation(*this);
-    }
+std::optional<double> ASTEvaluator::evaluate(const semantic::ASTInitDeclaratorListNode&){
+   //do nothing because constants are optimized out
     return std::optional<double>();
 }
 std::optional<double> ASTEvaluator::evaluate(const semantic::ASTInitDeclaratorNode& node){
@@ -127,7 +126,7 @@ std::optional<double> ASTEvaluator::evaluate( semantic::ASTUnaryExpression& node
 std::optional<double> ASTEvaluator::evaluate( semantic::ASTParamIdentifierNode& node){
     if(!variables.contains(node.getValue())){
         //we are in the initialization phase
-        variables.insert(std::pair<std::string,std::optional<double>>(node.getValue(),std::optional<double>()));
+        variables.insert(std::pair<std::string,std::optional<double>>(node.getValue(),node.paramValue));
         return 0;
     } else {
         //we are in the statement evaluation phase => return value for variable

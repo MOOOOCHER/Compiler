@@ -116,9 +116,9 @@ namespace semantic{
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
-    class ASTLiteralNode: public ASTValueNode<unsigned long>{
+    class ASTLiteralNode: public ASTValueNode<double>{
         public:
-        explicit ASTLiteralNode(unsigned long value): ASTValueNode(LiteralConstant, value){};
+        explicit ASTLiteralNode(double value): ASTValueNode(LiteralConstant, value){};
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };

@@ -79,20 +79,19 @@ namespace semantic{
     std::optional<double> ConstantPropagationPass::optimizeExpression(ASTNode& node){
         if(node.getType() == ASTNode::UnaryPlus || node.getType() == ASTNode::UnaryMinus){
             auto unaryExpr = static_cast<ASTUnaryExpression*>(&node);
-            auto optimized = optimizeStatement(*unaryExpr->getChild());
+            auto optimized = optimizeExpression(*unaryExpr->getChild());
             if(optimized.has_value()){
                 //change child to constant
-                double value = optimized.value();
                 if(node.getType() == ASTNode::UnaryMinus){
-                    value *= -1;
+                    optimized = std::optional<double>(optimized.value()*-1);
                 }
-                unaryExpr->child = std::make_unique<ASTLiteralNode>(value);
+                unaryExpr->child = std::make_unique<ASTLiteralNode>(optimized.value());
             }
             return optimized;
         } else if(node.getType() == ASTNode::PlusOperator){
             auto expr = static_cast<ASTOperationExpressionNode*>(&node);
-            auto optimizedLeft = optimizeStatement(*expr->getLeftChild());
-            auto optimizedRight = optimizeStatement(*expr->getRightChild());
+            auto optimizedLeft = optimizeExpression(*expr->getLeftChild());
+            auto optimizedRight = optimizeExpression(*expr->getRightChild());
             if(optimizedLeft.has_value() && optimizedRight.has_value()){
                 //change child to constant
                 return optimizedLeft.value() + optimizedRight.value();
@@ -108,8 +107,8 @@ namespace semantic{
             return std::optional<double>();
         } else if(node.getType() == ASTNode::MinusOperator){
             auto expr = static_cast<ASTOperationExpressionNode*>(&node);
-            auto optimizedLeft = optimizeStatement(*expr->getLeftChild());
-            auto optimizedRight = optimizeStatement(*expr->getRightChild());
+            auto optimizedLeft = optimizeExpression(*expr->getLeftChild());
+            auto optimizedRight = optimizeExpression(*expr->getRightChild());
             if(optimizedLeft.has_value() && optimizedRight.has_value()){
                 //change child to constant
                 return optimizedLeft.value() - optimizedRight.value();
@@ -125,8 +124,8 @@ namespace semantic{
             return std::optional<double>();
         } else if(node.getType() == ASTNode::MulOperator){
             auto expr = static_cast<ASTOperationExpressionNode*>(&node);
-            auto optimizedLeft = optimizeStatement(*expr->getLeftChild());
-            auto optimizedRight = optimizeStatement(*expr->getRightChild());
+            auto optimizedLeft = optimizeExpression(*expr->getLeftChild());
+            auto optimizedRight = optimizeExpression(*expr->getRightChild());
             if(optimizedLeft.has_value() && optimizedRight.has_value()){
                 //change child to constant
                 return optimizedLeft.value() * optimizedRight.value();
@@ -142,11 +141,14 @@ namespace semantic{
             return std::optional<double>();
         } else if(node.getType() == ASTNode::DivOperator ){
             auto expr = static_cast<ASTOperationExpressionNode*>(&node);
-            auto optimizedLeft = optimizeStatement(*expr->getLeftChild());
-            auto optimizedRight = optimizeStatement(*expr->getRightChild());
+            auto optimizedLeft = optimizeExpression(*expr->getLeftChild());
+            auto optimizedRight = optimizeExpression(*expr->getRightChild());
             if(optimizedLeft.has_value() && optimizedRight.has_value()){
                 //change child to constant
-                return optimizedLeft.value() / optimizedRight.value();
+                if(optimizedRight.value() != 0){
+                    //check for divide by 0
+                    return optimizedLeft.value() / optimizedRight.value();
+                }
             } else if(optimizedRight.has_value()){
                 //change child to constant
                 double value = optimizedRight.value();
@@ -163,6 +165,11 @@ namespace semantic{
         } else if(node.getType() == ASTNode::LiteralConstant){
             auto literalExpr = static_cast<ASTLiteralNode*>(&node);
             return literalExpr->getValue();
+        }else if(node.getType() == ASTNode::Variable){
+            auto constantExpr = static_cast<ASTIdentifierNode*>(&node);
+            if(variables.contains(constantExpr->getValue())){
+                return variables.find(constantExpr->getValue())->second;
+            }
         }
         return std::optional<double>();
     }

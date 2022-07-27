@@ -42,7 +42,6 @@ class PljitHandle{
     public:
     template <typename... Args> requires(std::is_floating_point_v<Args...>)
     auto operator()(Args... args){
-        //static_assert((std::is_same<Args, double>::value && ...));
         std::vector<double> vec = {args...};
         if(jit.astNode == nullptr){
             //compile new
