@@ -20,7 +20,7 @@ namespace semantic{
             }
         }
     }
-
+    //TODO: Fix constantPropagation
     void ConstantPropagationPass::optimize(ASTNode& node) {
         if(node.getType() == ASTNode::FunctionDefinition){
             auto functionDefinition = static_cast<ASTFunctionNode*>(&node);

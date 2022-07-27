@@ -19,7 +19,7 @@ using DeadCodeEliminationPass = semantic::DeadCodeEliminationPass;
 using ConstantPropagationPass = semantic::ConstantPropagationPass;
 
 class PljitHandle;
-
+//TODO:Multithreading
 class Pljit {
     friend class PljitHandle;
     class PljitStatus{
@@ -40,15 +40,15 @@ class PljitHandle{
 
     explicit PljitHandle(Pljit::PljitStatus& jit): jit(jit){}
     public:
-    template <typename... Args>
+    template <typename... Args> requires(std::is_floating_point_v<Args...>)
     auto operator()(Args... args){
-        static_assert((std::is_same<Args, double>::value && ...));
+        //static_assert((std::is_same<Args, double>::value && ...));
         std::vector<double> vec = {args...};
         if(jit.astNode == nullptr){
             //compile new
             SourceCodeManager manager(jit.code);
             Tokenizer tokenizer = Tokenizer(manager);
-
+            //TODO: in case of failures
             Parser parser = Parser(tokenizer);
             auto parseNode = parser.expectFunctionDefinition();
             SemanticAnalyzer semantic = SemanticAnalyzer();

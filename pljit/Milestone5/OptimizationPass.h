@@ -15,7 +15,7 @@ namespace semantic{
     };
     class ConstantPropagationPass: public AbstractOptimizationPass {
         friend class ASTEvaluator;
-        std::map<std::string, double> variables;
+        std::unordered_map<std::string, double> variables;
         /*
          * helper function for constant propagation, returns whether the expression/statement is a constant
          */

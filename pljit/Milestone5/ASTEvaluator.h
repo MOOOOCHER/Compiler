@@ -1,7 +1,7 @@
 #ifndef PLJIT_ASTEVALUATOR_H
 #define PLJIT_ASTEVALUATOR_H
 #include "../Milestone4/ASTNode.h"
-#include <map>
+#include <unordered_map>
 #include <optional>
 namespace semantic{
     class ASTEvaluator {
@@ -17,7 +17,7 @@ namespace semantic{
         friend class ASTStatementNode;
         friend class ASTOperationExpressionNode;
         friend class ASTParamIdentifierNode;
-        std::map<std::string, std::optional<double>> variables;
+        std::unordered_map<std::string, std::optional<double>> variables;
         /*
          * these functions are needed for setting up variable storing
          */
