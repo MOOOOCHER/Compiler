@@ -112,7 +112,7 @@ namespace semantic{
         friend class ASTEvaluator;
         double paramValue = 0;
         public:
-        ASTParamIdentifierNode(std::string value, double paramValue): ASTValueNode<std::string>(Parameter, std::move(value)), paramValue(paramValue){};
+        ASTParamIdentifierNode(std::string value): ASTValueNode<std::string>(Parameter, std::move(value)){};
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
@@ -160,15 +160,10 @@ namespace semantic{
     class ASTOperationExpressionNode: public ASTBinaryNode{
         friend class ConstantPropagationPass;
         public:
-        //rightChild could be nullptr
         /*
          * constructor with two children
          */
         ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTBinaryNode(type,std::move(left), std::move(right)){};
-        /*
-         * constructor with one children, if the optional component doesn't exist
-         */
-        explicit ASTOperationExpressionNode(std::unique_ptr<ASTNode> left): ASTBinaryNode(NoOperator,std::move(left), nullptr) {};
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };

@@ -6,7 +6,6 @@
 #include <gtest/gtest.h>
 
 using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
-using Token = lexer::Token;
 using Tokenizer = lexer::Tokenizer;
 using Parser = parser::Parser;
 using Node = parser::Node;
@@ -28,6 +27,16 @@ TEST(TestSemantic, AnalyzeFunctionSimpleValid){
 TEST(TestSemantic, AnalyzeFunctionDoubleDeclaration){
     std::cout << "Testing double declaration:" << std::endl;
     auto result = setup(std::vector<double>{1,1},"PARAM ab, ab; BEGIN ab := 1; RETURN ab END.");
+    EXPECT_EQ(result, nullptr);
+    result = setup(std::vector<double>{1},"PARAM c; VAR ab,ab; CONST b= 1; BEGIN ab := 1; RETURN ab END.");
+    EXPECT_EQ(result, nullptr);
+    result = setup(std::vector<double>{1},"PARAM a; VAR ab; CONST c= 1, c= 1; BEGIN ab := 1; RETURN ab END.");
+    EXPECT_EQ(result, nullptr);
+    result = setup(std::vector<double>{1},"PARAM ab; VAR ab; BEGIN ab := 1; RETURN ab END.");
+    EXPECT_EQ(result, nullptr);
+    result = setup(std::vector<double>{1},"PARAM c; VAR ab; CONST c= 1; BEGIN ab := 1; RETURN ab END.");
+    EXPECT_EQ(result, nullptr);
+    result = setup(std::vector<double>{1},"PARAM c; VAR ab; CONST ab= 1; BEGIN ab := 1; RETURN ab END.");
     EXPECT_EQ(result, nullptr);
     std::cout << "=========================================================" << std::endl;
 }

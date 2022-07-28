@@ -49,7 +49,7 @@ class ASTSymbolTable {
     /*
      * inserts a node into the hashtable
      */
-    void insert(ASTSymbolEntry node);
+    void insert(const ASTSymbolEntry& node);
     /*
      * inserts a node into the hashtable
      */

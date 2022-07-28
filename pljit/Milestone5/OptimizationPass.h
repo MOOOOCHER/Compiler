@@ -19,7 +19,7 @@ namespace semantic{
         /*
          * helper function for constant propagation, returns whether the expression/statement is a constant
          */
-        std::optional<double> optimizeStatement(ASTNode& node);
+        void optimizeStatement(ASTNode& node);
         std::optional<double> optimizeExpression(ASTNode& node);
 
         public:

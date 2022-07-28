@@ -3,9 +3,7 @@
 namespace semantic {
     //helper function for hashing
     void ASTSymbolTable::initBuckets(size_t size){
-        for(size_t i=0;i<size;i++){
-            buckets.push_back(nullptr);
-        }
+        buckets.resize(size);
     }
     ASTSymbolTable::ASTSymbolTable(){
         initBuckets(10);
@@ -44,9 +42,9 @@ namespace semantic {
         return result% buckets.size();
     }
 
-    void ASTSymbolTable::insert(ASTSymbolEntry entry){
+    void ASTSymbolTable::insert(const ASTSymbolEntry& entry){
         ++sizeOfTable;
-        if(static_cast<double>(sizeOfTable)/ static_cast<double>(buckets.size())>0.5){
+        if(2*sizeOfTable>buckets.size()){
             rehash();
         }
         size_t index = computeHash(entry.name);

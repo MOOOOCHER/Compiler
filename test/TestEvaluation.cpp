@@ -101,5 +101,9 @@ TEST(TestEvaluation, InvalidEvaluation){
     EXPECT_EQ(result.has_value(), false);
     result = setupWithOptimizationShort(std::vector<double>(),"VAR a, b; BEGIN a := 1; b := 1; RETURN (a+b * 2/(4-4))END.");
     EXPECT_EQ(result.has_value(), false);
+    result = setupWithOptimizationShort(std::vector<double>{0,2},"PARAM a,b; VAR c; BEGIN c:=2+b ;RETURN b*c/a END.");
+    EXPECT_EQ(result.has_value(), false);
+    result = setupWithOptimizationShort(std::vector<double>{50,2},"PARAM a,b; CONST c=2; BEGIN a:=a+c ;RETURN a/(b-c) END.");
+    EXPECT_EQ(result.has_value(), false);
     std::cout << "=========================================================" << std::endl;
 }
