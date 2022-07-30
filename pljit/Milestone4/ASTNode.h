@@ -112,7 +112,7 @@ namespace semantic{
         friend class ASTEvaluator;
         double paramValue = 0;
         public:
-        ASTParamIdentifierNode(std::string value): ASTValueNode<std::string>(Parameter, std::move(value)){};
+        explicit ASTParamIdentifierNode(std::string value): ASTValueNode<std::string>(Parameter, std::move(value)){};
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };

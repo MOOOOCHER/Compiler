@@ -30,12 +30,35 @@ TEST(TestPljit, TestValidCode){
     ASSERT_EQ(result.has_value(), true);
     EXPECT_EQ(result.value(), 4);
 }
+TEST(TestPljit, TestMultiThread){
+    Pljit jit;
+    std::vector<std::thread> threads;
+    auto func = jit.registerFunction("PARAM a; CONST c=5; BEGIN RETURN a*c END.");
+    for(uint32_t i = 0; i<10;++i){
+        threads.emplace_back([&func](){
+            for(uint32_t value = 0; value<5;++value){
+                auto result = func(value);
+                ASSERT_EQ(result.has_value(), true);
+                EXPECT_EQ(result.value(), 5*value);
+            }
+        });
+    }
+    for(auto& thread: threads){
+        thread.join();
+    }
+}
 TEST(TestPljit, TestInvalidCode){
     Pljit jit;
     std::cout << "Testing invalid tokens/empty code:" << std::endl;
     testInvalidCode(jit, "");
     testInvalidCode(jit, "PARAM a,b; CONST c=1; BEGIN a:=a+c? ;RETURN a+b*c END.");
     testInvalidCode(jit, "PARAM a,&b; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END.");
+    testInvalidCode(jit, "PARAM a,b; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END._");
+    std::cout << "=========================================================" << std::endl;
+    std::cout << "Testing invalid syntax:" << std::endl;
+    testInvalidCode(jit, "PARAM a;b; CONST c=1; BEGIN ;RETURN a+b*c END.");
+    testInvalidCode(jit, "PARAM a,&b; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END.");
+    testInvalidCode(jit, "PARAM a,b; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END._");
     std::cout << "=========================================================" << std::endl;
     std::cout << "Testing wrong parameter/arguments count:" << std::endl;
     testInvalidCode(jit, "PARAM a,b; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END.");
@@ -47,24 +70,4 @@ TEST(TestPljit, TestInvalidCode){
     result = func2(1);
     EXPECT_EQ(result.has_value(), false);
     std::cout << "=========================================================" << std::endl;
-}
-TEST(TestPljit, TestMultiThread){
-    Pljit jit;
-    std::vector<std::thread> threads;
-    //calling twice
-    auto func = jit.registerFunction("PARAM a; CONST c=5; BEGIN RETURN a*c END.");
-    for(uint32_t i = 0; i<10;++i){
-        threads.emplace_back([&func](){
-            for(uint32_t value = 0; value<5;++value){
-                auto result = func(value);
-                ASSERT_EQ(result.has_value(), true);
-                EXPECT_EQ(result.value(), 5*value);
-            }
-        });
-    }
-
-    for(auto& thread: threads){
-        thread.join();
-    }
-
 }

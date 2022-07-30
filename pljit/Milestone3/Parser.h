@@ -72,7 +72,7 @@ class Parser{
      * keywordType: type of the keyword that starts this expression,e.g. "PARAM", "BEGIN"
      * endingKeyword:type of the keyword that ends this expression,e.g. ";", "END"
       */
-    std::unique_ptr<NonTerminalNode> refactorDeclaration(auto (Parser::*func)(), Node::Types nodeType, Node::Types startingKeyword, TokenTypes endingKeyword);
+    std::unique_ptr<NonTerminalNode> refactorDeclaration(auto (Parser::*func)(), Node::Types startingKeyword, TokenTypes endingKeyword, Node::Types nodeType);
     /*
      * this function refactors grammar productions of this form, identifier assignmentOperator (literal | additive-expression)
      * PARAM:
@@ -80,7 +80,7 @@ class Parser{
      * NodeType: the NodeType for the returned NonTerminalNode
      * operator1, operator2: token type of the operator, e.g. "*","+"
       */
-    std::unique_ptr<NonTerminalNode> refactorExpression(auto (Parser::*func1)(),auto (Parser::*func2)(), Node::Types nodeType, const TokenTypes operator1, const TokenTypes operator2);
+    std::unique_ptr<NonTerminalNode> refactorExpression(auto (Parser::*func1)(),auto (Parser::*func2)(), Node::Types nodeType, TokenTypes operator1, TokenTypes operator2);
     /*
      * this helper function resets the backtrack token
      */

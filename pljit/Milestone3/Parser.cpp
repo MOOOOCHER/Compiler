@@ -89,10 +89,10 @@ std::unique_ptr<NonTerminalNode> Parser::refactorDeclList(auto (Parser::*func)()
     }
     return nullptr;
 }
-std::unique_ptr<NonTerminalNode> Parser::refactorDeclaration(auto (Parser::*func)(), Node::Types nodeType, Node::Types keyword, TokenTypes endingKeyword){
+std::unique_ptr<NonTerminalNode> Parser::refactorDeclaration(auto (Parser::*func)(), Node::Types startingKeyword, TokenTypes endingKeyword, Node::Types nodeType){
     //we only get in here if the check was successful
     std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(nodeType,tokenizer.getManager());
-    node->children.push_back(std::make_unique<GenericNode>(backtrackToken.sourceCodeReference,tokenizer.getManager(),keyword));
+    node->children.push_back(std::make_unique<GenericNode>(backtrackToken.sourceCodeReference,tokenizer.getManager(),startingKeyword));
     resetBacktrackToken();
     auto declList = (this->*func)();
     if(!declList){
@@ -259,16 +259,21 @@ std::unique_ptr<NonTerminalNode> Parser::expectFunctionDefinition(){
     }
     node->children.push_back(std::move(compStatement));
     node->children.push_back(std::move(dot));
+    if(tokenizer.hasNext()){
+        auto invalid = tokenizer.next();
+        printErrorMsg(invalid,"error: Invalid token after function definition!");
+        return nullptr;
+    }
     return node;
 }
 std::unique_ptr<NonTerminalNode> Parser::expectParameterDeclaration(){
-    return refactorDeclaration(&Parser::expectDeclaratorList, Node::Types::ParameterDeclaration, Node::Types::PARAM, TokenTypes::Semicolon);
+    return refactorDeclaration(&Parser::expectDeclaratorList, Node::Types::PARAM, TokenTypes::Semicolon, Node::Types::ParameterDeclaration);
 }
 std::unique_ptr<NonTerminalNode> Parser::expectVariableDeclaration(){
-    return refactorDeclaration(&Parser::expectDeclaratorList, Node::Types::VariableDeclaration, Node::Types::VAR,TokenTypes::Semicolon);
+    return refactorDeclaration(&Parser::expectDeclaratorList, Node::Types::VAR,TokenTypes::Semicolon, Node::Types::VariableDeclaration);
 }
 std::unique_ptr<NonTerminalNode> Parser::expectConstantDeclaration(){
-    return refactorDeclaration(&Parser::expectInitDeclaratorList, Node::Types::ConstantDeclaration, Node::Types::CONST,TokenTypes::Semicolon);
+    return refactorDeclaration(&Parser::expectInitDeclaratorList, Node::Types::CONST,TokenTypes::Semicolon, Node::Types::ConstantDeclaration);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------
@@ -299,7 +304,7 @@ std::unique_ptr<NonTerminalNode> Parser::expectInitDeclarator(){
 }
 //------------------------------------------------------------------------------------------------------------------------------------
 std::unique_ptr<NonTerminalNode> Parser::expectCompoundStatement(){
-    return refactorDeclaration(&Parser::expectStatementList, Node::Types::CompoundStatement, Node::Types::BEGIN,TokenTypes::END);
+    return refactorDeclaration(&Parser::expectStatementList, Node::Types::BEGIN,TokenTypes::END, Node::Types::CompoundStatement);
 }
 std::unique_ptr<NonTerminalNode> Parser::expectStatementList(){
     auto element = expectStatement();

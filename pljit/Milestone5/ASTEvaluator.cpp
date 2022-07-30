@@ -5,7 +5,7 @@
 namespace semantic{
 std::optional<double> ASTEvaluator::evaluateFunction(std::vector<long> arg,semantic::ASTNode& node){
     if(!initArguments(std::move(arg),node)){
-        return std::optional<double>();
+        return {};
     }
     return node.acceptEvaluation(*this);
 }
