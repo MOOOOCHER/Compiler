@@ -39,9 +39,9 @@ namespace semantic{
         /*
          * this function initializes the parameters with the arguments;
          */
-        void initArguments(std::vector<double> arg,semantic::ASTNode& node);
+        bool initArguments(std::vector<long> arg,semantic::ASTNode& node);
         public:
-        std::optional<double> evaluateFunction(std::vector<double> arg,semantic::ASTNode& node);
+        std::optional<double> evaluateFunction(std::vector<long> arg,semantic::ASTNode& node);
     };
 } // namespace semantic
 

@@ -2,7 +2,7 @@
 namespace semantic {
 using NodeType = parser::Node::Types;
 
-std::unique_ptr<ASTFunctionNode> SemanticAnalyzer::analyzeFunction(const std::vector<double>& arg,parser::NonTerminalNode& parseNode){
+std::unique_ptr<ASTFunctionNode> SemanticAnalyzer::analyzeFunction(const std::vector<long>& arg,parser::NonTerminalNode& parseNode){
     std::unique_ptr<ASTFunctionNode> node = std::make_unique<ASTFunctionNode>();
     if(parseNode.getType() == NodeType::FunctionDefinition){
         for(auto child: parseNode.getChildren()){
@@ -32,7 +32,7 @@ std::unique_ptr<ASTFunctionNode> SemanticAnalyzer::analyzeFunction(const std::ve
     }
     return nullptr;
 }
-std::unique_ptr<ASTDeclaratorListNode> SemanticAnalyzer::analyzeParameterDeclaration(const std::vector<double>& arg,parser::NonTerminalNode& parseNode){
+std::unique_ptr<ASTDeclaratorListNode> SemanticAnalyzer::analyzeParameterDeclaration(const std::vector<long>& arg,parser::NonTerminalNode& parseNode){
     std::unique_ptr<ASTDeclaratorListNode> node = std::make_unique<ASTDeclaratorListNode>();
     auto declList = parseNode.getChildren()[1];
     if(declList->getType() == NodeType::DeclaratorList){

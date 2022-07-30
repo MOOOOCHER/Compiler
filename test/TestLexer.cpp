@@ -22,10 +22,10 @@ TEST(TestLexer, SimpleTextLexer){
     Tokenizer tokenizer = Tokenizer(manager);
     auto token = tokenizer.next();
     EXPECT_EQ(token.getType(), lexer::TokenTypes::PARAM);
-    auto token2 = tokenizer.next();
-    EXPECT_EQ(token2.getType(), lexer::TokenTypes::Identifier);
-    auto token3 = tokenizer.next();
-    EXPECT_EQ(token3.getType(), lexer::TokenTypes::Identifier);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
 }
 TEST(TestLexer, twoLiterates){
     std::string_view view("BEGIN 12 34 END;");
@@ -33,14 +33,14 @@ TEST(TestLexer, twoLiterates){
     Tokenizer tokenizer = Tokenizer(manager);
     auto token = tokenizer.next();
     EXPECT_EQ(token.getType(), lexer::TokenTypes::BEGIN);
-    auto token2 = tokenizer.next();
-    EXPECT_EQ(token2.getType(), lexer::TokenTypes::Literal);
-    auto token3 = tokenizer.next();
-    EXPECT_EQ(token3.getType(), lexer::TokenTypes::Literal);
-    auto token4 = tokenizer.next();
-    EXPECT_EQ(token4.getType(), lexer::TokenTypes::END);
-    auto token5 = tokenizer.next();
-    EXPECT_EQ(token5.getType(), lexer::TokenTypes::Semicolon);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Literal);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Literal);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::END);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Semicolon);
 }
 TEST(TestLexer, LiteralIdentifier){
     std::string_view view("BEGIN VAR b 1234a END;");
@@ -49,18 +49,18 @@ TEST(TestLexer, LiteralIdentifier){
     Tokenizer tokenizer = Tokenizer(manager);
     auto token = tokenizer.next();
     EXPECT_EQ(token.getType(), lexer::TokenTypes::BEGIN);
-    auto token2 = tokenizer.next();
-    EXPECT_EQ(token2.getType(), lexer::TokenTypes::VAR);
-    auto token3 = tokenizer.next();
-    EXPECT_EQ(token3.getType(), lexer::TokenTypes::Identifier);
-    auto token4 = tokenizer.next();
-    EXPECT_EQ(token4.getType(), lexer::TokenTypes::Literal);
-    auto token5 = tokenizer.next();
-    EXPECT_EQ(token5.getType(), lexer::TokenTypes::Identifier);
-    auto token6 = tokenizer.next();
-    EXPECT_EQ(token6.getType(), lexer::TokenTypes::END);
-    auto token7 = tokenizer.next();
-    EXPECT_EQ(token7.getType(), lexer::TokenTypes::Semicolon);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::VAR);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Literal);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::END);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Semicolon);
 }
 TEST(TestLexer, InvalidSymbol) {
     std::string_view view("CONST hello? = 4*4.");
@@ -69,8 +69,8 @@ TEST(TestLexer, InvalidSymbol) {
     Tokenizer tokenizer = Tokenizer(manager);
     auto token = tokenizer.next();
     EXPECT_EQ(token.getType(), lexer::TokenTypes::CONST);
-    auto token2 = tokenizer.next();
-    EXPECT_EQ(token2.getType(), lexer::TokenTypes::Invalid);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Invalid);
 
 }
 TEST(TestLexer, InvalidSymbol2) {
@@ -79,8 +79,19 @@ TEST(TestLexer, InvalidSymbol2) {
     Tokenizer tokenizer = Tokenizer(manager);
     auto token = tokenizer.next();
     EXPECT_EQ(token.getType(), lexer::TokenTypes::VAR);
-    auto token2 = tokenizer.next();
-    EXPECT_EQ(token2.getType(), lexer::TokenTypes::Invalid);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Invalid);
+}
+TEST(TestLexer, InvalidSymbol3) {
+    std::string_view view("VAR hello bye?");
+    SourceCodeManager manager(view);
+    Tokenizer tokenizer = Tokenizer(manager);
+    auto token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::VAR);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Invalid); //? is seen as part of bye
 }
 TEST(TestLexer, ParamLexer){
     std::string_view view("PARAM wid, hei, dep;");
@@ -88,18 +99,18 @@ TEST(TestLexer, ParamLexer){
         Tokenizer tokenizer = Tokenizer(manager);
         auto token = tokenizer.next();
         EXPECT_EQ(token.getType(), lexer::TokenTypes::PARAM);
-        auto token2 = tokenizer.next();
-        EXPECT_EQ(token2.getType(), lexer::TokenTypes::Identifier);
-        auto token3 = tokenizer.next();
-        EXPECT_EQ(token3.getType(), lexer::TokenTypes::Comma);
-        auto token4 = tokenizer.next();
-        EXPECT_EQ(token4.getType(), lexer::TokenTypes::Identifier);
-        auto token5 = tokenizer.next();
-        EXPECT_EQ(token5.getType(), lexer::TokenTypes::Comma);
-        auto token6 = tokenizer.next();
-        EXPECT_EQ(token6.getType(), lexer::TokenTypes::Identifier);
-        auto token7 = tokenizer.next();
-        EXPECT_EQ(token7.getType(), lexer::TokenTypes::Semicolon);
+        token = tokenizer.next();
+        EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
+        token = tokenizer.next();
+        EXPECT_EQ(token.getType(), lexer::TokenTypes::Comma);
+        token = tokenizer.next();
+        EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
+        token = tokenizer.next();
+        EXPECT_EQ(token.getType(), lexer::TokenTypes::Comma);
+        token = tokenizer.next();
+        EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
+        token = tokenizer.next();
+        EXPECT_EQ(token.getType(), lexer::TokenTypes::Semicolon);
 }
 TEST(TestLexer, Operator){
     std::string_view view("volume :=width * height / depth;");
@@ -108,20 +119,20 @@ TEST(TestLexer, Operator){
     Tokenizer tokenizer = Tokenizer(manager);
     auto token = tokenizer.next();
     EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
-    auto token2 = tokenizer.next();
-    EXPECT_EQ(token2.getType(), lexer::TokenTypes::AssignEquals);
-    auto token3 = tokenizer.next();
-    EXPECT_EQ(token3.getType(), lexer::TokenTypes::Identifier);
-    auto token4 = tokenizer.next();
-    EXPECT_EQ(token4.getType(), lexer::TokenTypes::MulOperator);
-    auto token5 = tokenizer.next();
-    EXPECT_EQ(token5.getType(), lexer::TokenTypes::Identifier);
-    auto token6 = tokenizer.next();
-    EXPECT_EQ(token6.getType(), lexer::TokenTypes::DivOperator);
-    auto token7 = tokenizer.next();
-    EXPECT_EQ(token7.getType(), lexer::TokenTypes::Identifier);
-    auto token8 = tokenizer.next();
-    EXPECT_EQ(token8.getType(), lexer::TokenTypes::Semicolon);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::AssignEquals);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::MulOperator);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::DivOperator);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Semicolon);
 }
 TEST(TestLexer, ComplexLexer){
     std::string_view view("PARAM width, height, depth;\nVAR volume;\nCONST density = 2400;\nBEGIN\nvolume :=width * height * depth;\nRETURN density*volume\nEND.");

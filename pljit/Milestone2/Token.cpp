@@ -71,7 +71,7 @@ Token Tokenizer::next(const std::string_view& sourceCode) {
                 ptr = &c;
             }
             if(!isValidChar(c)){
-                auto s = SourceCodeReference(ptr,manager,1);
+                auto s = SourceCodeReference(&c,manager,1);
                 s.printContext("An invalid character has been used!");
                 return {s,TokenTypes::Invalid};
             } else if(!isValidToken(current+c)){   //if not valid we need to save the token with the current text;
@@ -118,6 +118,7 @@ Token Tokenizer::next(const std::string_view& sourceCode) {
                     return {SourceCodeReference(ptr, manager, 1), TokenTypes::CloseBracket};
                 }
                 default:{
+                    //letter or digit
                     if(isDigit(c)){
                         if(hasOnlyLetters(current)){
                             return {SourceCodeReference(ptr, manager, current.size()), TokenTypes::Identifier};

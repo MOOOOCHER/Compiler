@@ -2,6 +2,7 @@
 #define PLJIT_PLJIT_H
 #include <string>
 #include <vector>
+#include <iostream>
 #include "../Milestone1/SourceCodeManager.h"
 #include "../Milestone4/ASTNode.h"
 #include "../Milestone2/Token.h"
@@ -40,29 +41,38 @@ class PljitHandle{
 
     explicit PljitHandle(Pljit::PljitStatus& jit): jit(jit){}
     public:
-    template <typename... Args> requires(std::is_floating_point_v<Args...>)
-    auto operator()(Args... args){
-        std::vector<double> vec = {args...};
+    template <std::integral... Args>
+    std::optional<double> operator()(Args... args) {
+        std::vector<long> vec = {args...};
         if(jit.astNode == nullptr){
             //compile new
+            if(jit.code.empty()){
+                std::cout << "Please insert code!" << std::endl;
+            }
             SourceCodeManager manager(jit.code);
-            Tokenizer tokenizer = Tokenizer(manager);
-            //TODO: in case of failures
-            Parser parser = Parser(tokenizer);
+            Parser parser = Parser(Tokenizer(manager));
             auto parseNode = parser.expectFunctionDefinition();
+            if(!parseNode){
+                //Parsing failed
+                return std::optional<double>();
+            }
             SemanticAnalyzer semantic = SemanticAnalyzer();
-            auto node = semantic.analyzeFunction(vec,*parseNode);
+            auto semanticNode = semantic.analyzeFunction(vec,*parseNode);
+            if(!semanticNode){
+                //semantic analyze failed
+                return std::optional<double>();
+            }
             //optimization
             DeadCodeEliminationPass pass = DeadCodeEliminationPass();
-            pass.optimize(*node);
+            pass.optimize(*semanticNode);
             ConstantPropagationPass constantPropagationPass = ConstantPropagationPass();
-            constantPropagationPass.optimize(*node);
-            jit.astNode = std::move(node);
+            constantPropagationPass.optimize(*semanticNode);
+            jit.astNode = std::move(semanticNode);
         }
         ASTEvaluator evaluator = ASTEvaluator();
         auto result = evaluator.evaluateFunction(vec,*jit.astNode);
         if(!result.has_value()){
-            return;
+            return std::optional<double>();
         }
         return result.value();
     }

@@ -3,25 +3,43 @@
 #include <utility>
 #include "../Milestone1/SourceCodeManager.h"
 namespace semantic{
-std::optional<double> ASTEvaluator::evaluateFunction(std::vector<double> arg,semantic::ASTNode& node){
-    initArguments(std::move(arg),node);
+std::optional<double> ASTEvaluator::evaluateFunction(std::vector<long> arg,semantic::ASTNode& node){
+    if(!initArguments(std::move(arg),node)){
+        return std::optional<double>();
+    }
     return node.acceptEvaluation(*this);
 }
-void ASTEvaluator::initArguments(std::vector<double> arg, semantic::ASTNode& node) {
+bool ASTEvaluator::initArguments(std::vector<long> arg, semantic::ASTNode& node) {
     //initialize Parameter
     auto functionDefinition = static_cast<ASTFunctionNode*>(&node);
     for(auto child: functionDefinition->getChildren()){
         if(child->getType() == ASTNode::DeclaratorList){
             auto declList = static_cast<ASTDeclaratorListNode*>(child);
             if(declList->getChildren()[0]->getType() == ASTNode::Parameter){
+                if(declList->getChildren().size() != arg.size()){
+                    //if parameters size don't match
+                    sourceCodeManagement::SourceCodeManager defaultManager = sourceCodeManagement::SourceCodeManager();
+                    sourceCodeManagement::SourceCodeReference a = sourceCodeManagement::SourceCodeReference (defaultManager);
+                    a.printContext("error: parameter size doesn't match with argument size!");
+                    return false;
+                }
                 for(size_t i=0;i<arg.size();i++){
                     auto parameterNode = static_cast<ASTParamIdentifierNode*>(declList->getChildren()[i]);
                     parameterNode->paramValue = arg[i];
+                }
+            } else {
+                if(!arg.empty()){
+                    //if parameters size don't match
+                    sourceCodeManagement::SourceCodeManager defaultManager = sourceCodeManagement::SourceCodeManager();
+                    sourceCodeManagement::SourceCodeReference a = sourceCodeManagement::SourceCodeReference (defaultManager);
+                    a.printContext("error: parameter size doesn't match with argument size!");
+                    return false;
                 }
             }
             break;
         }
     }
+    return true;
 }
 //-------------------------------------------------------------------------------------------------
 std::optional<double> ASTEvaluator::evaluate( semantic::ASTFunctionNode& node){

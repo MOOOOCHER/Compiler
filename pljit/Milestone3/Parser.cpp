@@ -69,7 +69,9 @@ std::unique_ptr<NonTerminalNode> Parser::refactorDeclList(auto (Parser::*func)()
         //check for more
         while (tokenizer.hasNext()) {
             auto separator = tokenizer.next();
-            if(separator.getType() == TokenTypes::Invalid || separator.getType() == TokenTypes::Identifier ||separator.getType()==TokenTypes::Dot){
+            if(separator.getType() == TokenTypes::Invalid ){
+                return nullptr;
+            } else if(separator.getType() == TokenTypes::Identifier ||separator.getType()==TokenTypes::Dot){
                 printErrorMsg(separator,"error: expected ','");
                 return nullptr;
             } else if(separator.getType() != lexer::TokenTypes::Comma){
@@ -124,8 +126,12 @@ std::unique_ptr<NonTerminalNode> Parser::refactorExpression(auto (Parser::*func1
             return node;
         }
         token = tokenizer.next();
+        if(token.getType() == TokenTypes::Invalid ){
+            return nullptr;
+        }
     }
     if (token.getType() != operator1 && token.getType() != operator2){
+        //no optional component at this level
         backtrackToken = token;
         return node;
     }
@@ -145,7 +151,9 @@ std::unique_ptr<IdentifierNode> Parser::expectIdentifierNode(){
         return nullptr;
     }
     auto token = tokenizer.next();
-    if(token.getType() == lexer::TokenTypes::Identifier){
+    if(token.getType() == TokenTypes::Invalid ){
+        return nullptr;
+    } else if(token.getType() == lexer::TokenTypes::Identifier){
         return std::make_unique<IdentifierNode>(token.sourceCodeReference,tokenizer.getManager());
     } else {
         printErrorMsg(token, "error: an identifier is expected!");
@@ -159,7 +167,9 @@ std::unique_ptr<LiteralNode> Parser::expectLiteralNode(){
         return nullptr;
     }
     auto token = tokenizer.next();
-    if(token.getType() == lexer::TokenTypes::Literal){
+    if(token.getType() == TokenTypes::Invalid ){
+        return nullptr;
+    } else if(token.getType() == lexer::TokenTypes::Literal){
         //get number from string
         return std::make_unique<LiteralNode>(token.sourceCodeReference,tokenizer.getManager(),token.getValue());
     } else {
@@ -174,7 +184,9 @@ std::unique_ptr<GenericNode> Parser::expectGenericNode(TokenTypes type){
         return nullptr;
     }
     auto token = tokenizer.next();
-    if(type == token.getType()){
+    if(token.getType() == TokenTypes::Invalid ){
+        return nullptr;
+    } else if(type == token.getType()){
         return std::make_unique<GenericNode>(token.sourceCodeReference,tokenizer.getManager(), getNodeTypeFromTokenType(type));
     }
     printErrorMsg(token,"error: expected"+returnCorrectGenericForErrorMsg(type));
@@ -183,12 +195,13 @@ std::unique_ptr<GenericNode> Parser::expectGenericNode(TokenTypes type){
 //----------------------------------------------------------------------------------------------------
 std::unique_ptr<NonTerminalNode> Parser::expectFunctionDefinition(){
     if(!tokenizer.hasNext()){
-        std::cout << "Please insert code!" << std::endl;
         return nullptr;
     }
     std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::FunctionDefinition,tokenizer.getManager());
     auto token = tokenizer.next();
-    if (token.getType() == TokenTypes::PARAM){
+    if(token.getType() == TokenTypes::Invalid ){
+        return nullptr;
+    } else if (token.getType() == TokenTypes::PARAM){
         backtrackToken = token;
         auto paramDecl = expectParameterDeclaration();
         if(!paramDecl ||!tokenizer.hasNext()){
@@ -196,6 +209,9 @@ std::unique_ptr<NonTerminalNode> Parser::expectFunctionDefinition(){
         }
         node->children.push_back(std::move(paramDecl));
         token = tokenizer.next();
+        if(token.getType() == TokenTypes::Invalid ){
+            return nullptr;
+        }
     }
     if (token.getType() == TokenTypes::VAR){
         backtrackToken = token;
@@ -205,6 +221,9 @@ std::unique_ptr<NonTerminalNode> Parser::expectFunctionDefinition(){
         }
         node->children.push_back(std::move(varDecl));
         token = tokenizer.next();
+        if(token.getType() == TokenTypes::Invalid ){
+            return nullptr;
+        }
     }
     if (token.getType() == TokenTypes::CONST){
         backtrackToken = token;
@@ -214,6 +233,9 @@ std::unique_ptr<NonTerminalNode> Parser::expectFunctionDefinition(){
         }
         node->children.push_back(std::move(constDecl));
         token = tokenizer.next();
+        if(token.getType() == TokenTypes::Invalid ){
+            return nullptr;
+        }
     }
     if (token.getType() != TokenTypes::BEGIN){
         if(token.getType() == lexer::TokenTypes::Identifier){
@@ -289,6 +311,9 @@ std::unique_ptr<NonTerminalNode> Parser::expectStatementList(){
             Token separator = backtrackToken;
             if(backtrackToken.getType() == TokenTypes::Invalid){
                separator = tokenizer.next();
+               if(separator.getType() == TokenTypes::Invalid ){
+                   return nullptr;
+               }
             }
             if(separator.getType() == lexer::TokenTypes::END) {
                 backtrackToken = separator;
@@ -314,7 +339,9 @@ std::unique_ptr<NonTerminalNode> Parser::expectStatement(){
         return nullptr;
     }
     auto token = tokenizer.next();
-    if(token.getType() == TokenTypes::RETURN){
+    if(token.getType() == TokenTypes::Invalid ){
+        return nullptr;
+    } else if(token.getType() == TokenTypes::RETURN){
         //return additive expression
         auto addExpr = expectAdditiveExpression();
         if(addExpr){
@@ -374,6 +401,9 @@ std::unique_ptr<NonTerminalNode> Parser::expectUnaryExpression(){
         return nullptr;
     }
     auto token = tokenizer.next();
+    if(token.getType() == TokenTypes::Invalid ){
+        return nullptr;
+    }
     std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::UnaryExpression,tokenizer.getManager());
 
     if(token.getType() == lexer::TokenTypes::PlusOperator || token.getType() == lexer::TokenTypes::MinusOperator){
@@ -400,6 +430,9 @@ std::unique_ptr<NonTerminalNode> Parser::expectPrimaryExpression(){
             return nullptr;
         }
         token = tokenizer.next();
+        if(token.getType() == TokenTypes::Invalid ){
+            return nullptr;
+        }
     }
     if(token.getType() == TokenTypes::Identifier){
         node->children.push_back(std::make_unique<IdentifierNode>(token.sourceCodeReference,tokenizer.getManager()));
@@ -422,6 +455,9 @@ std::unique_ptr<NonTerminalNode> Parser::expectPrimaryExpression(){
                 return node;
             }
             token2 = tokenizer.next();
+            if(token.getType() == TokenTypes::Invalid ){
+                return nullptr;
+            }
         }
         if(token2.getType() != lexer::TokenTypes::CloseBracket){
             printErrorMsg(token2, "error: expected ')'!");
