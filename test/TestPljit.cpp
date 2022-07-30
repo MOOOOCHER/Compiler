@@ -1,6 +1,7 @@
 #include "pljit/Milestone6/Pljit.h"
+#include <thread>
 #include <gtest/gtest.h>
-
+#include <unordered_set>
 using Pljit = pljit::Pljit;
 template<std::integral ...Args>
 static void testValidCode(Pljit& jit, std::string_view input, double expectedResult, Args... args){
@@ -46,4 +47,24 @@ TEST(TestPljit, TestInvalidCode){
     result = func2(1);
     EXPECT_EQ(result.has_value(), false);
     std::cout << "=========================================================" << std::endl;
+}
+TEST(TestPljit, TestMultiThread){
+    Pljit jit;
+    std::vector<std::thread> threads;
+    //calling twice
+    auto func = jit.registerFunction("PARAM a; CONST c=5; BEGIN RETURN a*c END.");
+    for(uint32_t i = 0; i<10;++i){
+        threads.emplace_back([&func](){
+            for(uint32_t value = 0; value<5;++value){
+                auto result = func(value);
+                ASSERT_EQ(result.has_value(), true);
+                EXPECT_EQ(result.value(), 5*value);
+            }
+        });
+    }
+
+    for(auto& thread: threads){
+        thread.join();
+    }
+
 }

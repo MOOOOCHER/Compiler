@@ -5,4 +5,5 @@ namespace pljit {
         functionStatus.push_back(std::move(status));
         return PljitHandle(functionStatus.back());
     }
+
 } // namespace pljit

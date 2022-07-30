@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <mutex>
 #include "../Milestone1/SourceCodeManager.h"
 #include "../Milestone4/ASTNode.h"
 #include "../Milestone2/Token.h"
@@ -38,29 +39,33 @@ class Pljit {
 class PljitHandle{
     friend class Pljit;
     Pljit::PljitStatus& jit;
+    mutable std::mutex mutex;
 
     explicit PljitHandle(Pljit::PljitStatus& jit): jit(jit){}
+
     public:
     template <std::integral... Args>
     std::optional<double> operator()(Args... args) {
+        if(jit.code.empty()){
+            std::cout << "Please insert code!" << std::endl;
+            return {};
+        }
         std::vector<long> vec = {args...};
+        std::unique_lock lock(mutex);
         if(jit.astNode == nullptr){
             //compile new
-            if(jit.code.empty()){
-                std::cout << "Please insert code!" << std::endl;
-            }
             SourceCodeManager manager(jit.code);
             Parser parser = Parser(Tokenizer(manager));
             auto parseNode = parser.expectFunctionDefinition();
             if(!parseNode){
                 //Parsing failed
-                return std::optional<double>();
+                return {};
             }
             SemanticAnalyzer semantic = SemanticAnalyzer();
             auto semanticNode = semantic.analyzeFunction(vec,*parseNode);
             if(!semanticNode){
                 //semantic analyze failed
-                return std::optional<double>();
+                return {};
             }
             //optimization
             DeadCodeEliminationPass pass = DeadCodeEliminationPass();
@@ -71,8 +76,9 @@ class PljitHandle{
         }
         ASTEvaluator evaluator = ASTEvaluator();
         auto result = evaluator.evaluateFunction(vec,*jit.astNode);
+        lock.unlock();
         if(!result.has_value()){
-            return std::optional<double>();
+            return {};
         }
         return result.value();
     }
