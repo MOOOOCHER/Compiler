@@ -150,7 +150,7 @@ std::unique_ptr<IdentifierNode> Parser::expectIdentifierNode(){
     if(token.getType() == TokenTypes::Invalid ){
         return nullptr;
     } else if(token.getType() == lexer::TokenTypes::Identifier){
-        return std::make_unique<IdentifierNode>(token.sourceCodeReference,tokenizer.getManager());
+        return std::make_unique<IdentifierNode>(token.sourceCodeReference,tokenizer.getManager(), token.sourceCodeReference.getText());
     } else {
         printErrorMsg(token, "error: an identifier is expected!");
         return nullptr;
@@ -372,7 +372,7 @@ std::unique_ptr<NonTerminalNode> Parser::expectAssignmentExpression(){
         return nullptr;
     }
     std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::AssignmentExpression, tokenizer.getManager());
-    node->children.push_back(std::make_unique<IdentifierNode>(backtrackToken.sourceCodeReference,tokenizer.getManager()));
+    node->children.push_back(std::make_unique<IdentifierNode>(backtrackToken.sourceCodeReference,tokenizer.getManager(), backtrackToken.sourceCodeReference.getText()));
     resetBacktrackToken();
 
     auto equals = expectGenericNode(lexer::TokenTypes::AssignEquals);
@@ -436,7 +436,7 @@ std::unique_ptr<NonTerminalNode> Parser::expectPrimaryExpression(){
         }
     }
     if(token.getType() == TokenTypes::Identifier){
-        node->children.push_back(std::make_unique<IdentifierNode>(token.sourceCodeReference,tokenizer.getManager()));
+        node->children.push_back(std::make_unique<IdentifierNode>(token.sourceCodeReference,tokenizer.getManager(), token.sourceCodeReference.getText()));
         resetBacktrackToken();
         return node;
     } else if(token.getType() == TokenTypes::Literal){

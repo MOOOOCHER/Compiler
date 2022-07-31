@@ -73,7 +73,6 @@ std::optional<double> ASTUnaryExpression::acceptEvaluation(ASTEvaluator& visitor
     return visitor.evaluate(*this);
 }
 
-
 void ASTParamIdentifierNode::accept(ASTTreeVisitor& visitor) const{
     visitor.visit(*this);
 }

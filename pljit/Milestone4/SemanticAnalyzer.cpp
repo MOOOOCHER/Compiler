@@ -213,27 +213,27 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
 }
 std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeInitIdentifier(ASTNode::ASTNodeType type, parser::IdentifierNode& parseNode){
     //this function is used for identifier declarations
-    if(table.contains(parseNode.getReference().getText())){
+    if(table.contains(parseNode.getText())){
         //double declaration
-        parseNode.getReference().printContext("error: '"+ std::string(parseNode.getReference().getText()) +"' is already declared!");
+        parseNode.getReference().printContext("error: '"+ std::string(parseNode.getText()) +"' is already declared!");
         return nullptr;
     }
     table.insert(type,parseNode.getReference());
     if(type == ASTNode::Parameter){
         //treat parameters differently
-        return std::make_unique<ASTParamIdentifierNode>(parseNode.getReference().getText());//0 as default value for the uninitialized variable
+        return std::make_unique<ASTParamIdentifierNode>(parseNode.getText());//0 as default value for the uninitialized variable
     }
-    return std::make_unique<ASTIdentifierNode>(type,parseNode.getReference().getText());
+    return std::make_unique<ASTIdentifierNode>(type,parseNode.getText());
 }
 std::unique_ptr<ASTIdentifierNode> SemanticAnalyzer::analyzeIdentifier(parser::IdentifierNode& parseNode){
     //this function is used, when analyzing statements
-    auto entry = table.get(parseNode.getReference().getText());
+    auto entry = table.get(parseNode.getText());
     if(!entry){
         //undeclared identifier
-        parseNode.getReference().printContext("error: '"+ std::string(parseNode.getReference().getText()) +"' is undeclared!");
+        parseNode.getReference().printContext("error: '"+ std::string(parseNode.getText()) +"' is undeclared!");
         return nullptr;
     }
     ASTNode::ASTNodeType type = entry->identifierType;
-    return std::make_unique<ASTIdentifierNode>(type,parseNode.getReference().getText());
+    return std::make_unique<ASTIdentifierNode>(type,parseNode.getText());
 }
 } //namespace semantic

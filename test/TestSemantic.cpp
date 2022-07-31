@@ -11,7 +11,7 @@ using Parser = parser::Parser;
 using Node = parser::Node;
 using SemanticAnalyzer = semantic::SemanticAnalyzer;
 
-static auto setup(std::vector<long> vec,const std::string_view& input){
+static auto setup(const std::vector<long>& vec,const std::string_view& input){
     SourceCodeManager manager(input);
     Tokenizer tokenizer = Tokenizer(manager);
 
@@ -79,10 +79,12 @@ TEST(TestSemantic, AnalyzeFunctionValid){
     EXPECT_NE(result, nullptr);
     result = setup(std::vector<long>{1,1,1},"PARAM width, height, depth;\nVAR volume;\nCONST density = 2400;\nBEGIN\nvolume :=width * height * depth;\nRETURN density*volume\nEND.");
     EXPECT_NE(result, nullptr);
+    auto visitor = semantic::ASTTreePrintVisitor();
+    visitor.printTree(*result);
     result = setup(std::vector<long>(),"VAR a, b; BEGIN a := 1; b := 1; RETURN (a+b * 2/(123+4))END.");
     EXPECT_NE(result, nullptr);
     result = setup(std::vector<long>(),"VAR a, b; BEGIN a := 1; b := 1; RETURN a *(-b + 55 * (1-(-1)) )END.");
     EXPECT_NE(result, nullptr);
-    auto visitor = semantic::ASTTreePrintVisitor();
+    visitor = semantic::ASTTreePrintVisitor();
     visitor.printTree(*result);
 }

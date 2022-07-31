@@ -60,7 +60,7 @@ void ParseTreePrintVisitor::visit(const LiteralNode& node) {
 void ParseTreePrintVisitor::visit(const IdentifierNode& node) {
     std::cout << "\t" << index+1 << " [label=\"" << node.getText()<< "\"];" << std::endl;
     std::cout << "\t" << index << " -> " << index+1 << ";" << std::endl;
-    index++;;
+    index++;
 }
 void ParseTreePrintVisitor::printTree(const Node& node){
     std::cout << "digraph {" << std::endl;
@@ -68,4 +68,4 @@ void ParseTreePrintVisitor::printTree(const Node& node){
     node.accept(*this);
     std::cout << "}" << std::endl;
 }
-}
+} // namespace parser

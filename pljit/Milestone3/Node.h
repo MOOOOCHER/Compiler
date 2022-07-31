@@ -71,11 +71,11 @@ class ParseTreePrintVisitor;
     };
     class IdentifierNode: public TerminalNode{
         friend class ParseTreePrintVisitor;
-        std::string_view getText() const{
-            return sourceCodeReference.getText();
-        }
+        std::string_view text;
+
         public:
-        IdentifierNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, SourceCodeManager manager): TerminalNode(std::move(sourceCodeReference), Node::Types::Identifier, manager){}
+        IdentifierNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, SourceCodeManager manager, std::string_view name): TerminalNode(std::move(sourceCodeReference), Node::Types::Identifier, manager), text(name){}
+        std::string_view getText() const{ return text; }
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class LiteralNode: public TerminalNode{
