@@ -105,7 +105,7 @@ std::unique_ptr<NonTerminalNode> Parser::refactorDeclaration(auto (Parser::*func
         resetBacktrackToken();
         return node;
     }
-    printErrorMsg(backtrackToken,"error: expected '"+returnCorrectGenericForErrorMsg(endingKeyword)+"'");
+    printErrorMsg(backtrackToken,"error: expected "+returnCorrectGenericForErrorMsg(endingKeyword)+"!");
     return nullptr;
 }
 std::unique_ptr<NonTerminalNode> Parser::refactorExpression(auto (Parser::*func1)(),auto (Parser::*func2)(), Node::Types nodeType, const TokenTypes operator1, const TokenTypes operator2){

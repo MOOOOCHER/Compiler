@@ -3,12 +3,15 @@
 namespace sourceCodeManagement{
     SourceCodeManager::SourceCodeManager(std::string_view source): source(source) {}
     //SourceCodeReference-----------------------------------------------------------------------------------------------------------------------------------------
-    SourceCodeReference::SourceCodeReference(SourceCodeManager& manager): location(nullptr), manager(manager){}
+    SourceCodeReference::SourceCodeReference(SourceCodeManager& manager): manager(manager){
+        if(!manager.source.empty()){
+            positionInCode = manager.source.size()-1;
+        }
+    }
 
     SourceCodeReference::SourceCodeReference(const SourceCodeReference& other) = default;
     SourceCodeReference& SourceCodeReference::operator=(const SourceCodeReference& other){
         if(&other!= this){
-            location = other.location;
             positionInCode = other.positionInCode;
             manager = other.manager;
             lengthOfString = other.lengthOfString;
@@ -16,20 +19,16 @@ namespace sourceCodeManagement{
         return *this;
     }
 
-    SourceCodeReference::SourceCodeReference(SourceCodeReference&& other)noexcept: location(other.location), positionInCode(other.positionInCode),manager(other.manager), lengthOfString(other.lengthOfString){
-        other.location = nullptr;
+    SourceCodeReference::SourceCodeReference(SourceCodeReference&& other)noexcept: positionInCode(other.positionInCode),manager(other.manager), lengthOfString(other.lengthOfString){
         other.positionInCode = 0;
         other.lengthOfString = 0;
     }
     SourceCodeReference& SourceCodeReference::operator=(SourceCodeReference&& other) noexcept {
-        location = nullptr;
         if(&other!= this){
-            location = other.location;
             positionInCode = other.positionInCode;
             manager = other.manager;
             lengthOfString = other.lengthOfString;
         }
-        other.location = nullptr;
         other.positionInCode = 0;
         other.lengthOfString = 0;
         return *this;
@@ -41,7 +40,7 @@ namespace sourceCodeManagement{
         size_t line = 1;
         size_t linePos = 1;
         for(const char& c: manager.source){
-            if(&c == location){
+            if(&c == getText().data()){
                 return {line, linePos};
             }
             if(c=='\n'){

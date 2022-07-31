@@ -9,9 +9,9 @@ using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
 TEST(TestLexer, PrintContext){
     std::string_view view("PARAM a b;");
     SourceCodeManager manager(view);
-    SourceCodeReference range = SourceCodeReference(view.data(),0,manager,5);
+    SourceCodeReference range = SourceCodeReference(0,manager,5);
     range.printContext("Testing Range");
-    SourceCodeReference location = SourceCodeReference(view.data(),0,manager, 1);
+    SourceCodeReference location = SourceCodeReference(0,manager, 1);
     location.printContext("Testing Location");
 }
 TEST(TestLexer, SimpleTextLexer){

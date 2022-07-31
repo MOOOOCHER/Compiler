@@ -15,7 +15,6 @@ struct SourceCodeManager{
     SourceCodeManager() = default;
 };
 class SourceCodeReference{
-    const char* location;
     size_t positionInCode = 0;
     SourceCodeManager& manager;
     size_t lengthOfString = 0;
@@ -33,7 +32,7 @@ class SourceCodeReference{
      * standard construct pointing to the last element of the code
      */
     explicit SourceCodeReference(SourceCodeManager& manager);
-    SourceCodeReference(const char* location,size_t position, SourceCodeManager& manager, size_t lengthOfString = 1): location(location), positionInCode(position), manager(manager), lengthOfString(lengthOfString){}
+    SourceCodeReference(size_t position, SourceCodeManager& manager, size_t lengthOfString = 1): positionInCode(position), manager(manager), lengthOfString(lengthOfString){}
     //copy semantics
     SourceCodeReference(const SourceCodeReference& other);
     SourceCodeReference& operator=(const SourceCodeReference& other);
