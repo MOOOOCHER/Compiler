@@ -83,7 +83,7 @@ Token Tokenizer::next(){
 }
 Token Tokenizer::next(const std::string_view& sourceCode) {
     std::string current;
-    size_t startingPos;
+    size_t startingPos = 0;
 
     for(const char&c: sourceCode){
         if(c != ' ' && c!='\t' && c!='\n'){
