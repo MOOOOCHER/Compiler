@@ -7,11 +7,7 @@ void Parser::printDefaultErrorMsg(std::string_view msg){
     token.sourceCodeReference.printContext(msg);
 }
 void Parser::printErrorMsg(Token& token, std::string_view msg){
-    if(token.getType() != TokenTypes::Invalid){
         token.sourceCodeReference.printContext(msg);
-    } else {
-        token.sourceCodeReference.printContext(msg);
-    }
 }
 static std::string returnCorrectGenericForErrorMsg(TokenTypes type){
     switch(type){

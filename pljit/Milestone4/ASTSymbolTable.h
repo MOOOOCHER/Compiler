@@ -17,7 +17,7 @@ class ASTSymbolTable {
         std::string name;
         SourceCodeReference sourceCodeReference;
 
-        ASTSymbolEntry(ASTNode::ASTNodeType identifierType, SourceCodeReference sourceCodeReference): identifierType(identifierType),sourceCodeReference(sourceCodeReference){
+        ASTSymbolEntry(ASTNode::ASTNodeType identifierType, const SourceCodeReference& sourceCodeReference): identifierType(identifierType),sourceCodeReference(sourceCodeReference){
             name = sourceCodeReference.getText();
         }
     };
@@ -53,7 +53,7 @@ class ASTSymbolTable {
     /*
      * inserts a node into the hashtable
      */
-    void insert(ASTNode::ASTNodeType identifierType, SourceCodeReference sourceCodeReference);
+    void insert(ASTNode::ASTNodeType identifierType, const SourceCodeReference& sourceCodeReference);
     /*
      * checks whether the hastable contains a node
      */

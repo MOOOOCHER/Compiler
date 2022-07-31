@@ -55,7 +55,7 @@ namespace semantic {
         buckets[index] = std::make_unique<ASTSymbolWrappedEntry>(entry, std::move(buckets[index]));
 
     }
-    void ASTSymbolTable::insert(ASTNode::ASTNodeType identifierType, SourceCodeReference sourceCodeReference){
+    void ASTSymbolTable::insert(ASTNode::ASTNodeType identifierType, const SourceCodeReference& sourceCodeReference){
         insert(ASTSymbolEntry(identifierType,sourceCodeReference));
     }
 
