@@ -6,7 +6,7 @@ namespace sourceCodeManagement{
 class SourceCodeReference;
 
 struct SourceCodeManager{
-    std::string_view source = "";
+    std::string_view source;
     explicit SourceCodeManager(std::string_view source);
 
     SourceCodeManager(const SourceCodeManager& other) = default;
@@ -16,6 +16,7 @@ struct SourceCodeManager{
 };
 class SourceCodeReference{
     const char* location;
+    size_t positionInCode = 0;
     SourceCodeManager& manager;
     size_t lengthOfString = 0;
     /*
@@ -27,22 +28,18 @@ class SourceCodeReference{
      * This function takes an error message and the length of the marked string (if >1 then we have a range)
      */
     void printContext(std::string_view errorMsg) const;
-    std::string getText() const;
+    std::string_view getText() const;
     /*
      * standard construct pointing to the last element of the code
      */
-    SourceCodeReference(SourceCodeManager& manager): location(manager.source.data()+manager.source.size()-1), manager(manager){}
-    SourceCodeReference(const char* location,SourceCodeManager& manager, size_t lengthOfString): location(location), manager(manager), lengthOfString(lengthOfString){}
-
-    SourceCodeReference(const SourceCodeReference& other) = default;
-    SourceCodeReference& operator=(const SourceCodeReference& other){
-        if(&other!= this){
-            location = other.location;
-            manager = other.manager;
-            lengthOfString = other.lengthOfString;
-        }
-        return *this;
-    }
+    explicit SourceCodeReference(SourceCodeManager& manager);
+    SourceCodeReference(const char* location,size_t position, SourceCodeManager& manager, size_t lengthOfString = 1): location(location), positionInCode(position), manager(manager), lengthOfString(lengthOfString){}
+    //copy semantics
+    SourceCodeReference(const SourceCodeReference& other);
+    SourceCodeReference& operator=(const SourceCodeReference& other);
+    //move semantics
+    SourceCodeReference(SourceCodeReference&& other) noexcept;
+    SourceCodeReference& operator=(SourceCodeReference&& other)noexcept;
 
 };
 } // namespace sourceCodeManagement

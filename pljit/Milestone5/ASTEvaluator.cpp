@@ -69,13 +69,13 @@ std::optional<double> ASTEvaluator::evaluate(const semantic::ASTInitDeclaratorNo
     auto variableName = astLeft->getValue();
 
     auto rightLiteral = node.getLeftChild()->acceptEvaluation(*this);
-    variables.find(astLeft->getValue())->second = rightLiteral;
+    variables.find(variableName)->second = rightLiteral;
     return {};
 }
 std::optional<double> ASTEvaluator::evaluate( semantic::ASTIdentifierNode& node){
     if(!variables.contains(node.getValue())){
         //we are in the initialization phase
-        variables.insert(std::pair<std::string,std::optional<double>>(node.getValue(),std::optional<double>()));
+        variables.insert(std::pair<std::string_view,std::optional<double>>(node.getValue(),std::optional<double>()));
         return 0;
     } else {
         //we are in the statement evaluation phase => return value for variable
@@ -119,7 +119,7 @@ std::optional<double> ASTEvaluator::evaluate( semantic::ASTAssignmentExpression&
 
         auto rightLiteral = node.getRightChild()->acceptEvaluation(*this);
         if(!rightLiteral.has_value()) return {};
-        variables.find(astLeft->getValue())->second = rightLiteral;
+        variables.find(variableName)->second = rightLiteral;
         return 0; //return code that it went smoothly
     }
     return {};
@@ -145,7 +145,7 @@ std::optional<double> ASTEvaluator::evaluate( semantic::ASTUnaryExpression& node
 std::optional<double> ASTEvaluator::evaluate( semantic::ASTParamIdentifierNode& node){
     if(!variables.contains(node.getValue())){
         //we are in the initialization phase
-        variables.insert(std::pair<std::string,std::optional<double>>(node.getValue(),node.paramValue));
+        variables.insert(std::pair<std::string_view,std::optional<double>>(node.getValue(),node.paramValue));
         return 0;
     } else {
         //we are in the statement evaluation phase => return value for variable

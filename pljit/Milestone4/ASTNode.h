@@ -102,17 +102,17 @@ namespace semantic{
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
-    class ASTIdentifierNode: public ASTValueNode<std::string>{
+    class ASTIdentifierNode: public ASTValueNode<std::string_view>{
         public:
-        ASTIdentifierNode(ASTNodeType type, std::string value): ASTValueNode<std::string>(type, std::move(value)){};
+        ASTIdentifierNode(ASTNodeType type, std::string_view value): ASTValueNode<std::string_view>(type, std::move(value)){};
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
-    class ASTParamIdentifierNode: public ASTValueNode<std::string>{
+    class ASTParamIdentifierNode: public ASTValueNode<std::string_view>{
         friend class ASTEvaluator;
         double paramValue = 0;
         public:
-        explicit ASTParamIdentifierNode(std::string value): ASTValueNode<std::string>(Parameter, std::move(value)){};
+        explicit ASTParamIdentifierNode(std::string_view value): ASTValueNode<std::string_view>(Parameter, std::move(value)){};
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };

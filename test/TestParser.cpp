@@ -7,7 +7,6 @@
 #include <iostream>
 
 using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
-using Token = lexer::Token;
 using Tokenizer = lexer::Tokenizer;
 using Parser = parser::Parser;
 using Node = parser::Node;
@@ -254,8 +253,8 @@ TEST(TestParser, ExpectComplexFunctionDefinitionValid){
     auto result = setup("PARAM width, height, depth;\nVAR volume;\nCONST density = 2400;\nBEGIN\nvolume :=width * height * depth;\nRETURN density*volume\nEND.");
     ASSERT_NE(result, nullptr);
     EXPECT_EQ(result->getChildren().size(), 5);
-    //auto visitor = parser::ParseTreePrintVisitor();
-    //visitor.printTree(*result);
+    auto visitor = parser::ParseTreePrintVisitor();
+    visitor.printTree(*result);
 }
 
 

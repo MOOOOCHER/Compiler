@@ -17,7 +17,7 @@ namespace semantic{
         friend class ASTStatementNode;
         friend class ASTOperationExpressionNode;
         friend class ASTParamIdentifierNode;
-        std::unordered_map<std::string, std::optional<double>> variables;
+        std::unordered_map<std::string_view, std::optional<double>> variables;
         /*
          * these functions are needed for setting up variable storing
          */

@@ -3,16 +3,15 @@
 #include <gtest/gtest.h>
 
 using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
-using Token = lexer::Token;
 using Tokenizer = lexer::Tokenizer;
 using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
 
 TEST(TestLexer, PrintContext){
     std::string_view view("PARAM a b;");
     SourceCodeManager manager(view);
-    SourceCodeReference range = SourceCodeReference(view.data(),manager,5);
+    SourceCodeReference range = SourceCodeReference(view.data(),0,manager,5);
     range.printContext("Testing Range");
-    SourceCodeReference location = SourceCodeReference(view.data(),manager, 1);
+    SourceCodeReference location = SourceCodeReference(view.data(),0,manager, 1);
     location.printContext("Testing Location");
 }
 TEST(TestLexer, SimpleTextLexer){

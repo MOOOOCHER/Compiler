@@ -75,7 +75,7 @@ class PljitHandle{
             jit.astNode = std::move(semanticNode);
         }
         ASTEvaluator evaluator = ASTEvaluator();
-        auto result = evaluator.evaluateFunction(vec,*jit.astNode);
+        auto result = evaluator.evaluateFunction(vec,*jit.astNode); // the ast tree will be modified in the evaluation, because of parameter
         lock.unlock();
         if(!result.has_value()){
             return {};

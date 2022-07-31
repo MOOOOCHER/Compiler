@@ -8,6 +8,7 @@ namespace parser{
 using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
 class ParseTreeVisitor;
 class ParseTreePrintVisitor;
+
     class Node{
         public:
         enum Types{
@@ -62,7 +63,7 @@ class ParseTreePrintVisitor;
     class TerminalNode: public Node{
         protected:
         sourceCodeManagement::SourceCodeReference sourceCodeReference;
-        TerminalNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, typename Node::Types type, SourceCodeManager manager): Node(type, manager), sourceCodeReference(sourceCodeReference){}
+        TerminalNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, typename Node::Types type, SourceCodeManager manager): Node(type, manager), sourceCodeReference(std::move(sourceCodeReference)){}
         public:
         sourceCodeManagement::SourceCodeReference getReference(){
             return sourceCodeReference;
@@ -70,24 +71,24 @@ class ParseTreePrintVisitor;
     };
     class IdentifierNode: public TerminalNode{
         friend class ParseTreePrintVisitor;
-        std::string getText() const{
+        std::string_view getText() const{
             return sourceCodeReference.getText();
         }
         public:
-        IdentifierNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, SourceCodeManager manager): TerminalNode(sourceCodeReference, Node::Types::Identifier, manager){}
+        IdentifierNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, SourceCodeManager manager): TerminalNode(std::move(sourceCodeReference), Node::Types::Identifier, manager){}
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class LiteralNode: public TerminalNode{
         unsigned long value;
         public:
-        LiteralNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, SourceCodeManager manager, unsigned long value): TerminalNode(sourceCodeReference, Node::Types::Literal, manager), value(value){}
+        LiteralNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, SourceCodeManager manager, unsigned long value): TerminalNode(std::move(sourceCodeReference), Node::Types::Literal, manager), value(value){}
         unsigned long getValue() const{ return value;}
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class GenericNode: public TerminalNode{
         friend class ParseTreePrintVisitor;
         public:
-        GenericNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, SourceCodeManager manager,  Types type): TerminalNode(sourceCodeReference, type, manager){}
+        GenericNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, SourceCodeManager manager,  Types type): TerminalNode(std::move(sourceCodeReference), type, manager){}
         void accept(ParseTreeVisitor& visitor) const override;
     };
 

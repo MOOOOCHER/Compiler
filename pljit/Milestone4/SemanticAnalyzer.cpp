@@ -215,7 +215,7 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeInitIdentifier(ASTNode::ASTNod
     //this function is used for identifier declarations
     if(table.contains(parseNode.getReference().getText())){
         //double declaration
-        parseNode.getReference().printContext("error: '"+ parseNode.getReference().getText() +"' is already declared!");
+        parseNode.getReference().printContext("error: '"+ std::string(parseNode.getReference().getText()) +"' is already declared!");
         return nullptr;
     }
     table.insert(type,parseNode.getReference());
@@ -230,7 +230,7 @@ std::unique_ptr<ASTIdentifierNode> SemanticAnalyzer::analyzeIdentifier(parser::I
     auto entry = table.get(parseNode.getReference().getText());
     if(!entry){
         //undeclared identifier
-        parseNode.getReference().printContext("error: '"+ parseNode.getReference().getText() +"' is undeclared!");
+        parseNode.getReference().printContext("error: '"+ std::string(parseNode.getReference().getText()) +"' is undeclared!");
         return nullptr;
     }
     ASTNode::ASTNodeType type = entry->identifierType;

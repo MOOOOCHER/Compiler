@@ -46,7 +46,7 @@ namespace semantic{
                 //get Values
                 auto name = static_cast<ASTIdentifierNode*>(constInitDecl->getLeftChild());
                 auto value = static_cast<ASTLiteralNode*>(constInitDecl->getRightChild());
-                variables.insert(std::pair<std::string,double>(name->getValue(),value->getValue()));
+                variables.insert(std::pair<std::string_view,double>(name->getValue(),value->getValue()));
             }
         } else if(node.getType() == ASTNode::CompoundStatement){
             //optimize each statement
@@ -69,7 +69,8 @@ namespace semantic{
     std::optional<double> ConstantPropagationPass::optimizeExpression(ASTNode& node){
         if(node.getType() == ASTNode::Constant){
             auto constantExpr = static_cast<ASTIdentifierNode*>(&node);
-            return variables.find(constantExpr->getValue())->second;
+            auto a = variables.find(constantExpr->getValue())->second;
+            return a;
         } else if(node.getType() == ASTNode::LiteralConstant){
             auto literalExpr = static_cast<ASTLiteralNode*>(&node);
             return literalExpr->getValue();
@@ -85,7 +86,7 @@ namespace semantic{
                 auto name = static_cast<ASTIdentifierNode*>(assignmentExpr->getLeftChild());
                 //change child to constant
                 assignmentExpr->rightChild = std::make_unique<ASTLiteralNode>(optimized.value());
-                variables.insert(std::pair<std::string,double>(name->getValue(),optimized.value()));
+                variables.insert(std::pair<std::string_view,double>(name->getValue(),optimized.value()));
             }
             return optimized;
         }

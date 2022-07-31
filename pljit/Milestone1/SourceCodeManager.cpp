@@ -2,6 +2,38 @@
 #include <iostream>
 namespace sourceCodeManagement{
     SourceCodeManager::SourceCodeManager(std::string_view source): source(source) {}
+    //SourceCodeReference-----------------------------------------------------------------------------------------------------------------------------------------
+    SourceCodeReference::SourceCodeReference(SourceCodeManager& manager): location(nullptr), manager(manager){}
+
+    SourceCodeReference::SourceCodeReference(const SourceCodeReference& other) = default;
+    SourceCodeReference& SourceCodeReference::operator=(const SourceCodeReference& other){
+        if(&other!= this){
+            location = other.location;
+            positionInCode = other.positionInCode;
+            manager = other.manager;
+            lengthOfString = other.lengthOfString;
+        }
+        return *this;
+    }
+
+    SourceCodeReference::SourceCodeReference(SourceCodeReference&& other)noexcept: location(other.location), positionInCode(other.positionInCode),manager(other.manager), lengthOfString(other.lengthOfString){
+        other.location = nullptr;
+        other.positionInCode = 0;
+        other.lengthOfString = 0;
+    }
+    SourceCodeReference& SourceCodeReference::operator=(SourceCodeReference&& other) noexcept {
+        location = nullptr;
+        if(&other!= this){
+            location = other.location;
+            positionInCode = other.positionInCode;
+            manager = other.manager;
+            lengthOfString = other.lengthOfString;
+        }
+        other.location = nullptr;
+        other.positionInCode = 0;
+        other.lengthOfString = 0;
+        return *this;
+    }
     /*
      * this function returns the corresponding line and position within the line for a given pointer to the source code
      */
@@ -22,7 +54,7 @@ namespace sourceCodeManagement{
         return {};
     }
     void SourceCodeReference::printContext(std::string_view errorMsg) const {
-        if(manager.source == "") {
+        if(manager.source.empty()) {
             std::cout << 0<<":"<<0<<": " << errorMsg<<std::endl;
             return;
         }
@@ -57,11 +89,7 @@ namespace sourceCodeManagement{
         }
         std::cout << std::endl;
     }
-    std::string SourceCodeReference::getText() const {
-            std::string result;
-            for(size_t i=0;i<lengthOfString;i++){
-                result+= *(location+i);
-            }
-            return result;
+    std::string_view SourceCodeReference::getText() const {
+        return manager.source.substr(positionInCode,lengthOfString);
     }
 } // namespace sourceCodeManagement
