@@ -54,6 +54,7 @@ namespace sourceCodeManagement{
     }
     void SourceCodeReference::printContext(std::string_view errorMsg) const {
         if(manager.source.empty()) {
+            //in case of messages without a location
             std::cout << 0<<":"<<0<<": " << errorMsg<<std::endl;
             return;
         }

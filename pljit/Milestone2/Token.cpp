@@ -45,7 +45,7 @@ static bool isValidChar(const char& c){
 //Token-----------------------------------------------------------------------------------------------------------------------------
 Token::Token(sourceCodeManagement::SourceCodeManager& manager): sourceCodeReference(SourceCodeReference(manager)),type(TokenTypes::Invalid){}
 Token::Token(SourceCodeReference  characters, TokenTypes type): sourceCodeReference(std::move(characters)), type(type){}
-Token::Token(SourceCodeReference  characters, TokenTypes type, unsigned long value): sourceCodeReference(std::move(characters)), type(type), value(value){}
+Token::Token(SourceCodeReference  characters, TokenTypes type, unsigned value): sourceCodeReference(std::move(characters)), type(type), value(value){}
 //copy semantics
 Token::Token(const Token& other) = default;
 Token& Token::operator=(const Token& other){
@@ -171,7 +171,7 @@ Token Tokenizer::next(const std::string_view& sourceCode) {
             return {SourceCodeReference(startingPos, manager, current.size()), TokenTypes::RETURN};
         }else if(hasOnlyDigits(current)){
             //if there are only digit it has to be a literal
-            unsigned long value;
+            unsigned value;
             std::from_chars(current.data(),current.data()+current.size(),value);
             return {SourceCodeReference(startingPos, manager, current.size()), TokenTypes::Literal, value};
         } else{

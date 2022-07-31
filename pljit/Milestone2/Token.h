@@ -40,16 +40,16 @@ class Token{
      */
     explicit Token(sourceCodeManagement::SourceCodeManager& manager);
     Token(SourceCodeReference  characters, TokenTypes type);
-    Token(SourceCodeReference  characters, TokenTypes type, unsigned long value);
+    Token(SourceCodeReference  characters, TokenTypes type, unsigned value);
     //copy semantics
     Token(const Token& other);
     Token& operator=(const Token& other);
 
     TokenTypes getType();
-    unsigned long getValue() const{ return value;}
+    unsigned getValue() const{ return value;}
     private:
     TokenTypes type;
-    unsigned long value = 0;
+    unsigned value = 0;
 };
 /*
  * class for Tokenizing the source code
