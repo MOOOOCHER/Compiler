@@ -12,9 +12,6 @@ void Parser::printErrorMsg(Token& token, std::string_view msg){
 static std::string returnCorrectGenericForErrorMsg(TokenTypes type){
     switch(type){
         case lexer::TokenTypes::Dot: return "'.'";
-        case TokenTypes::Identifier: return "an identifier";
-        case TokenTypes::Literal: return "a literal";
-        case TokenTypes::Invalid: return "";
         case TokenTypes::Comma: return "','";
         case TokenTypes::Semicolon: return "';'";
         case TokenTypes::InitEquals: return "'='";
@@ -25,11 +22,6 @@ static std::string returnCorrectGenericForErrorMsg(TokenTypes type){
         case TokenTypes::MinusOperator: return "'-'";
         case TokenTypes::MulOperator: return "'*'";
         case TokenTypes::DivOperator: return "'/'";
-        case TokenTypes::RETURN: return "'RETURN'";
-        case TokenTypes::VAR: return "'VAR'";
-        case TokenTypes::PARAM: return "'PARAM'";
-        case TokenTypes::CONST: return "'CONST'";
-        case TokenTypes::BEGIN: return "'BEGIN'";
         case TokenTypes::END: return "'END'";
         default: return "";
     }
@@ -60,8 +52,8 @@ static Node::Types getNodeTypeFromTokenType(TokenTypes type){
 std::unique_ptr<NonTerminalNode> Parser::refactorDeclList(auto (Parser::*func)(), Node::Types nodeType){
     auto element = (this->*func)();
     if(element){
-        std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(nodeType);
-        node->children.push_back(std::move(element));
+        std::vector<std::unique_ptr<Node>> childVec;
+        childVec.push_back(std::move(element));
         //check for more
         while (tokenizer.hasNext()) {
             auto separator = tokenizer.next();
@@ -72,23 +64,25 @@ std::unique_ptr<NonTerminalNode> Parser::refactorDeclList(auto (Parser::*func)()
                 return nullptr;
             } else if(separator.getType() != lexer::TokenTypes::Comma){
                 backtrackToken = separator;
+                std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(nodeType, std::move(childVec));
                 return node;
             }
             element = (this->*func)();
             if(!element) {
                 return nullptr;
             }
-            node->children.push_back(std::make_unique<GenericNode>(separator.sourceCodeReference, Node::Types::Comma));
-            node->children.push_back(std::move(element));
+            childVec.push_back(std::make_unique<GenericNode>(separator.sourceCodeReference, Node::Types::Comma));
+            childVec.push_back(std::move(element));
         }
+        std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(nodeType, std::move(childVec));
         return node;
     }
     return nullptr;
 }
 std::unique_ptr<NonTerminalNode> Parser::refactorDeclaration(auto (Parser::*func)(), Node::Types startingKeyword, TokenTypes endingKeyword, Node::Types nodeType){
     //we only get in here if the check was successful
-    std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(nodeType);
-    node->children.push_back(std::make_unique<GenericNode>(backtrackToken.sourceCodeReference,startingKeyword));
+    std::vector<std::unique_ptr<Node>> childVec;
+    childVec.push_back(std::make_unique<GenericNode>(backtrackToken.sourceCodeReference,startingKeyword));
     resetBacktrackToken();
     auto declList = (this->*func)();
     if(!declList){
@@ -96,9 +90,10 @@ std::unique_ptr<NonTerminalNode> Parser::refactorDeclaration(auto (Parser::*func
     }
     //we have already evaluated this token, but it was optional, so we may need to evaluate it again
     if(backtrackToken.getType() == endingKeyword){
-        node->children.push_back(std::move(declList));
-        node->children.push_back(std::make_unique<GenericNode>(backtrackToken.sourceCodeReference, getNodeTypeFromTokenType(endingKeyword)));
+        childVec.push_back(std::move(declList));
+        childVec.push_back(std::make_unique<GenericNode>(backtrackToken.sourceCodeReference, getNodeTypeFromTokenType(endingKeyword)));
         resetBacktrackToken();
+        std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(nodeType, std::move(childVec));
         return node;
     }
     printErrorMsg(backtrackToken,"error: expected "+returnCorrectGenericForErrorMsg(endingKeyword)+"!");
@@ -113,12 +108,13 @@ std::unique_ptr<NonTerminalNode> Parser::refactorExpression(auto (Parser::*func1
     if(!firstExpr){
         return nullptr;
     }
-    std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(nodeType);
-    node->children.push_back(std::move(firstExpr));
+    std::vector<std::unique_ptr<Node>> childVec;
+    childVec.push_back(std::move(firstExpr));
     //check for optional
     Token token = backtrackToken;
     if(backtrackToken.getType() == TokenTypes::Invalid){
         if(!tokenizer.hasNext()){
+            std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(nodeType, std::move(childVec));
             return node;
         }
         token = tokenizer.next();
@@ -129,14 +125,16 @@ std::unique_ptr<NonTerminalNode> Parser::refactorExpression(auto (Parser::*func1
     if (token.getType() != operator1 && token.getType() != operator2){
         //no optional component at this level
         backtrackToken = token;
+        std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(nodeType, std::move(childVec));
         return node;
     }
     auto sndExpr = (this->*func2)();
     if(!sndExpr){
         return nullptr;
     }
-    node->children.push_back(std::make_unique<GenericNode>(token.sourceCodeReference, getNodeTypeFromTokenType(token.getType())));
-    node->children.push_back(std::move(sndExpr));
+    childVec.push_back(std::make_unique<GenericNode>(token.sourceCodeReference, getNodeTypeFromTokenType(token.getType())));
+    childVec.push_back(std::move(sndExpr));
+    std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(nodeType, std::move(childVec));
     return node;
 }
 //-----------------------------------------------------------------------------------------------------------------------------------------------
@@ -193,7 +191,7 @@ std::unique_ptr<NonTerminalNode> Parser::expectFunctionDefinition(){
     if(!tokenizer.hasNext()){
         return nullptr;
     }
-    std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::FunctionDefinition);
+    std::vector<std::unique_ptr<Node>> childVec;
     auto token = tokenizer.next();
     if(token.getType() == TokenTypes::Invalid ){
         return nullptr;
@@ -203,7 +201,7 @@ std::unique_ptr<NonTerminalNode> Parser::expectFunctionDefinition(){
         if(!paramDecl ||!tokenizer.hasNext()){
             return nullptr;
         }
-        node->children.push_back(std::move(paramDecl));
+        childVec.push_back(std::move(paramDecl));
         token = tokenizer.next();
         if(token.getType() == TokenTypes::Invalid ){
             return nullptr;
@@ -215,7 +213,7 @@ std::unique_ptr<NonTerminalNode> Parser::expectFunctionDefinition(){
         if(!varDecl || !tokenizer.hasNext()){
             return nullptr;
         }
-        node->children.push_back(std::move(varDecl));
+        childVec.push_back(std::move(varDecl));
         token = tokenizer.next();
         if(token.getType() == TokenTypes::Invalid ){
             return nullptr;
@@ -227,7 +225,7 @@ std::unique_ptr<NonTerminalNode> Parser::expectFunctionDefinition(){
         if(!constDecl || !tokenizer.hasNext()){
             return nullptr;
         }
-        node->children.push_back(std::move(constDecl));
+        childVec.push_back(std::move(constDecl));
         token = tokenizer.next();
         if(token.getType() == TokenTypes::Invalid ){
             return nullptr;
@@ -253,13 +251,14 @@ std::unique_ptr<NonTerminalNode> Parser::expectFunctionDefinition(){
     if(!dot){
         return nullptr;
     }
-    node->children.push_back(std::move(compStatement));
-    node->children.push_back(std::move(dot));
+    childVec.push_back(std::move(compStatement));
+    childVec.push_back(std::move(dot));
     if(tokenizer.hasNext()){
         auto invalid = tokenizer.next();
         printErrorMsg(invalid,"error: Invalid token after function definition!");
         return nullptr;
     }
+    std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::FunctionDefinition, std::move(childVec));
     return node;
 }
 std::unique_ptr<NonTerminalNode> Parser::expectParameterDeclaration(){
@@ -292,10 +291,12 @@ std::unique_ptr<NonTerminalNode> Parser::expectInitDeclarator(){
     if (!expr) {
         return nullptr;
     }
-    std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::InitDeclarator);
-    node->children.push_back(std::move(identifier));
-    node->children.push_back(std::move(equals));
-    node->children.push_back(std::move(expr));
+    std::vector<std::unique_ptr<Node>> childVec;
+    childVec.push_back(std::move(identifier));
+    childVec.push_back(std::move(equals));
+    childVec.push_back(std::move(expr));
+    std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::InitDeclarator, std::move(childVec));
+
     return node;
 }
 //------------------------------------------------------------------------------------------------------------------------------------
@@ -305,8 +306,8 @@ std::unique_ptr<NonTerminalNode> Parser::expectCompoundStatement(){
 std::unique_ptr<NonTerminalNode> Parser::expectStatementList(){
     auto element = expectStatement();
     if(element){
-        std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::StatementList);
-        node->children.push_back(std::move(element));
+        std::vector<std::unique_ptr<Node>> childVec;
+        childVec.push_back(std::move(element));
         //check for more
         while (tokenizer.hasNext()) {
             Token separator = backtrackToken;
@@ -318,6 +319,7 @@ std::unique_ptr<NonTerminalNode> Parser::expectStatementList(){
             }
             if(separator.getType() == lexer::TokenTypes::END) {
                 backtrackToken = separator;
+                std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::StatementList, std::move(childVec));
                 return node;
             } else if(separator.getType()!=TokenTypes::Semicolon){
                 printErrorMsg(separator,"error: expected ';'");
@@ -327,9 +329,10 @@ std::unique_ptr<NonTerminalNode> Parser::expectStatementList(){
             if(!element) {
                 return nullptr;
             }
-            node->children.push_back(std::make_unique<GenericNode>(separator.sourceCodeReference,Node::Types::Semicolon));
-            node->children.push_back(std::move(element));
+            childVec.push_back(std::make_unique<GenericNode>(separator.sourceCodeReference,Node::Types::Semicolon));
+            childVec.push_back(std::move(element));
         }
+        std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::StatementList, std::move(childVec));
         return node;
     }
     return nullptr;
@@ -346,9 +349,10 @@ std::unique_ptr<NonTerminalNode> Parser::expectStatement(){
         //return additive expression
         auto addExpr = expectAdditiveExpression();
         if(addExpr){
-            std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::Statement);
-            node->children.push_back(std::make_unique<GenericNode>(token.sourceCodeReference, Node::Types::RETURN));
-            node->children.push_back(std::move(addExpr));
+            std::vector<std::unique_ptr<Node>> childVec;
+            childVec.push_back(std::make_unique<GenericNode>(token.sourceCodeReference, Node::Types::RETURN));
+            childVec.push_back(std::move(addExpr));
+            std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::Statement, std::move(childVec));
             return node;
         } else{
             return nullptr;
@@ -357,8 +361,9 @@ std::unique_ptr<NonTerminalNode> Parser::expectStatement(){
         backtrackToken = token;
         auto assignment = expectAssignmentExpression();
         if(assignment){
-            std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::Statement);
-            node->children.push_back(std::move(assignment));
+            std::vector<std::unique_ptr<Node>> childVec;
+            childVec.push_back(std::move(assignment));
+            std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::Statement, std::move(childVec));
             return node;
         } else{
             return nullptr;
@@ -371,8 +376,8 @@ std::unique_ptr<NonTerminalNode> Parser::expectAssignmentExpression(){
         printErrorMsg(backtrackToken,"error: expected identifier or 'RETURN' statement!");
         return nullptr;
     }
-    std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::AssignmentExpression);
-    node->children.push_back(std::make_unique<IdentifierNode>(backtrackToken.sourceCodeReference,backtrackToken.sourceCodeReference.getText()));
+    std::vector<std::unique_ptr<Node>> childVec;
+    childVec.push_back(std::make_unique<IdentifierNode>(backtrackToken.sourceCodeReference,backtrackToken.sourceCodeReference.getText()));
     resetBacktrackToken();
 
     auto equals = expectGenericNode(lexer::TokenTypes::AssignEquals);
@@ -383,8 +388,9 @@ std::unique_ptr<NonTerminalNode> Parser::expectAssignmentExpression(){
     if (!expr) {
         return nullptr;
     }
-    node->children.push_back(std::move(equals));
-    node->children.push_back(std::move(expr));
+    childVec.push_back(std::move(equals));
+    childVec.push_back(std::move(expr));
+    std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::AssignmentExpression, std::move(childVec));
     return node;
 }
 
@@ -405,10 +411,10 @@ std::unique_ptr<NonTerminalNode> Parser::expectUnaryExpression(){
     if(token.getType() == TokenTypes::Invalid ){
         return nullptr;
     }
-    std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::UnaryExpression);
+    std::vector<std::unique_ptr<Node>> childVec;
 
     if(token.getType() == lexer::TokenTypes::PlusOperator || token.getType() == lexer::TokenTypes::MinusOperator){
-        node->children.push_back(std::make_unique<GenericNode>(token.sourceCodeReference, getNodeTypeFromTokenType(token.getType())));
+        childVec.push_back(std::make_unique<GenericNode>(token.sourceCodeReference, getNodeTypeFromTokenType(token.getType())));
         resetBacktrackToken();
     } else {
         backtrackToken = token;
@@ -416,14 +422,14 @@ std::unique_ptr<NonTerminalNode> Parser::expectUnaryExpression(){
 
     auto primaryExpr = expectPrimaryExpression();
     if(primaryExpr){
-        node->children.push_back(std::move(primaryExpr));
+        childVec.push_back(std::move(primaryExpr));
+        std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::UnaryExpression, std::move(childVec));
         return node;
     } else {
         return nullptr;
     }
 }
 std::unique_ptr<NonTerminalNode> Parser::expectPrimaryExpression(){
-    std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::PrimaryExpression);
     Token token = backtrackToken;
     if(backtrackToken.getType() == TokenTypes::Invalid){
         if(!tokenizer.hasNext()){
@@ -435,13 +441,16 @@ std::unique_ptr<NonTerminalNode> Parser::expectPrimaryExpression(){
             return nullptr;
         }
     }
+    std::vector<std::unique_ptr<Node>> childVec;
     if(token.getType() == TokenTypes::Identifier){
-        node->children.push_back(std::make_unique<IdentifierNode>(token.sourceCodeReference, token.sourceCodeReference.getText()));
+        childVec.push_back(std::make_unique<IdentifierNode>(token.sourceCodeReference, token.sourceCodeReference.getText()));
         resetBacktrackToken();
+        std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::PrimaryExpression, std::move(childVec));
         return node;
     } else if(token.getType() == TokenTypes::Literal){
-        node->children.push_back(std::make_unique<LiteralNode>(token.sourceCodeReference,token.getValue()));
+        childVec.push_back(std::make_unique<LiteralNode>(token.sourceCodeReference,token.getValue()));
         resetBacktrackToken();
+        std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::PrimaryExpression, std::move(childVec));
         return node;
     } else if (token.getType() == TokenTypes::OpenBracket){
         resetBacktrackToken();
@@ -453,6 +462,7 @@ std::unique_ptr<NonTerminalNode> Parser::expectPrimaryExpression(){
         Token token2 = backtrackToken;
         if(backtrackToken.getType() == TokenTypes::Invalid){
             if(!tokenizer.hasNext()){
+                std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::PrimaryExpression, std::move(childVec));
                 return node;
             }
             token2 = tokenizer.next();
@@ -465,9 +475,10 @@ std::unique_ptr<NonTerminalNode> Parser::expectPrimaryExpression(){
             return nullptr;
         }
         resetBacktrackToken();
-        node->children.push_back(std::make_unique<GenericNode>(token.sourceCodeReference, Node::Types::OpenBracket));
-        node->children.push_back(std::move(addExpr));
-        node->children.push_back(std::make_unique<GenericNode>(token2.sourceCodeReference, Node::Types::CloseBracket));
+        childVec.push_back(std::make_unique<GenericNode>(token.sourceCodeReference, Node::Types::OpenBracket));
+        childVec.push_back(std::move(addExpr));
+        childVec.push_back(std::make_unique<GenericNode>(token2.sourceCodeReference, Node::Types::CloseBracket));
+        std::unique_ptr<NonTerminalNode> node = std::make_unique<NonTerminalNode>(Node::Types::PrimaryExpression, std::move(childVec));
         return node;
     }else{
         printErrorMsg(token, "error: an expression is expected");

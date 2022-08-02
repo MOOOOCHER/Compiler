@@ -92,4 +92,13 @@ namespace sourceCodeManagement{
     std::string_view SourceCodeReference::getText() const {
         return manager.source.substr(positionInCode,lengthOfString);
     }
+    size_t SourceCodeReference::getPositionInCode() const{
+        return positionInCode;
+    }
+    SourceCodeManager& SourceCodeReference::getManager() const{
+        return manager;
+    }
+    size_t SourceCodeReference::getLengthOfString() const{
+        return lengthOfString;
+    }
 } // namespace sourceCodeManagement

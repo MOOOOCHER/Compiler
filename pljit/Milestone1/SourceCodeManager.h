@@ -28,6 +28,9 @@ class SourceCodeReference{
      */
     void printContext(std::string_view errorMsg) const;
     std::string_view getText() const;
+    size_t getPositionInCode() const;
+    SourceCodeManager& getManager() const;
+    size_t getLengthOfString() const;
     /*
      * standard construct pointing to the last element of the code
      */

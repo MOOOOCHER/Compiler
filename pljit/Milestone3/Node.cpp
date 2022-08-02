@@ -2,10 +2,8 @@
 #include "ParseTreePrintVisitor.h"
 namespace parser{
 //TerminalNode-----------------------------------------------------------
-TerminalNode::TerminalNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, typename Node::Types type): Node(type), sourceCodeReference(std::move(sourceCodeReference)){}
-SourceCodeReference TerminalNode::getReference(){
-    return sourceCodeReference;
-}
+TerminalNode::TerminalNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, typename Node::Types type): Node(type,std::move(sourceCodeReference)){}
+
 //IdentifierNode-----------------------------------------------------------
 IdentifierNode::IdentifierNode(sourceCodeManagement::SourceCodeReference sourceCodeReference,  std::string_view name): TerminalNode(std::move(sourceCodeReference), Node::Types::Identifier), text(name){}
 std::string_view IdentifierNode::getText() const{ return text; }
@@ -29,6 +27,13 @@ std::vector<std::unique_ptr<Node>> NonTerminalNode::getChildren(){
 }
 void NonTerminalNode::accept(ParseTreeVisitor& visitor) const{
     visitor.visit(*this);
+}
+SourceCodeReference NonTerminalNode::computeSourceCodeReferenceFromChildren(std::vector<std::unique_ptr<Node>>& children){
+    auto firstChildRef = children[0]->getReference();
+    auto lastChildRef = children[children.size()-1]->getReference();
+    size_t startingPosition = firstChildRef.getPositionInCode();
+    size_t length = lastChildRef.getPositionInCode() - firstChildRef.getPositionInCode() + lastChildRef.getLengthOfString();
+    return SourceCodeReference(startingPosition,children[0]->getReference().getManager(),length);
 }
 //Node--------------------------------------------------------------------
 } // namespace parser
