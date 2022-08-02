@@ -6,9 +6,10 @@
 #include "../Milestone1/SourceCodeManager.h"
 namespace parser{
 using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
+using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
 class ParseTreeVisitor;
-class ParseTreePrintVisitor;
 
+class ParseTreePrintVisitor;
     class Node{
         public:
         enum Types{
@@ -53,55 +54,49 @@ class ParseTreePrintVisitor;
         virtual void accept(ParseTreeVisitor& visitor) const = 0;
         protected:
         Types type;
-        explicit Node( Types type): type(type){};
+        explicit Node(Types type): type(type){};
     };
 
     //Terminal Node---------------------------------------------------------------------------------------------------------------------
     class TerminalNode: public Node{
         protected:
-        sourceCodeManagement::SourceCodeReference sourceCodeReference;
-        TerminalNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, typename Node::Types type): Node(type), sourceCodeReference(std::move(sourceCodeReference)){}
+        SourceCodeReference sourceCodeReference;
+        TerminalNode(SourceCodeReference sourceCodeReference, typename Node::Types type);
         public:
-        sourceCodeManagement::SourceCodeReference getReference(){
-            return sourceCodeReference;
-        }
+        SourceCodeReference getReference();
     };
+    //Terminal Node subclasses----------------------------------------------------------------------------------------------------------
     class IdentifierNode: public TerminalNode{
         friend class ParseTreePrintVisitor;
         std::string_view text;
 
         public:
-        IdentifierNode(sourceCodeManagement::SourceCodeReference sourceCodeReference,  std::string_view name): TerminalNode(std::move(sourceCodeReference), Node::Types::Identifier), text(name){}
-        std::string_view getText() const{ return text; }
+        IdentifierNode(SourceCodeReference sourceCodeReference,  std::string_view name);
+        std::string_view getText() const;
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class LiteralNode: public TerminalNode{
-        unsigned long value;
+        unsigned value;
         public:
-        LiteralNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, unsigned long value): TerminalNode(std::move(sourceCodeReference), Node::Types::Literal), value(value){}
-        unsigned long getValue() const{ return value;}
+        LiteralNode(SourceCodeReference sourceCodeReference, unsigned value);
+        unsigned getValue() const;
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class GenericNode: public TerminalNode{
         friend class ParseTreePrintVisitor;
         public:
-        GenericNode(sourceCodeManagement::SourceCodeReference sourceCodeReference,  Types type): TerminalNode(std::move(sourceCodeReference), type){}
+        GenericNode(SourceCodeReference sourceCodeReference, Types type);
         void accept(ParseTreeVisitor& visitor) const override;
     };
 
     //Non-Terminal Node-----------------------------------------------------------------------------------------------------------------------
     class NonTerminalNode: public Node{
         friend class Parser;
+        friend class ParseTreePrintVisitor;
         std::vector<std::unique_ptr<Node>> children;
         public:
         explicit NonTerminalNode(typename Node::Types type): Node(type) {}
-        std::vector<Node*> getChildren() const{
-            std::vector<Node*> vec;
-            for(auto& child: children){
-                vec.push_back(child.get());
-            }
-            return vec;
-        }//only for testing
+        std::vector<std::unique_ptr<Node>> getChildren();
         void accept(ParseTreeVisitor& visitor) const override;
     };
 } // namespace parser

@@ -3,7 +3,7 @@
 namespace parser{
 static std::string convertTypeToString(Node::Types type){
     switch (type) {
-        case Node::Identifier: return "identifier";
+        case Node::Identifier: return "Identifier";
         case Node::Literal: return "Literal";
         case Node::FunctionDefinition: return"FunctionDefinition";
         case Node::ParameterDeclaration: return "ParameterDeclaration";
@@ -43,7 +43,7 @@ static std::string convertTypeToString(Node::Types type){
 }
 void ParseTreePrintVisitor::visit(const NonTerminalNode& node) {
     size_t currentIndex = index;
-    for(auto child: node.getChildren()){
+    for(auto& child: node.children){
         std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(child->getType())<< "\"];" << std::endl;
         std::cout << "\t" << currentIndex << " -> " << index+1 << ";" << std::endl;
         ++index;

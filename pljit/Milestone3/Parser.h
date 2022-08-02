@@ -10,7 +10,7 @@ using Node = parser::Node;
 using TokenTypes =lexer::TokenTypes;
 class Parser{
     Tokenizer tokenizer;
-    Token backtrackToken = Token(tokenizer.getManager());
+    Token backtrackToken = Token(tokenizer.getManager());   //default
     public:
     explicit Parser(Tokenizer tokenizer): tokenizer(tokenizer){};
 
@@ -82,7 +82,7 @@ class Parser{
       */
     std::unique_ptr<NonTerminalNode> refactorExpression(auto (Parser::*func1)(),auto (Parser::*func2)(), Node::Types nodeType, TokenTypes operator1, TokenTypes operator2);
     /*
-     * this helper function resets the backtrack token
+     * this helper function resets the backtrack-token
      */
     void resetBacktrackToken(){
         backtrackToken = Token(tokenizer.getManager());

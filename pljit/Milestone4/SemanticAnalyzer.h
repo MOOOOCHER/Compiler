@@ -3,6 +3,7 @@
 #include "ASTNode.h"
 #include "ASTSymbolTable.h"
 #include "../Milestone3/Node.h"
+#include <memory>
 namespace semantic{
 class SemanticAnalyzer {
     ASTSymbolTable table;

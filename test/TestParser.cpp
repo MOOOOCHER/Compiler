@@ -46,17 +46,20 @@ TEST(TestParser, ExpectFunctionDefinitionInvalid){
 }
 TEST(TestParser, ExpectCompoundStatementValid){
     auto result = setup("BEGIN a:=1 END.");
+    auto children = result->getChildren();
     ASSERT_NE(result, nullptr);
     EXPECT_EQ(result->getType(), Node::Types::FunctionDefinition);
-    EXPECT_EQ(result->getChildren().size(), 2);
-    EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::CompoundStatement);
-    EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::Dot);
+    EXPECT_EQ(children.size(), 2);
+    EXPECT_EQ(children[0]->getType(), Node::Types::CompoundStatement);
+    EXPECT_EQ(children[1]->getType(), Node::Types::Dot);
+
     result = setup("BEGIN RETURN 1 END.");
+    children = result->getChildren();
     ASSERT_NE(result, nullptr);
     EXPECT_EQ(result->getType(), Node::Types::FunctionDefinition);
-    EXPECT_EQ(result->getChildren().size(), 2);
-    EXPECT_EQ(result->getChildren()[0]->getType(), Node::Types::CompoundStatement);
-    EXPECT_EQ(result->getChildren()[1]->getType(), Node::Types::Dot);
+    EXPECT_EQ(children.size(), 2);
+    EXPECT_EQ(children[0]->getType(), Node::Types::CompoundStatement);
+    EXPECT_EQ(children[1]->getType(), Node::Types::Dot);
 }
 TEST(TestParser, ExpectCompoundStatementInvalid){
     std::cout << "Testing invalid compound statement declarator:" << std::endl;
@@ -68,21 +71,28 @@ TEST(TestParser, ExpectCompoundStatementInvalid){
 TEST(TestParser, ExpectParamDeclarationValid){
     auto result = setup("PARAM a;BEGIN a:=1 END.");
     ASSERT_NE(result, nullptr);
-    auto paramChild = static_cast<parser::NonTerminalNode*>(result->getChildren()[0]);
+    auto children = result->getChildren();
+    auto paramChild = static_cast<parser::NonTerminalNode*>(children[0].get());
     EXPECT_EQ(paramChild->getChildren().size(), 3);
+
     result = setup("PARAM a,b;BEGIN a:=1 END.");
     ASSERT_NE(result, nullptr);
-    paramChild = static_cast<parser::NonTerminalNode*>(result->getChildren()[0]);
+    children = result->getChildren();
+    paramChild = static_cast<parser::NonTerminalNode*>(children[0].get());
     EXPECT_EQ(paramChild->getChildren().size(), 3);
+
     result = setup("PARAM a,b,c;BEGIN a:=1 END.");
     ASSERT_NE(result, nullptr);
-    paramChild = static_cast<parser::NonTerminalNode*>(result->getChildren()[0]);
-    EXPECT_EQ(paramChild->getChildren().size(), 3);
-    auto declListChild = static_cast<parser::NonTerminalNode*>(paramChild->getChildren()[1]);
+    children = result->getChildren();
+    paramChild = static_cast<parser::NonTerminalNode*>(children[0].get());
+    children = paramChild->getChildren();
+    EXPECT_EQ(children.size(), 3);
+    auto declListChild = static_cast<parser::NonTerminalNode*>(children[1].get());
     EXPECT_EQ(declListChild->getType(), Node::Types::DeclaratorList);
-    EXPECT_EQ(declListChild->getChildren().size(), 5);
-    EXPECT_EQ(declListChild->getChildren()[0]->getType(), Node::Types::Identifier);
-    EXPECT_EQ(declListChild->getChildren()[1]->getType(), Node::Types::Comma);
+    children = declListChild->getChildren();
+    EXPECT_EQ(children.size(), 5);
+    EXPECT_EQ(children[0]->getType(), Node::Types::Identifier);
+    EXPECT_EQ(children[1]->getType(), Node::Types::Comma);
 }
 TEST(TestParser, ExpectParamDeclarationInvalid){
     std::cout << "Testing invalid init parameter declarations:" << std::endl;
@@ -94,12 +104,17 @@ TEST(TestParser, ExpectParamDeclarationInvalid){
 TEST(TestParser, ExpectVariableDeclarationValid){
     auto result = setup("VAR a;BEGIN a:=1 END.");
     ASSERT_NE(result, nullptr);
-    auto child = static_cast<parser::NonTerminalNode*>(result->getChildren()[0]);
-    EXPECT_EQ(child->getChildren().size(), 3);
+    auto children = result->getChildren();
+    auto child = static_cast<parser::NonTerminalNode*>(children[0].get());
+    children = child->getChildren();
+    EXPECT_EQ(children.size(), 3);
+
     result = setup("VAR a,b;BEGIN a:=1 END.");
     ASSERT_NE(result, nullptr);
-    child = static_cast<parser::NonTerminalNode*>(result->getChildren()[0]);
-    EXPECT_EQ(child->getChildren().size(), 3);
+    children = result->getChildren();
+    child = static_cast<parser::NonTerminalNode*>(children[0].get());
+    children = child->getChildren();
+    EXPECT_EQ(children.size(), 3);
 }
 TEST(TestParser, ExpectVariableDeclarationInvalid){
     std::cout << "Testing invalid init variable declarations:" << std::endl;
@@ -111,24 +126,31 @@ TEST(TestParser, ExpectVariableDeclarationInvalid){
 TEST(TestParser, ExpectConstantDeclarationValid){
     auto result = setup("CONST a=1; BEGIN a:=1 END.");
     ASSERT_NE(result, nullptr);
-    auto child = static_cast<parser::NonTerminalNode*>(result->getChildren()[0]);
-    EXPECT_EQ(child->getChildren().size(), 3);
+    auto children = result->getChildren();
+    auto child = static_cast<parser::NonTerminalNode*>(children[0].get());
+    children = child->getChildren();
+    EXPECT_EQ(children.size(), 3);
+
     result = setup("CONST a=1,b=2;BEGIN a:=1 END.");
     ASSERT_NE(result, nullptr);
-    child = static_cast<parser::NonTerminalNode*>(result->getChildren()[0]);
-    EXPECT_EQ(child->getChildren().size(), 3);
-    auto declListChild = static_cast<parser::NonTerminalNode*>(child->getChildren()[1]);
+    children = result->getChildren();
+    child = static_cast<parser::NonTerminalNode*>(children[0].get());
+    children = child->getChildren();
+    EXPECT_EQ(children.size(), 3);
+    auto declListChild = static_cast<parser::NonTerminalNode*>(children[1].get());
     EXPECT_EQ(declListChild->getType(), Node::Types::InitDeclaratorList);
-    EXPECT_EQ(declListChild->getChildren().size(), 3);
-    EXPECT_EQ(declListChild->getChildren()[0]->getType(), Node::Types::InitDeclarator);
-    EXPECT_EQ(declListChild->getChildren()[1]->getType(), Node::Types::Comma);
-    EXPECT_EQ(declListChild->getChildren()[2]->getType(), Node::Types::InitDeclarator);
-    auto initDeclChild = static_cast<parser::NonTerminalNode*>(declListChild->getChildren()[0]);
+    children = declListChild->getChildren();
+    EXPECT_EQ(children.size(), 3);
+    EXPECT_EQ(children[0]->getType(), Node::Types::InitDeclarator);
+    EXPECT_EQ(children[1]->getType(), Node::Types::Comma);
+    EXPECT_EQ(children[2]->getType(), Node::Types::InitDeclarator);
+    auto initDeclChild = static_cast<parser::NonTerminalNode*>(children[0].get());
     EXPECT_EQ(initDeclChild->getType(), Node::Types::InitDeclarator);
-    EXPECT_EQ(initDeclChild->getChildren().size(), 3);
-    EXPECT_EQ(initDeclChild->getChildren()[0]->getType(), Node::Types::Identifier);
-    EXPECT_EQ(initDeclChild->getChildren()[1]->getType(), Node::Types::InitEquals);
-    EXPECT_EQ(initDeclChild->getChildren()[2]->getType(), Node::Types::Literal);
+    children = initDeclChild->getChildren();
+    EXPECT_EQ(children.size(), 3);
+    EXPECT_EQ(children[0]->getType(), Node::Types::Identifier);
+    EXPECT_EQ(children[1]->getType(), Node::Types::InitEquals);
+    EXPECT_EQ(children[2]->getType(), Node::Types::Literal);
 }
 TEST(TestParser, ExpectConstantDeclarationInvalid){
     std::cout << "Testing invalid constant declaration:" << std::endl;
