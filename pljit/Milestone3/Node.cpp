@@ -25,6 +25,7 @@ void LiteralNode::accept(ParseTreeVisitor& visitor) const{
 std::vector<std::unique_ptr<Node>> NonTerminalNode::getChildren(){
     return std::move(children);
 }
+NonTerminalNode::NonTerminalNode(Node::Types type,std::vector<std::unique_ptr<Node>> children): Node(type,computeSourceCodeReferenceFromChildren(children)), children(std::move(children)) {}
 void NonTerminalNode::accept(ParseTreeVisitor& visitor) const{
     visitor.visit(*this);
 }

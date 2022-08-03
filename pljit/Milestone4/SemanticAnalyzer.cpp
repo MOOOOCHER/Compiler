@@ -33,7 +33,7 @@ std::unique_ptr<ASTFunctionNode> SemanticAnalyzer::analyzeFunction(const std::ve
     return nullptr;
 }
 std::unique_ptr<ASTDeclaratorListNode> SemanticAnalyzer::analyzeParameterDeclaration(const std::vector<long>& arg,parser::NonTerminalNode& parseNode){
-    std::unique_ptr<ASTDeclaratorListNode> node = std::make_unique<ASTDeclaratorListNode>();
+    std::unique_ptr<ASTDeclaratorListNode> node = std::make_unique<ASTDeclaratorListNode>(ASTNode::ParamDeclaratorList);
     auto children = parseNode.getChildren();
     auto declList = std::move(children[1]);
     if(declList->getType() == NodeType::DeclaratorList){
@@ -59,7 +59,7 @@ std::unique_ptr<ASTDeclaratorListNode> SemanticAnalyzer::analyzeParameterDeclara
     return nullptr;
 }
 std::unique_ptr<ASTDeclaratorListNode> SemanticAnalyzer::analyzeVariableDeclaration(parser::NonTerminalNode& parseNode){
-    std::unique_ptr<ASTDeclaratorListNode> node = std::make_unique<ASTDeclaratorListNode>();
+    std::unique_ptr<ASTDeclaratorListNode> node = std::make_unique<ASTDeclaratorListNode>(ASTNode::VarDeclaratorList);
     auto children = parseNode.getChildren();
     auto declList = std::move(children[1]);
     if(declList->getType() == NodeType::DeclaratorList){

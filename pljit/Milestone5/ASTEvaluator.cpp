@@ -3,6 +3,7 @@
 #include <utility>
 #include "../Milestone1/SourceCodeManager.h"
 namespace semantic{
+using namespace sourceCodeManagement;
 std::optional<double> ASTEvaluator::evaluateFunction(std::vector<long> arg,semantic::ASTNode& node){
     if(!initArguments(std::move(arg),node)){
         return {};
@@ -11,33 +12,33 @@ std::optional<double> ASTEvaluator::evaluateFunction(std::vector<long> arg,seman
 }
 bool ASTEvaluator::initArguments(std::vector<long> arg, semantic::ASTNode& node) {
     //initialize Parameter
+    bool hasParamDecl = false;
     auto functionDefinition = static_cast<ASTFunctionNode*>(&node);
+    auto printErrorParameter = [](){
+        SourceCodeManager defaultManager = SourceCodeManager();
+        SourceCodeReference a = SourceCodeReference (defaultManager);
+        a.printContext("error: parameter size doesn't match with argument size!");
+        return false;
+    };
+
     for(auto child: functionDefinition->getChildren()){
-        if(child->getType() == ASTNode::DeclaratorList){
+        if(child->getType() == ASTNode::ParamDeclaratorList){
             auto declList = static_cast<ASTDeclaratorListNode*>(child);
-            if(declList->getChildren()[0]->getType() == ASTNode::Parameter){
-                if(declList->getChildren().size() != arg.size()){
-                    //if parameters size don't match
-                    sourceCodeManagement::SourceCodeManager defaultManager = sourceCodeManagement::SourceCodeManager();
-                    sourceCodeManagement::SourceCodeReference a = sourceCodeManagement::SourceCodeReference (defaultManager);
-                    a.printContext("error: parameter size doesn't match with argument size!");
-                    return false;
-                }
-                for(size_t i=0;i<arg.size();i++){
-                    auto parameterNode = static_cast<ASTParamIdentifierNode*>(declList->getChildren()[i]);
-                    parameterNode->paramValue = arg[i];
-                }
-            } else {
-                if(!arg.empty()){
-                    //if parameters size don't match
-                    sourceCodeManagement::SourceCodeManager defaultManager = sourceCodeManagement::SourceCodeManager();
-                    sourceCodeManagement::SourceCodeReference a = sourceCodeManagement::SourceCodeReference (defaultManager);
-                    a.printContext("error: parameter size doesn't match with argument size!");
-                    return false;
-                }
+            if(declList->getChildren().size() != arg.size()){
+                //if parameters size don't match
+               return printErrorParameter();
             }
+            for(size_t i=0;i<arg.size();i++){
+                auto parameterNode = static_cast<ASTParamIdentifierNode*>(declList->getChildren()[i]);
+                parameterNode->paramValue = arg[i];
+            }
+            hasParamDecl = true;
             break;
         }
+    }
+    if(!hasParamDecl && !arg.empty()){
+        //if parameters size don't match
+        return printErrorParameter();
     }
     return true;
 }
@@ -98,8 +99,8 @@ std::optional<double> ASTEvaluator::evaluate( semantic::ASTOperationExpressionNo
         return leftExpr.value() * rightExpr.value();
     } else if(node.getType() == ASTNode::DivOperator){
         if(rightExpr == 0){
-            sourceCodeManagement::SourceCodeManager defaultManager = sourceCodeManagement::SourceCodeManager();
-            sourceCodeManagement::SourceCodeReference a = sourceCodeManagement::SourceCodeReference (defaultManager);
+            SourceCodeManager defaultManager = SourceCodeManager();
+            SourceCodeReference a = SourceCodeReference (defaultManager);
             a.printContext("error: division by zero!");
             return {}; //abort compilation
         }

@@ -101,7 +101,7 @@ class ParseTreePrintVisitor;
          */
         static SourceCodeReference computeSourceCodeReferenceFromChildren(std::vector<std::unique_ptr<Node>>& children);
         public:
-        explicit NonTerminalNode(typename Node::Types type,std::vector<std::unique_ptr<Node>> children): Node(type,computeSourceCodeReferenceFromChildren(children)), children(std::move(children)) {}
+        NonTerminalNode(Node::Types type,std::vector<std::unique_ptr<Node>> children);
         std::vector<std::unique_ptr<Node>> getChildren();
         void accept(ParseTreeVisitor& visitor) const override;
     };

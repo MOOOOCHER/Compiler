@@ -21,13 +21,13 @@ namespace semantic{
             MinusOperator,
             MulOperator,
             DivOperator,
-            NoOperator,
             Constant,
             Parameter,
             Variable,
             LiteralConstant,
             FunctionDefinition,
-            DeclaratorList,
+            ParamDeclaratorList,
+            VarDeclaratorList,
             InitDeclaratorList,
             InitDeclarator,
             CompoundStatement,
@@ -126,7 +126,7 @@ namespace semantic{
 
     class ASTDeclaratorListNode: public MultiASTNode{
         public:
-        ASTDeclaratorListNode(): MultiASTNode(DeclaratorList){};
+        explicit ASTDeclaratorListNode(ASTNodeType type): MultiASTNode(type){};
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };

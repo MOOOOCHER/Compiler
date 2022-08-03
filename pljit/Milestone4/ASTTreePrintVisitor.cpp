@@ -7,13 +7,13 @@ static std::string convertTypeToString(ASTNode::ASTNodeType type){
         case ASTNode::MinusOperator: return "-";
         case ASTNode::MulOperator: return "*";
         case ASTNode::DivOperator: return "/";
-        case ASTNode::NoOperator: return "no Op";
         case ASTNode::Constant: return"Constant";
         case ASTNode::Parameter: return"Parameter";
         case ASTNode::Variable: return"Variable";
         case ASTNode::LiteralConstant: return"LiteralConstant";
         case ASTNode::FunctionDefinition: return "Function Definition";
-        case ASTNode::DeclaratorList: return "DeclaratorList";
+        case ASTNode::ParamDeclaratorList: return "ParamDeclaratorList";
+        case ASTNode::VarDeclaratorList: return "VarDeclaratorList";
         case ASTNode::InitDeclaratorList: return "InitDeclaratorList";
         case ASTNode::InitDeclarator: return "=";
         case ASTNode::CompoundStatement: return "CompoundStatement";
