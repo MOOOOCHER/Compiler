@@ -2,32 +2,37 @@
 namespace semantic {
 using NodeType = parser::Node::Types;
 
+std::unique_ptr<ASTNode> SemanticAnalyzer::getChild(auto func, auto child){
+    parser::NonTerminalNode* nonTerminalNode = static_cast<parser::NonTerminalNode*>(child);
+    return std::move((this->*func)(*nonTerminalNode));
+}
 std::unique_ptr<ASTFunctionNode> SemanticAnalyzer::analyzeFunction(const std::vector<long>& arg,parser::NonTerminalNode& parseNode){
-    std::unique_ptr<ASTFunctionNode> node = std::make_unique<ASTFunctionNode>();
     if(parseNode.getType() == NodeType::FunctionDefinition){
+        std::unique_ptr<ASTFunctionNode> node = std::make_unique<ASTFunctionNode>();
+        bool hasParams = false;
+        /*
+         * lambda for calling analyze child function, adding the child to the newly created ASTNode and return false if there are compilation errors
+         */
+        auto func = [&node, this](auto func2, auto child){
+            auto astVar = this->getChild(func2, child);
+            if(!astVar) return false;
+            node->children.push_back(std::move(astVar));
+            return true;
+        };
         for(auto& child: parseNode.getChildren()){
             if(child->getType() == NodeType::ParameterDeclaration){
                 parser::NonTerminalNode* nonTerminalNode = static_cast<parser::NonTerminalNode*>(child.get());
                 auto astParam = analyzeParameterDeclaration(arg,*nonTerminalNode);
                 if(!astParam) return nullptr;
                 node->children.push_back(std::move(astParam));
-            } else if(child->getType() == NodeType::VariableDeclaration){
-                parser::NonTerminalNode* nonTerminalNode = static_cast<parser::NonTerminalNode*>(child.get());
-                auto astVar = analyzeVariableDeclaration(*nonTerminalNode);
-                if(!astVar) return nullptr;
-                node->children.push_back(std::move(astVar));
-            } else if(child->getType() == NodeType::ConstantDeclaration){
-                parser::NonTerminalNode* nonTerminalNode = static_cast<parser::NonTerminalNode*>(child.get());
-                auto astConst = analyzeConstantDeclaration(*nonTerminalNode);
-                if(!astConst) return nullptr;
-                node->children.push_back(std::move(astConst));
-            } else if(child->getType() == NodeType::CompoundStatement){
-                parser::NonTerminalNode* nonTerminalNode = static_cast<parser::NonTerminalNode*>(child.get());
-                auto astComp = analyzeCompoundStatement(*nonTerminalNode);
-                if(!astComp) return nullptr;
-                node->children.push_back(std::move(astComp));
+                hasParams = true;
+            } else if((child->getType() == NodeType::VariableDeclaration && !func(&SemanticAnalyzer::analyzeVariableDeclaration, child.get()))
+                       || (child->getType() == NodeType::ConstantDeclaration && !func(&SemanticAnalyzer::analyzeConstantDeclaration, child.get()))
+                       || (child->getType() == NodeType::CompoundStatement && !func(&SemanticAnalyzer::analyzeCompoundStatement, child.get()))){
+                return nullptr;
             }
         }
+        if(!hasParams && !arg.empty()) return nullptr; //if we don't have parameters, but there are still arguments
         return node;
     }
     return nullptr;
@@ -41,9 +46,7 @@ std::unique_ptr<ASTDeclaratorListNode> SemanticAnalyzer::analyzeParameterDeclara
         auto declChildren = decl->getChildren();
         if(declChildren.size()/2+1 != arg.size()){   //we should have arg.size()-1 commas as children => decl->getChildren().size()/2+1 when they are not included
             //if parameters size don't match
-            sourceCodeManagement::SourceCodeManager defaultManager = sourceCodeManagement::SourceCodeManager();
-            SourceCodeReference a = SourceCodeReference (defaultManager);
-            a.printContext("error: parameter size doesn't match with argument size!");
+            parseNode.getReference().printContext("error: parameter size doesn't match with argument size!");
             return nullptr;
         }
         for(auto& child: declChildren){
@@ -84,8 +87,7 @@ std::unique_ptr<ASTInitDeclaratorListNode> SemanticAnalyzer::analyzeConstantDecl
         parser::NonTerminalNode* decl = static_cast<parser::NonTerminalNode*>(declList.get());
         for(auto& child: decl->getChildren()){
             if(child->getType() == NodeType::InitDeclarator){
-                parser::NonTerminalNode* identifierNode = static_cast<parser::NonTerminalNode*>(child.get());
-                auto astIdentifier = analyzeInitDeclarator(*identifierNode);
+                auto astIdentifier = getChild(&SemanticAnalyzer::analyzeInitDeclarator,child.get());
                 if(!astIdentifier) return nullptr;
                 node->children.push_back(std::move(astIdentifier));
             }
@@ -117,17 +119,14 @@ std::unique_ptr<ASTCompoundStatement> SemanticAnalyzer::analyzeCompoundStatement
         parser::NonTerminalNode* decl = static_cast<parser::NonTerminalNode*>(declList.get());
         for(auto& child: decl->getChildren()){
             if(child->getType() == NodeType::Statement){
-                parser::NonTerminalNode* statementNode = static_cast<parser::NonTerminalNode*>(child.get());
-                auto astStatement = analyzeStatement(*statementNode);
+                auto astStatement = getChild(&SemanticAnalyzer::analyzeStatement,child.get());
                 if(!astStatement) return nullptr;
                 else if(astStatement->getType() == ASTNode::ReturnStatement) hasReturnStatement = true; //check for return statement
                 node->children.push_back(std::move(astStatement));
             }
         }
         if(!hasReturnStatement) {
-            sourceCodeManagement::SourceCodeManager defaultManager = sourceCodeManagement::SourceCodeManager();
-            SourceCodeReference a = SourceCodeReference (defaultManager);
-            a.printContext("error: missing return statement");
+            parseNode.getReference().printContext("error: missing return statement");
             return nullptr;
         }
         return node;
@@ -135,17 +134,17 @@ std::unique_ptr<ASTCompoundStatement> SemanticAnalyzer::analyzeCompoundStatement
     return nullptr;
 }
 std::unique_ptr<ASTStatementNode> SemanticAnalyzer::analyzeStatement(parser::NonTerminalNode& parseNode){
+    auto returnASTStatement = [this](ASTNode::ASTNodeType returnType, auto child) -> std::unique_ptr<ASTStatementNode>{
+        parser::NonTerminalNode* childNode = static_cast<parser::NonTerminalNode*>(child);
+        auto childAST = getChild(&SemanticAnalyzer::analyzeExpression,childNode);
+        if(!childAST) return nullptr;
+        return std::make_unique<ASTStatementNode>(returnType, std::move(childAST));
+    };
     auto children = parseNode.getChildren();
     if(children.size() == 2){   //case return expression
-        parser::NonTerminalNode* childNode = static_cast<parser::NonTerminalNode*>(children[1].get());
-        auto childAST = analyzeExpression(*childNode);
-        if(!childAST) return nullptr;
-        return std::make_unique<ASTStatementNode>(ASTNode::ASTNodeType::ReturnStatement, std::move(childAST));
+        return returnASTStatement(ASTNode::ASTNodeType::ReturnStatement,children[1].get());
     } else {    //case assignment
-        parser::NonTerminalNode* childNode = static_cast<parser::NonTerminalNode*>(children[0].get());
-        auto childAST = analyzeExpression(*childNode);
-        if(!childAST) return nullptr;
-        return std::make_unique<ASTStatementNode>(ASTNode::ASTNodeType::AssignStatement, std::move(childAST));
+        return returnASTStatement(ASTNode::ASTNodeType::AssignStatement,children[0].get());
     }
 }
 std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminalNode& parseNode){
@@ -153,26 +152,22 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
     auto children = parseNode.getChildren();
     if(parseType == NodeType::AssignmentExpression){
         parser::IdentifierNode* childIdentifier = static_cast<parser::IdentifierNode*>(children[0].get());
-        parser::NonTerminalNode* childExpression = static_cast<parser::NonTerminalNode*>(children[2].get());
-
-        if(table.contains(childIdentifier->getReference().getText()) && table.get(childIdentifier->getReference().getText())->identifierType == ASTNode::Constant){
-            childIdentifier->getReference().printContext("error: cannot assign a value to a constant!");
+        auto childName = childIdentifier->getReference().getText();
+        if(table.contains(childName) && table.get(childName)->identifierType == ASTNode::Constant){
+            parseNode.getReference().printContext("error: cannot assign a value to a constant!");
             return nullptr;
         }
         auto identifier = analyzeIdentifier(*childIdentifier);
-        auto expression = analyzeExpression(*childExpression);
+        auto expression = getChild(&SemanticAnalyzer::analyzeExpression, children[2].get());
         if(!identifier || !expression) return nullptr;
         return std::make_unique<ASTAssignmentExpression>(std::move(identifier),std::move(expression));
     } else if(parseType == NodeType::AdditiveExpression || parseType == NodeType::MultiplicativeExpression){
         if(children.size() == 1){    // if we only have one child we can omit this level
-            parser::NonTerminalNode* childExpression = static_cast<parser::NonTerminalNode*>(children[0].get());
-            return analyzeExpression(*childExpression);
+            return getChild(&SemanticAnalyzer::analyzeExpression, children[0].get());
         } else {
             auto operatorType = children[1]->getType();
-            parser::NonTerminalNode* firstExpr = static_cast<parser::NonTerminalNode*>(children[0].get());
-            parser::NonTerminalNode* sndExpr = static_cast<parser::NonTerminalNode*>(children[2].get());
-            auto astFirstExpr = analyzeExpression(*firstExpr);
-            auto astSndExpr = analyzeExpression(*sndExpr);
+            auto astFirstExpr = getChild(&SemanticAnalyzer::analyzeExpression, children[0].get());
+            auto astSndExpr = getChild(&SemanticAnalyzer::analyzeExpression, children[2].get());
             if(!astFirstExpr || !astSndExpr) return nullptr;
             else if(operatorType == NodeType::PlusOperator){
                 return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::PlusOperator,std::move(astFirstExpr),std::move(astSndExpr));
@@ -189,8 +184,7 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
             //in case there are +/- signs before the expression
             NodeType opType = children[0]->getType();
             //get child expression
-            parser::NonTerminalNode* expr = static_cast<parser::NonTerminalNode*>(children[1].get());
-            auto child = analyzeExpression(*expr);
+            auto child = getChild(&SemanticAnalyzer::analyzeExpression, children[1].get());
             if(!child) return nullptr;
             if(opType == NodeType::MinusOperator){
                 return std::make_unique<ASTUnaryExpression>(ASTNode::ASTNodeType::UnaryMinus, std::move(child));
@@ -203,8 +197,7 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
     } else if(parseType == NodeType::PrimaryExpression){
         if(children.size() > 1){
             //case (expr)
-            parser::NonTerminalNode* expr = static_cast<parser::NonTerminalNode*>(children[1].get());
-            return analyzeExpression(*expr);
+            return getChild(&SemanticAnalyzer::analyzeExpression, children[1].get());
         } else {
             if(children[0]->getType() == NodeType::Identifier){
                 //case identifier

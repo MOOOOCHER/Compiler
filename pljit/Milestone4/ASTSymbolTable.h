@@ -59,7 +59,7 @@ class ASTSymbolTable {
      */
     bool contains(std::string_view identifier);
     /*
-     * gets an entry with the identifier name, returns emptry string if there is none
+     * gets an entry with the identifier name, returns empty string if there is none
      */
     ASTSymbolEntry* get(std::string_view identifier);
 };
