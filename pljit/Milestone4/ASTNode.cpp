@@ -2,6 +2,51 @@
 #include "ASTTreePrintVisitor.h"
 #include "../Milestone5/ASTEvaluator.h"
 namespace semantic{
+ASTUnaryNode::ASTUnaryNode(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTNode(type),child(std::move(child)){}
+ASTNode* ASTUnaryNode::getChild() const{
+    return child.get();
+}
+
+ASTBinaryNode::ASTBinaryNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTNode(type),leftChild(std::move(left)),rightChild(std::move(right)){}
+ASTNode* ASTBinaryNode::getLeftChild() const{
+    return leftChild.get();
+}
+ASTNode* ASTBinaryNode::getRightChild() const{
+    return rightChild.get();
+}
+MultiASTNode::MultiASTNode(ASTNodeType type): ASTNode(type){}
+std::vector<ASTNode*> MultiASTNode::getChildren() const{
+    std::vector<ASTNode*> vec;
+    for(auto& child: children){
+        vec.push_back(child.get());
+    }
+    return vec;
+}
+//----------------------------------------------------------------------------------------------------------------
+ASTIdentifierNode::ASTIdentifierNode(ASTNodeType type, std::string_view value): ASTNode(type), value(value){}
+std::string_view ASTIdentifierNode::getValue() const {
+    return value;
+}
+ASTParamIdentifierNode::ASTParamIdentifierNode(std::string_view value): ASTIdentifierNode(Parameter, value){}
+
+ASTLiteralNode::ASTLiteralNode(double value): ASTNode(LiteralConstant), value(value){}
+double ASTLiteralNode::getValue() const{
+    return value;
+}
+//-----------------------------------------------------------------------------------------------------------------
+ASTFunctionNode::ASTFunctionNode(): MultiASTNode(FunctionDefinition){}
+ASTDeclaratorListNode::ASTDeclaratorListNode(ASTNodeType type): MultiASTNode(type){}
+ASTInitDeclaratorListNode::ASTInitDeclaratorListNode(): MultiASTNode(InitDeclaratorList){}
+ASTInitDeclaratorNode::ASTInitDeclaratorNode(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTBinaryNode(InitDeclarator,std::move(left), std::move(right)){}
+
+ASTCompoundStatement::ASTCompoundStatement(): MultiASTNode(CompoundStatement){}
+void ASTCompoundStatement::pop_back_child(){ children.pop_back(); }
+
+ASTStatementNode::ASTStatementNode(ASTNodeType type, std::unique_ptr<ASTNode> child): ASTUnaryNode(type, std::move(child)){}
+ASTOperationExpressionNode::ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTBinaryNode(type,std::move(left), std::move(right)){}
+ASTAssignmentExpression::ASTAssignmentExpression(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTBinaryNode(AssignmentExpression,std::move(left), std::move(right)){}
+ASTUnaryExpression::ASTUnaryExpression(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTUnaryNode(type, std::move(child)){}
+//-----------------------------------------------------------------------------------------------------------------
 void ASTFunctionNode::accept(ASTTreeVisitor& visitor) const {
     visitor.visit(*this);
 }

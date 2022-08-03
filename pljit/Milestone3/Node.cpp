@@ -34,7 +34,7 @@ SourceCodeReference NonTerminalNode::computeSourceCodeReferenceFromChildren(std:
     auto lastChildRef = children[children.size()-1]->getReference();
     size_t startingPosition = firstChildRef.getPositionInCode();
     size_t length = lastChildRef.getPositionInCode() - firstChildRef.getPositionInCode() + lastChildRef.getLengthOfString();
-    return SourceCodeReference(startingPosition,children[0]->getReference().getManager(),length);
+    return {startingPosition,children[0]->getReference().getManager(),length};
 }
 //Node--------------------------------------------------------------------
 } // namespace parser

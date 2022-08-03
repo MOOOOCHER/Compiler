@@ -153,7 +153,7 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
     if(parseType == NodeType::AssignmentExpression){
         parser::IdentifierNode* childIdentifier = static_cast<parser::IdentifierNode*>(children[0].get());
         auto childName = childIdentifier->getReference().getText();
-        if(table.contains(childName) && table.get(childName)->identifierType == ASTNode::Constant){
+        if(table.contains(childName) && table.get(childName).identifierType == ASTNode::Constant){
             parseNode.getReference().printContext("error: cannot assign a value to a constant!");
             return nullptr;
         }
@@ -228,13 +228,13 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeInitIdentifier(ASTNode::ASTNod
 }
 std::unique_ptr<ASTIdentifierNode> SemanticAnalyzer::analyzeIdentifier(parser::IdentifierNode& parseNode){
     //this function is used, when analyzing statements
-    auto entry = table.get(parseNode.getText());
-    if(!entry){
+    if(!table.contains(parseNode.getText())){
         //undeclared identifier
         parseNode.getReference().printContext("error: '"+ std::string(parseNode.getText()) +"' is undeclared!");
         return nullptr;
     }
-    ASTNode::ASTNodeType type = entry->identifierType;
+    auto entry = table.get(parseNode.getText());
+    ASTNode::ASTNodeType type = entry.identifierType;
     return std::make_unique<ASTIdentifierNode>(type,parseNode.getText());
 }
 } //namespace semantic

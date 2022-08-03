@@ -2,9 +2,8 @@
 #define PLJIT_ASTSYMBOLTABLE_H
 #include "../Milestone1/SourceCodeManager.h"
 #include "ASTNode.h"
-#include <memory>
 #include <utility>
-#include <vector>
+#include <unordered_map>
 namespace semantic {
 using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
 class SemanticAnalyzer;
@@ -14,38 +13,12 @@ class ASTSymbolTable {
         friend class SemanticAnalyzer;
         friend class ASTSymbolTable;
         ASTNode::ASTNodeType identifierType;    //only using parameter,constant or variable
-        std::string name;
         SourceCodeReference sourceCodeReference;
 
-        ASTSymbolEntry(ASTNode::ASTNodeType identifierType, const SourceCodeReference& sourceCodeReference): identifierType(identifierType),sourceCodeReference(sourceCodeReference){
-            name = sourceCodeReference.getText();
-        }
+        ASTSymbolEntry(ASTNode::ASTNodeType identifierType, SourceCodeReference  sourceCodeReference): identifierType(identifierType),sourceCodeReference(std::move(sourceCodeReference)){}
     };
-    class ASTSymbolWrappedEntry{
-        friend class SemanticAnalyzer;
-        friend class ASTSymbolTable;
-        ASTSymbolEntry entry;
-        std::unique_ptr<ASTSymbolWrappedEntry> next;
-
-        public:
-        ASTSymbolWrappedEntry(ASTSymbolEntry entry, std::unique_ptr<ASTSymbolWrappedEntry> next): entry(std::move(entry)), next(std::move(next)){}
-    };
-    std::vector<std::unique_ptr<ASTSymbolWrappedEntry>> buckets;
-    size_t sizeOfTable = 0;
-    ASTSymbolTable();
-    ~ASTSymbolTable();
-    /*
-     * this function computes the Hashfunction
-     */
-    size_t computeHash(std::string_view node);
-    /*
-     * this function rehashes the table
-     */
-    void rehash();
-    /*
-     * this function initializes the buckets
-     */
-    void initBuckets(size_t size);
+    ASTSymbolTable() = default;
+    std::unordered_map<std::string_view, ASTSymbolEntry> table;
     /*
      * inserts a node into the hashtable
      */
@@ -61,7 +34,7 @@ class ASTSymbolTable {
     /*
      * gets an entry with the identifier name, returns empty string if there is none
      */
-    ASTSymbolEntry* get(std::string_view identifier);
+    ASTSymbolEntry& get(std::string_view identifier);
 };
 } // namespace semantic
 
