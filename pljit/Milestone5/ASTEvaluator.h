@@ -13,33 +13,15 @@ namespace semantic{
         friend class ASTInitDeclaratorListNode;
         friend class ASTInitDeclaratorNode;
         friend class ASTFunctionNode;
-        friend class ASTDeclaratorListNode;
+        friend class ASTParamDeclaratorListNode;
+        friend class ASTVarDeclaratorListNode;
         friend class ASTStatementNode;
         friend class ASTOperationExpressionNode;
-        friend class ASTParamIdentifierNode;
         std::unordered_map<std::string_view, std::optional<double>> variables;
-        /*
-         * these functions are needed for setting up variable storing
-         */
-        std::optional<double> evaluate( semantic::ASTFunctionNode& node);
-        std::optional<double> evaluate(const semantic::ASTDeclaratorListNode& node);
-        std::optional<double> evaluate(const semantic::ASTInitDeclaratorNode& node);
-        std::optional<double> evaluate(const semantic::ASTInitDeclaratorListNode& node);
-        /*
-         * these functions are needed for the actual computation
-         */
-        std::optional<double> evaluate( semantic::ASTIdentifierNode& node);
-        std::optional<double> evaluate( semantic::ASTLiteralNode& node);
-        std::optional<double> evaluate( semantic::ASTOperationExpressionNode& node);
-        std::optional<double> evaluate( semantic::ASTStatementNode& node);
-        std::optional<double> evaluate( semantic::ASTAssignmentExpression& node) ;
-        std::optional<double> evaluate( semantic::ASTCompoundStatement& node) ;
-        std::optional<double> evaluate( semantic::ASTUnaryExpression& node);
-        std::optional<double> evaluate( semantic::ASTParamIdentifierNode& node);
+        std::vector<long> arguments;
         /*
          * this function initializes the parameters with the arguments;
          */
-        bool initArguments(std::vector<long> arg,semantic::ASTNode& node);
         public:
         std::optional<double> evaluateFunction(std::vector<long> arg,semantic::ASTNode& node);
     };

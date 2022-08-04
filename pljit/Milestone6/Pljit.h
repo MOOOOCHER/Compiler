@@ -21,7 +21,6 @@ using DeadCodeEliminationPass = semantic::DeadCodeEliminationPass;
 using ConstantPropagationPass = semantic::ConstantPropagationPass;
 
 class PljitHandle;
-//TODO:Multithreading
 class Pljit {
     friend class PljitHandle;
     class PljitStatus{
@@ -51,32 +50,34 @@ class PljitHandle{
             return {};
         }
         std::vector<long> vec = {args...};
-        std::unique_lock lock(mutex);
-        if(jit.astNode == nullptr){
-            //compile new
-            SourceCodeManager manager(jit.code);
-            Parser parser = Parser(Tokenizer(manager));
-            auto parseNode = parser.expectFunctionDefinition();
-            if(!parseNode){
-                //Parsing failed
-                return {};
+
+        {
+            std::unique_lock lock(mutex);
+            if (jit.astNode == nullptr) {
+                //compile new
+                SourceCodeManager manager(jit.code);
+                Parser parser = Parser(Tokenizer(manager));
+                auto parseNode = parser.expectFunctionDefinition();
+                if (!parseNode) {
+                    //Parsing failed
+                    return {};
+                }
+                SemanticAnalyzer semantic = SemanticAnalyzer();
+                auto semanticNode = semantic.analyzeFunction(vec, *parseNode);
+                if (!semanticNode) {
+                    //semantic analyze failed
+                    return {};
+                }
+                //optimization
+                DeadCodeEliminationPass pass = DeadCodeEliminationPass();
+                pass.optimize(*semanticNode);
+                ConstantPropagationPass constantPropagationPass = ConstantPropagationPass();
+                constantPropagationPass.optimize(*semanticNode);
+                jit.astNode = std::move(semanticNode);
             }
-            SemanticAnalyzer semantic = SemanticAnalyzer();
-            auto semanticNode = semantic.analyzeFunction(vec,*parseNode);
-            if(!semanticNode){
-                //semantic analyze failed
-                return {};
-            }
-            //optimization
-            DeadCodeEliminationPass pass = DeadCodeEliminationPass();
-            pass.optimize(*semanticNode);
-            ConstantPropagationPass constantPropagationPass = ConstantPropagationPass();
-            constantPropagationPass.optimize(*semanticNode);
-            jit.astNode = std::move(semanticNode);
         }
         ASTEvaluator evaluator = ASTEvaluator();
-        auto result = evaluator.evaluateFunction(vec,*jit.astNode); // the ast tree will be modified in the evaluation, because of parameter
-        lock.unlock();
+        auto result = evaluator.evaluateFunction(vec,*jit.astNode); // the ast tree will not be modified in the evaluation, hence no need of synchronization
         if(!result.has_value()){
             return {};
         }

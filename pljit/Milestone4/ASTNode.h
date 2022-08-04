@@ -56,8 +56,8 @@ namespace semantic{
     class ASTUnaryNode: public ASTNode{
         friend class SemanticAnalyzer;
         friend class ConstantPropagationPass;
-        std::unique_ptr<ASTNode> child;
         protected:
+        std::unique_ptr<ASTNode> child;
         ASTUnaryNode(ASTNodeType type,std::unique_ptr<ASTNode> child);
         public:
         ASTNode* getChild() const;
@@ -77,7 +77,7 @@ namespace semantic{
     /*
      * AST node class for nodes with multiple children
      */
-    class MultiASTNode: public ASTNode {
+    class MultiASTNode: public ASTNode{
         friend class SemanticAnalyzer;
 
         protected:
@@ -89,18 +89,12 @@ namespace semantic{
     };
     //------------------------------------------------------------------------------------------------------------------------------------
     class ASTIdentifierNode: public ASTNode{
+        protected:
         std::string_view value;
+
         public:
         ASTIdentifierNode(ASTNodeType type, std::string_view value);
         std::string_view getValue() const;
-        void accept(ASTTreeVisitor& visitor) const override;
-        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
-    };
-    class ASTParamIdentifierNode: public ASTIdentifierNode{
-        friend class ASTEvaluator;
-        double paramValue = 0;
-        public:
-        explicit ASTParamIdentifierNode(std::string_view value);
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
@@ -120,9 +114,15 @@ namespace semantic{
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
-    class ASTDeclaratorListNode: public MultiASTNode{
+    class ASTParamDeclaratorListNode: public MultiASTNode{
         public:
-        explicit ASTDeclaratorListNode(ASTNodeType type);
+        explicit ASTParamDeclaratorListNode();
+        void accept(ASTTreeVisitor& visitor) const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
+    };
+    class ASTVarDeclaratorListNode: public MultiASTNode{
+        public:
+        explicit ASTVarDeclaratorListNode();
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
