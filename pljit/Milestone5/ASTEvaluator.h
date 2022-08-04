@@ -17,6 +17,7 @@ namespace semantic{
         friend class ASTVarDeclaratorListNode;
         friend class ASTStatementNode;
         friend class ASTOperationExpressionNode;
+
         std::unordered_map<std::string_view, std::optional<double>> variables;
         std::vector<long> arguments;
         /*

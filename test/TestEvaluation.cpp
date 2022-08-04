@@ -51,29 +51,33 @@ TEST(TestEvaluation, ConstantPropagation){
     auto args = std::vector<long>();
     auto astNode = setupWithOptimization(args,"CONST a = 1, b = 2; BEGIN RETURN a+b END.");
     //test statement child nodes
-    ASSERT_EQ(astNode->getChildren().size(), 2);
-    auto astCompoundStatement = static_cast<semantic::ASTCompoundStatement*>(astNode->getChildren()[1]);
-    EXPECT_EQ(astCompoundStatement->getChildren().size(),1);
-    auto astStatement = static_cast<semantic::ASTStatementNode*>(astCompoundStatement->getChildren()[0]);
-    auto statementChild = static_cast<semantic::ASTLiteralNode*>(astStatement->getChild());
+    auto astChild = astNode->getChildren();
+    ASSERT_EQ(astChild.size(), 2);
+    auto astCompoundStatement = static_cast<semantic::ASTCompoundStatement*>(astChild[1].get());
+    auto astCompoundStatementChild = astCompoundStatement->getChildren();
+    EXPECT_EQ(astCompoundStatementChild.size(),1);
+    auto astStatement = static_cast<semantic::ASTStatementNode*>(astCompoundStatementChild[0].get());
+    auto childStatement = astStatement->getChild();
+    auto statementChild = static_cast<semantic::ASTLiteralNode*>(childStatement.get());
     EXPECT_EQ(statementChild->getType(), semantic::ASTNode::LiteralConstant);
-    semantic::ASTEvaluator evaluator = semantic::ASTEvaluator();
-    auto result = evaluator.evaluateFunction(args,*astNode);
-    EXPECT_EQ(result.value(), 3);
+    EXPECT_EQ(statementChild->getValue(), 3);
 
     astNode = setupWithOptimization(args,"VAR a, b; BEGIN a := 1; b := a+1; RETURN a+b END.");
     //test statement child nodes
-    ASSERT_EQ(astNode->getChildren().size(), 2);
-    astCompoundStatement = static_cast<semantic::ASTCompoundStatement*>(astNode->getChildren()[1]);
-    EXPECT_EQ(astCompoundStatement->getChildren().size(),3);
-    astStatement = static_cast<semantic::ASTStatementNode*>(astCompoundStatement->getChildren()[2]);
-    statementChild = static_cast<semantic::ASTLiteralNode*>(astStatement->getChild());
+    astChild = astNode->getChildren();
+    ASSERT_EQ(astChild.size(), 2);
+    astCompoundStatement = static_cast<semantic::ASTCompoundStatement*>(astChild[1].get());
+    astCompoundStatementChild = astCompoundStatement->getChildren();
+    EXPECT_EQ(astCompoundStatementChild.size(),3);
+    astStatement = static_cast<semantic::ASTStatementNode*>(astCompoundStatementChild[2].get());
+    childStatement = astStatement->getChild();
+    statementChild = static_cast<semantic::ASTLiteralNode*>(childStatement.get());
     EXPECT_EQ(statementChild->getType(), semantic::ASTNode::LiteralConstant);
-    result = evaluator.evaluateFunction(args,*astNode);
-    EXPECT_EQ(result.value(), 3);
+    EXPECT_EQ(statementChild->getValue(), 3);
 
     astNode = setupWithOptimization(args,"VAR a, b; BEGIN a := 1; b := 1; RETURN (a+b * 2/(4+4)) END.");
-    result = evaluator.evaluateFunction(args,*astNode);
+    auto evaluator =   semantic::ASTEvaluator ();
+    auto result = evaluator.evaluateFunction(args,*astNode);
     EXPECT_EQ(result.value(), 1.25);
     astNode = setupWithOptimization(args,"CONST a = 1, b = 2; BEGIN RETURN a *(-b + 55 * (1-(-1)) ) END.");
     result = evaluator.evaluateFunction(args,*astNode);
@@ -85,13 +89,11 @@ TEST(TestEvaluation, DeadCodeElimination){
     ASSERT_EQ(astNode->getType(), semantic::ASTNode::FunctionDefinition);
     //check we only have 2 statements in the optimized tree
     auto funcDef = static_cast<semantic::ASTFunctionNode*>(astNode.get());
-    EXPECT_EQ(funcDef->getChildren().size() , 2);
-    auto compoundStatement = static_cast<semantic::ASTCompoundStatement*>(funcDef->getChildren()[1]);
-    EXPECT_EQ(compoundStatement->getChildren().size() , 2);
-
-    semantic::ASTEvaluator evaluator = semantic::ASTEvaluator();
-    auto result = evaluator.evaluateFunction(args,*astNode);
-    EXPECT_EQ(result.value(), 1);
+    auto children = funcDef->getChildren();
+    EXPECT_EQ(children.size() , 2);
+    auto compoundStatement = static_cast<semantic::ASTCompoundStatement*>(children[1].get());
+    auto compoundStatementChild = compoundStatement->getChildren();
+    EXPECT_EQ(compoundStatementChild.size() , 2);
 }
 TEST(TestEvaluation,MixedOptimization){
     auto args = std::vector<long>();

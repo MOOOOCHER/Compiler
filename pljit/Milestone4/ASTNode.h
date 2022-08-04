@@ -54,13 +54,13 @@ namespace semantic{
      * AST node class for nodes with one child
      */
     class ASTUnaryNode: public ASTNode{
-        friend class SemanticAnalyzer;
-        friend class ConstantPropagationPass;
         protected:
         std::unique_ptr<ASTNode> child;
         ASTUnaryNode(ASTNodeType type,std::unique_ptr<ASTNode> child);
         public:
-        ASTNode* getChild() const;
+        std::unique_ptr<ASTNode> getChild(){
+            return std::move(child);
+        }
     };
     /*
      * AST node class for nodes with two children
@@ -70,28 +70,25 @@ namespace semantic{
         std::unique_ptr<ASTNode> leftChild;
         std::unique_ptr<ASTNode> rightChild;
         ASTBinaryNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right);
-        public:
-        ASTNode* getLeftChild() const;
-        ASTNode* getRightChild() const;
     };
     /*
      * AST node class for nodes with multiple children
      */
     class MultiASTNode: public ASTNode{
         friend class SemanticAnalyzer;
-
         protected:
         std::vector<std::unique_ptr<ASTNode>> children;
         explicit MultiASTNode(ASTNodeType type);
-
         public:
-        std::vector<ASTNode*> getChildren() const;
+        std::vector<std::unique_ptr<ASTNode>> getChildren(){
+            //Only for testing
+            return std::move(children);
+        }
     };
     //------------------------------------------------------------------------------------------------------------------------------------
     class ASTIdentifierNode: public ASTNode{
         protected:
         std::string_view value;
-
         public:
         ASTIdentifierNode(ASTNodeType type, std::string_view value);
         std::string_view getValue() const;
@@ -109,30 +106,41 @@ namespace semantic{
     //----------------------------------------------------------------------------------------------------------------------------
     class ASTFunctionNode: public MultiASTNode{
         friend class SemanticAnalyzer;
+        friend class DeadCodeEliminationPass;
+        friend class ConstantPropagationPass;
+        friend class ASTTreePrintVisitor;
         public:
         ASTFunctionNode();
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     class ASTParamDeclaratorListNode: public MultiASTNode{
+        friend class ConstantPropagationPass;
+        friend class ASTTreePrintVisitor;
         public:
         explicit ASTParamDeclaratorListNode();
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     class ASTVarDeclaratorListNode: public MultiASTNode{
+        friend class ConstantPropagationPass;
+        friend class ASTTreePrintVisitor;
         public:
         explicit ASTVarDeclaratorListNode();
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     class ASTInitDeclaratorListNode: public MultiASTNode{
+        friend class ConstantPropagationPass;
+        friend class ASTTreePrintVisitor;
         public:
         ASTInitDeclaratorListNode();
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     class ASTInitDeclaratorNode: public ASTBinaryNode{
+        friend class ConstantPropagationPass;
+        friend class ASTTreePrintVisitor;
         public:
         ASTInitDeclaratorNode(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right);
         void accept(ASTTreeVisitor& visitor) const override;
@@ -140,7 +148,9 @@ namespace semantic{
     };
     //---------------------------------------------------------------------------------------
     class ASTCompoundStatement: public MultiASTNode{
+        friend class ConstantPropagationPass;
         friend class DeadCodeEliminationPass;
+        friend class ASTTreePrintVisitor;
         void pop_back_child();
         public:
         ASTCompoundStatement();
@@ -149,6 +159,7 @@ namespace semantic{
     };
     class ASTStatementNode: public ASTUnaryNode{
         friend class ConstantPropagationPass;
+        friend class ASTTreePrintVisitor;
         public:
         ASTStatementNode(ASTNodeType type, std::unique_ptr<ASTNode> child);
         void accept(ASTTreeVisitor& visitor) const override;
@@ -157,6 +168,7 @@ namespace semantic{
     //-------------------------------------------------------------------------------------------------------------
     class ASTOperationExpressionNode: public ASTBinaryNode{
         friend class ConstantPropagationPass;
+        friend class ASTTreePrintVisitor;
         public:
         ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right);
         void accept(ASTTreeVisitor& visitor) const override;
@@ -164,12 +176,15 @@ namespace semantic{
     };
     class ASTAssignmentExpression: public ASTBinaryNode{
         friend class ConstantPropagationPass;
+        friend class ASTTreePrintVisitor;
         public:
         ASTAssignmentExpression(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right);
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     class ASTUnaryExpression: public ASTUnaryNode{
+        friend class ConstantPropagationPass;
+        friend class ASTTreePrintVisitor;
         //type should only be UnaryPlus or UnaryMinus
         public:
         ASTUnaryExpression(ASTNodeType type,std::unique_ptr<ASTNode> child);

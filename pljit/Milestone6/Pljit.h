@@ -29,7 +29,7 @@ class Pljit {
 
         std::string_view code;
         std::unique_ptr<semantic::ASTNode> astNode;
-        PljitStatus(std::string_view code, std::unique_ptr<semantic::ASTNode> astNode):code(code), astNode(std::move(astNode)){}
+        PljitStatus(std::string_view code, std::unique_ptr<semantic::ASTNode> astNode);
     };
     std::vector<PljitStatus> functionStatus;
     public:
@@ -77,11 +77,7 @@ class PljitHandle{
             }
         }
         ASTEvaluator evaluator = ASTEvaluator();
-        auto result = evaluator.evaluateFunction(vec,*jit.astNode); // the ast tree will not be modified in the evaluation, hence no need of synchronization
-        if(!result.has_value()){
-            return {};
-        }
-        return result.value();
+        return evaluator.evaluateFunction(vec,*jit.astNode); // the ast tree will not be modified in the evaluation, hence no need of synchronization
     }
 };
 } // namespace pljit

@@ -38,24 +38,24 @@ void ASTTreePrintVisitor::visit(const semantic::ASTLiteralNode& node){
 }
 void ASTTreePrintVisitor::visit(const semantic::ASTOperationExpressionNode& node){
     size_t currentIndex = index;
-    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.getLeftChild()->getType())<< "\"];" << std::endl;
+    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.leftChild->getType())<< "\"];" << std::endl;
     std::cout << "\t" << currentIndex << " -> " << index+1 << ";" << std::endl;
     ++index;
-    node.getLeftChild()->accept(*this);
-    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.getRightChild()->getType())<< "\"];" << std::endl;
+    node.leftChild->accept(*this);
+    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.rightChild->getType())<< "\"];" << std::endl;
     std::cout << "\t" << currentIndex << " -> " << index+1 << ";" << std::endl;
     ++index;
-    node.getRightChild()->accept(*this);
+    node.rightChild->accept(*this);
 }
 void ASTTreePrintVisitor::visit(const semantic::ASTStatementNode& node){
-    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.getChild()->getType())<< "\"];" << std::endl;
+    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.child->getType())<< "\"];" << std::endl;
     std::cout << "\t" << index << " -> " << index+1 << ";" << std::endl;
     index++;
-    node.getChild()->accept(*this);
+    node.child->accept(*this);
 }
 void ASTTreePrintVisitor::visit(const semantic::ASTParamDeclaratorListNode& node){
     size_t currentIndex = index;
-    for(auto child: node.getChildren()){
+    for(auto& child: node.children){
         std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(child->getType())<< "\"];" << std::endl;
         std::cout << "\t" << currentIndex << " -> " << index+1 << ";" << std::endl;
         ++index;
@@ -64,7 +64,7 @@ void ASTTreePrintVisitor::visit(const semantic::ASTParamDeclaratorListNode& node
 }
 void ASTTreePrintVisitor::visit(const semantic::ASTVarDeclaratorListNode& node){
     size_t currentIndex = index;
-    for(auto child: node.getChildren()){
+    for(auto& child: node.children){
         std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(child->getType())<< "\"];" << std::endl;
         std::cout << "\t" << currentIndex << " -> " << index+1 << ";" << std::endl;
         ++index;
@@ -73,7 +73,7 @@ void ASTTreePrintVisitor::visit(const semantic::ASTVarDeclaratorListNode& node){
 }
 void ASTTreePrintVisitor::visit(const semantic::ASTFunctionNode& node) {
     size_t currentIndex = index;
-    for(auto child: node.getChildren()){
+    for(auto& child: node.children){
         std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(child->getType())<< "\"];" << std::endl;
         std::cout << "\t" << currentIndex << " -> " << index+1 << ";" << std::endl;
         ++index;
@@ -82,18 +82,18 @@ void ASTTreePrintVisitor::visit(const semantic::ASTFunctionNode& node) {
 }
 void ASTTreePrintVisitor::visit(const semantic::ASTInitDeclaratorNode& node){
     size_t currentIndex = index;
-    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.getLeftChild()->getType())<< "\"];" << std::endl;
+    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.leftChild->getType())<< "\"];" << std::endl;
     std::cout << "\t" << currentIndex << " -> " << index+1 << ";" << std::endl;
     ++index;
-    node.getLeftChild()->accept(*this);
-    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.getRightChild()->getType())<< "\"];" << std::endl;
+    node.leftChild->accept(*this);
+    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.rightChild->getType())<< "\"];" << std::endl;
     std::cout << "\t" << currentIndex << " -> " << index+1 << ";" << std::endl;
     ++index;
-    node.getRightChild()->accept(*this);
+    node.rightChild->accept(*this);
 }
 void ASTTreePrintVisitor::visit(const semantic::ASTInitDeclaratorListNode& node) {
     size_t currentIndex = index;
-    for(auto child: node.getChildren()){
+    for(auto& child: node.children){
         std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(child->getType())<< "\"];" << std::endl;
         std::cout << "\t" << currentIndex << " -> " << index+1 << ";" << std::endl;
         ++index;
@@ -102,18 +102,18 @@ void ASTTreePrintVisitor::visit(const semantic::ASTInitDeclaratorListNode& node)
 }
 void ASTTreePrintVisitor::visit(const semantic::ASTAssignmentExpression& node){
     size_t currentIndex = index;
-    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.getLeftChild()->getType())<< "\"];" << std::endl;
+    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.leftChild->getType())<< "\"];" << std::endl;
     std::cout << "\t" << currentIndex << " -> " << index+1 << ";" << std::endl;
     ++index;
-    node.getLeftChild()->accept(*this);
-    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.getRightChild()->getType())<< "\"];" << std::endl;
+    node.leftChild->accept(*this);
+    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.rightChild->getType())<< "\"];" << std::endl;
     std::cout << "\t" << currentIndex << " -> " << index+1 << ";" << std::endl;
     ++index;
-    node.getRightChild()->accept(*this);
+    node.rightChild->accept(*this);
 }
 void ASTTreePrintVisitor::visit(const semantic::ASTCompoundStatement& node) {
     size_t currentIndex = index;
-    for(auto child: node.getChildren()){
+    for(auto& child: node.children){
         std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(child->getType())<< "\"];" << std::endl;
         std::cout << "\t" << currentIndex << " -> " << index+1 << ";" << std::endl;
         ++index;
@@ -121,10 +121,10 @@ void ASTTreePrintVisitor::visit(const semantic::ASTCompoundStatement& node) {
     }
 }
 void ASTTreePrintVisitor::visit(const semantic::ASTUnaryExpression& node) {
-    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.getChild()->getType())<< "\"];" << std::endl;
+    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.child->getType())<< "\"];" << std::endl;
     std::cout << "\t" << index << " -> " << index+1 << ";" << std::endl;
     ++index;
-    node.getChild()->accept(*this);
+    node.child->accept(*this);
 }
 void ASTTreePrintVisitor::printTree(const ASTNode& node){
     std::cout << "digraph {" << std::endl;

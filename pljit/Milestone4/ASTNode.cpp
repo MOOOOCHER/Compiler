@@ -6,25 +6,8 @@
 namespace semantic{
 using namespace sourceCodeManagement;
 ASTUnaryNode::ASTUnaryNode(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTNode(type),child(std::move(child)){}
-ASTNode* ASTUnaryNode::getChild() const{
-    return child.get();
-}
-
 ASTBinaryNode::ASTBinaryNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTNode(type),leftChild(std::move(left)),rightChild(std::move(right)){}
-ASTNode* ASTBinaryNode::getLeftChild() const{
-    return leftChild.get();
-}
-ASTNode* ASTBinaryNode::getRightChild() const{
-    return rightChild.get();
-}
 MultiASTNode::MultiASTNode(ASTNodeType type): ASTNode(type){}
-std::vector<ASTNode*> MultiASTNode::getChildren() const{
-    std::vector<ASTNode*> vec;
-    for(auto& child: children){
-        vec.push_back(child.get());
-    }
-    return vec;
-}
 //----------------------------------------------------------------------------------------------------------------
 ASTIdentifierNode::ASTIdentifierNode(ASTNodeType type, std::string_view value): ASTNode(type), value(value){}
 std::string_view ASTIdentifierNode::getValue() const {
