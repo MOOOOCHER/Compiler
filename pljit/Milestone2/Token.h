@@ -33,23 +33,20 @@ using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
  */
 class Token{
     friend class Tokenizer;
-    public:
     SourceCodeReference sourceCodeReference;
+    TokenTypes type;
+    public:
     /*
      * constructs a "default" token pointing to the last character of the code
      */
     explicit Token(sourceCodeManagement::SourceCodeManager& manager);
     Token(SourceCodeReference  characters, TokenTypes type);
-    Token(SourceCodeReference  characters, TokenTypes type, unsigned value);
     //copy semantics
     Token(const Token& other);
     Token& operator=(const Token& other);
 
-    TokenTypes getType();
-    unsigned getValue() const{ return value;}
-    private:
-    TokenTypes type;
-    unsigned value = 0;
+    TokenTypes getType() const;
+    SourceCodeReference getSourceCodeReference() const{ return sourceCodeReference;}
 };
 /*
  * class for Tokenizing the source code
