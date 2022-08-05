@@ -29,9 +29,9 @@ ASTCompoundStatement::ASTCompoundStatement(): MultiASTNode(CompoundStatement){}
 void ASTCompoundStatement::pop_back_child(){ children.pop_back(); }
 
 ASTStatementNode::ASTStatementNode(ASTNodeType type, std::unique_ptr<ASTNode> child): ASTUnaryNode(type, std::move(child)){}
-ASTOperationExpressionNode::ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTBinaryNode(type,std::move(left), std::move(right)){}
-ASTAssignmentExpression::ASTAssignmentExpression(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTBinaryNode(AssignmentExpression,std::move(left), std::move(right)){}
-ASTUnaryExpression::ASTUnaryExpression(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTUnaryNode(type, std::move(child)){}
+ASTOperationExpressionNode::ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTExpressionNode(type),leftChild(std::move(left)), rightChild(std::move(right)){}
+ASTAssignmentExpression::ASTAssignmentExpression(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTExpressionNode(AssignmentExpression),leftChild(std::move(left)), rightChild(std::move(right)){}
+ASTUnaryExpression::ASTUnaryExpression(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTExpressionNode(type),child(std::move(child)){}
 //-----------------------------------------------------------------------------------------------------------------
 void ASTFunctionNode::accept(ASTTreeVisitor& visitor) const {
     visitor.visit(*this);
@@ -57,7 +57,10 @@ void ASTInitDeclaratorNode::accept(ASTTreeVisitor& visitor) const {
 void ASTCompoundStatement::accept(ASTTreeVisitor& visitor) const {
     visitor.visit(*this);
 }
-void ASTStatementNode::accept(ASTTreeVisitor& visitor) const {
+void ASTReturnStatementNode::accept(ASTTreeVisitor& visitor) const {
+    visitor.visit(*this);
+}
+void ASTAssignmentStatementNode::accept(ASTTreeVisitor& visitor) const {
     visitor.visit(*this);
 }
 void ASTOperationExpressionNode::accept(ASTTreeVisitor& visitor) const {
@@ -154,7 +157,10 @@ std::optional<double> ASTCompoundStatement::acceptEvaluation(ASTEvaluator& visit
     std::cout<<"something has gone wrong!"<<std::endl;
     return {};
 }
-std::optional<double> ASTStatementNode::acceptEvaluation(ASTEvaluator& visitor)  {
+std::optional<double> ASTReturnStatementNode::acceptEvaluation(ASTEvaluator& visitor)  {
+    return child->acceptEvaluation(visitor);
+}
+std::optional<double> ASTAssignmentStatementNode::acceptEvaluation(ASTEvaluator& visitor)  {
     return child->acceptEvaluation(visitor);
 }
 std::optional<double> ASTOperationExpressionNode::acceptEvaluation(ASTEvaluator& visitor)  {

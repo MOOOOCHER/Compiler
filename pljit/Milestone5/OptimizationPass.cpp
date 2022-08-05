@@ -57,11 +57,16 @@ namespace semantic{
         }
     }
     void ConstantPropagationPass::optimizeStatement(ASTNode& node){
-        auto statement = static_cast<ASTStatementNode*>(&node);
-        auto optimized = optimizeExpression(*statement->child);
-        if(node.getType() == ASTNode::ReturnStatement && optimized.has_value()){
-            //change child to constant
-            statement->child = std::make_unique<ASTLiteralNode>(optimized.value());
+        if(node.getType() == ASTNode::ReturnStatement){
+            auto statement = static_cast<ASTReturnStatementNode*>(&node);
+            auto optimized = optimizeExpression(*statement->child);
+            if(optimized.has_value()){
+                //change child to constant
+                statement->child = std::make_unique<ASTLiteralNode>(optimized.value());
+            }
+        } else {
+            auto statement = static_cast<ASTAssignmentStatementNode*>(&node);
+            optimizeExpression(*statement->child);
         }
     }
     std::optional<double> ConstantPropagationPass::optimizeExpression(ASTNode& node){

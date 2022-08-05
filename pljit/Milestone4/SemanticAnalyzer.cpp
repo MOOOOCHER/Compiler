@@ -125,17 +125,20 @@ std::unique_ptr<ASTCompoundStatement> SemanticAnalyzer::analyzeCompoundStatement
     return nullptr;
 }
 std::unique_ptr<ASTStatementNode> SemanticAnalyzer::analyzeStatement(parser::NonTerminalNode& parseNode){
-    auto returnASTStatement = [this](ASTNode::ASTNodeType returnType, auto child) -> std::unique_ptr<ASTStatementNode>{
+    auto returnASTStatement = [this](auto child) -> std::unique_ptr<ASTNode>{
         parser::NonTerminalNode* childNode = static_cast<parser::NonTerminalNode*>(child);
         auto childAST = getChild(&SemanticAnalyzer::analyzeExpression,childNode);
-        if(!childAST) return nullptr;
-        return std::make_unique<ASTStatementNode>(returnType, std::move(childAST));
+        return childAST;
     };
     auto children = parseNode.getChildren();
     if(children.size() == 2){   //case return expression
-        return returnASTStatement(ASTNode::ASTNodeType::ReturnStatement,children[1].get());
+        auto child = returnASTStatement(children[1].get());
+        if(!child) return nullptr;
+        return std::make_unique<ASTReturnStatementNode>(std::move(child));
     } else {    //case assignment
-        return returnASTStatement(ASTNode::ASTNodeType::AssignStatement,children[0].get());
+        auto child = returnASTStatement(children[0].get());
+        if(!child) return nullptr;
+        return std::make_unique<ASTAssignmentStatementNode>(std::move(child));
     }
 }
 std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminalNode& parseNode){

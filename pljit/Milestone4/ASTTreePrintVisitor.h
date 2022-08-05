@@ -8,7 +8,8 @@ class ASTTreePrintVisitor: public ASTTreeVisitor {
      void visit(const semantic::ASTIdentifierNode& node)override;
      void visit(const semantic::ASTLiteralNode& node)override;
      void visit(const semantic::ASTOperationExpressionNode& node)override;
-     void visit(const semantic::ASTStatementNode& node)override;
+     void visit(const semantic::ASTReturnStatementNode& node)override;
+     void visit(const semantic::ASTAssignmentStatementNode& node)override;
      void visit(const semantic::ASTParamDeclaratorListNode& node)override;
      void visit(const semantic::ASTVarDeclaratorListNode& node)override;
      void visit(const semantic::ASTFunctionNode& node) override;

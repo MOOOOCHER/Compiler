@@ -47,7 +47,13 @@ void ASTTreePrintVisitor::visit(const semantic::ASTOperationExpressionNode& node
     ++index;
     node.rightChild->accept(*this);
 }
-void ASTTreePrintVisitor::visit(const semantic::ASTStatementNode& node){
+void ASTTreePrintVisitor::visit(const semantic::ASTAssignmentStatementNode& node){
+    std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.child->getType())<< "\"];" << std::endl;
+    std::cout << "\t" << index << " -> " << index+1 << ";" << std::endl;
+    index++;
+    node.child->accept(*this);
+}
+void ASTTreePrintVisitor::visit(const semantic::ASTReturnStatementNode& node){
     std::cout << "\t" << index+1 << " [label=\"" << convertTypeToString(node.child->getType())<< "\"];" << std::endl;
     std::cout << "\t" << index << " -> " << index+1 << ";" << std::endl;
     index++;

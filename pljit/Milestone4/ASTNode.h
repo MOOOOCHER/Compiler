@@ -162,32 +162,57 @@ namespace semantic{
         friend class ASTTreePrintVisitor;
         public:
         ASTStatementNode(ASTNodeType type, std::unique_ptr<ASTNode> child);
+    };
+    class ASTReturnStatementNode: public ASTStatementNode{
+        friend class ConstantPropagationPass;
+        friend class ASTTreePrintVisitor;
+        public:
+        explicit ASTReturnStatementNode(std::unique_ptr<ASTNode> child): ASTStatementNode(ReturnStatement,std::move(child)){}
+        void accept(ASTTreeVisitor& visitor) const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
+    };
+    class ASTAssignmentStatementNode: public ASTStatementNode{
+        friend class ConstantPropagationPass;
+        friend class ASTTreePrintVisitor;
+        public:
+        explicit ASTAssignmentStatementNode(std::unique_ptr<ASTNode> child): ASTStatementNode(AssignStatement,std::move(child)){}
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     //-------------------------------------------------------------------------------------------------------------
-    class ASTOperationExpressionNode: public ASTBinaryNode{
+    class ASTExpressionNode: public ASTNode{
         friend class ConstantPropagationPass;
         friend class ASTTreePrintVisitor;
+        public:
+        explicit ASTExpressionNode(ASTNodeType type): ASTNode(type){}
+    };
+    class ASTOperationExpressionNode: public ASTExpressionNode{
+        friend class ConstantPropagationPass;
+        friend class ASTTreePrintVisitor;
+        std::unique_ptr<ASTNode> leftChild;
+        std::unique_ptr<ASTNode> rightChild;
         public:
         ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right);
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
-    class ASTAssignmentExpression: public ASTBinaryNode{
+    class ASTUnaryExpression: public ASTExpressionNode{
         friend class ConstantPropagationPass;
         friend class ASTTreePrintVisitor;
-        public:
-        ASTAssignmentExpression(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right);
-        void accept(ASTTreeVisitor& visitor) const override;
-        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
-    };
-    class ASTUnaryExpression: public ASTUnaryNode{
-        friend class ConstantPropagationPass;
-        friend class ASTTreePrintVisitor;
+        std::unique_ptr<ASTNode> child;
         //type should only be UnaryPlus or UnaryMinus
         public:
         ASTUnaryExpression(ASTNodeType type,std::unique_ptr<ASTNode> child);
+        void accept(ASTTreeVisitor& visitor) const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
+    };
+    class ASTAssignmentExpression: public ASTExpressionNode{
+        friend class ConstantPropagationPass;
+        friend class ASTTreePrintVisitor;
+        std::unique_ptr<ASTNode> leftChild;
+        std::unique_ptr<ASTNode> rightChild;
+        public:
+        ASTAssignmentExpression(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right);
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };

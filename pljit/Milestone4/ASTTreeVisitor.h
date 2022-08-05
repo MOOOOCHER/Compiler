@@ -8,7 +8,8 @@ class ASTTreeVisitor{
     virtual void visit(const semantic::ASTIdentifierNode& node) = 0;
     virtual void visit(const semantic::ASTLiteralNode& node) = 0;
     virtual void visit(const semantic::ASTOperationExpressionNode& node) = 0;
-    virtual void visit(const semantic::ASTStatementNode& node) = 0;
+    virtual void visit(const semantic::ASTReturnStatementNode& node) = 0;
+    virtual void visit(const semantic::ASTAssignmentStatementNode& node) = 0;
     virtual void visit(const semantic::ASTParamDeclaratorListNode& node) = 0;
     virtual void visit(const semantic::ASTVarDeclaratorListNode& node) = 0;
     virtual void visit(const semantic::ASTFunctionNode& node) = 0;

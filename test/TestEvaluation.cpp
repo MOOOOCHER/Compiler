@@ -56,7 +56,7 @@ TEST(TestEvaluation, ConstantPropagation){
     auto astCompoundStatement = static_cast<semantic::ASTCompoundStatement*>(astChild[1].get());
     auto astCompoundStatementChild = astCompoundStatement->getChildren();
     EXPECT_EQ(astCompoundStatementChild.size(),1);
-    auto astStatement = static_cast<semantic::ASTStatementNode*>(astCompoundStatementChild[0].get());
+    auto astStatement = static_cast<semantic::ASTReturnStatementNode*>(astCompoundStatementChild[0].get());
     auto childStatement = astStatement->getChild();
     auto statementChild = static_cast<semantic::ASTLiteralNode*>(childStatement.get());
     EXPECT_EQ(statementChild->getType(), semantic::ASTNode::LiteralConstant);
@@ -69,7 +69,7 @@ TEST(TestEvaluation, ConstantPropagation){
     astCompoundStatement = static_cast<semantic::ASTCompoundStatement*>(astChild[1].get());
     astCompoundStatementChild = astCompoundStatement->getChildren();
     EXPECT_EQ(astCompoundStatementChild.size(),3);
-    astStatement = static_cast<semantic::ASTStatementNode*>(astCompoundStatementChild[2].get());
+    astStatement = static_cast<semantic::ASTReturnStatementNode*>(astCompoundStatementChild[2].get());
     childStatement = astStatement->getChild();
     statementChild = static_cast<semantic::ASTLiteralNode*>(childStatement.get());
     EXPECT_EQ(statementChild->getType(), semantic::ASTNode::LiteralConstant);
