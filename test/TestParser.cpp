@@ -54,8 +54,8 @@ TEST(TestParser, ExpectCompoundStatementValid){
     EXPECT_EQ(children[1]->getType(), Node::Types::Dot);
 
     result = setup("BEGIN RETURN 1 END.");
-    children = result->getChildren();
     ASSERT_NE(result, nullptr);
+    children = result->getChildren();
     EXPECT_EQ(result->getType(), Node::Types::FunctionDefinition);
     EXPECT_EQ(children.size(), 2);
     EXPECT_EQ(children[0]->getType(), Node::Types::CompoundStatement);
@@ -275,6 +275,8 @@ TEST(TestParser, ExpectComplexFunctionDefinitionValid){
     auto result = setup("PARAM width, height, depth;\nVAR volume;\nCONST density = 2400;\nBEGIN\nvolume :=width * height * depth;\nRETURN density*volume\nEND.");
     ASSERT_NE(result, nullptr);
     EXPECT_EQ(result->getChildren().size(), 5);
+    //do it again for printing
+    result = setup("PARAM width, height, depth;\nVAR volume;\nCONST density = 2400;\nBEGIN\nvolume :=width * height * depth;\nRETURN density*volume\nEND.");
     auto visitor = parser::ParseTreePrintVisitor();
     visitor.printTree(*result);
 }

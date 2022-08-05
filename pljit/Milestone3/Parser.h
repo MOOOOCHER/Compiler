@@ -18,25 +18,25 @@ class Parser{
      * The following functions parse non-terminal symbols.
      * If there is a parsing error(e.g. a component is not found), a nullptr is returned
      */
-    std::unique_ptr<NonTerminalNode> expectFunctionDefinition();
+    std::unique_ptr<FunctionDefinitionNode> expectFunctionDefinition();
     private:
-    std::unique_ptr<NonTerminalNode> expectParameterDeclaration();
-    std::unique_ptr<NonTerminalNode> expectVariableDeclaration();
-    std::unique_ptr<NonTerminalNode> expectConstantDeclaration();
+    std::unique_ptr<ParameterDeclarationNode> expectParameterDeclaration();
+    std::unique_ptr<VariableDeclarationNode> expectVariableDeclaration();
+    std::unique_ptr<ConstantDeclarationNode> expectConstantDeclaration();
 
-    std::unique_ptr<NonTerminalNode> expectDeclaratorList();
-    std::unique_ptr<NonTerminalNode> expectInitDeclaratorList();
-    std::unique_ptr<NonTerminalNode> expectInitDeclarator();
+    std::unique_ptr<DeclaratorListNode> expectDeclaratorList();
+    std::unique_ptr<InitDeclaratorListNode> expectInitDeclaratorList();
+    std::unique_ptr<InitDeclaratorNode> expectInitDeclarator();
 
-    std::unique_ptr<NonTerminalNode> expectCompoundStatement();
-    std::unique_ptr<NonTerminalNode> expectStatementList();
-    std::unique_ptr<NonTerminalNode> expectStatement();
-    std::unique_ptr<NonTerminalNode> expectAssignmentExpression();
+    std::unique_ptr<CompoundStatementNode> expectCompoundStatement();
+    std::unique_ptr<StatementListNode> expectStatementList();
+    std::unique_ptr<StatementNode> expectStatement();
+    std::unique_ptr<AssignmentExpressionNode> expectAssignmentExpression();
 
-    std::unique_ptr<NonTerminalNode> expectAdditiveExpression();
-    std::unique_ptr<NonTerminalNode> expectMultiplicativeExpression();
-    std::unique_ptr<NonTerminalNode> expectUnaryExpression();
-    std::unique_ptr<NonTerminalNode> expectPrimaryExpression();
+    std::unique_ptr<AdditiveExpressionNode> expectAdditiveExpression();
+    std::unique_ptr<MultiplicativeExpressionNode> expectMultiplicativeExpression();
+    std::unique_ptr<UnaryExpressionNode> expectUnaryExpression();
+    std::unique_ptr<PrimaryExpressionNode> expectPrimaryExpression();
     //---------------------------------------------------------------------------------------------------
     /*
      * The following three functions parse terminal symbols.
@@ -56,30 +56,33 @@ class Parser{
      */
     void printDefaultErrorMsg(std::string_view msg);
     /*
-     * this function refactors grammar productions of this form, identifier{"," identifier} for declaratorList and InitDeclaratorList
-     * PARAM:
+     * this function refactors grammar productions of this form, identifier{"," identifier} for declaratorList and InitDeclaratorList.
+     * it evaluates the children and returns whether parsing for them was successful.
+     *
+     * Arguments:
      * func*: the function pointer for the expectFunction, that gets the elements of the list, mentioned above (e.g. identifier for declarator-list)
-     * NodeType: the NodeType for the returned NonTerminalNode
+     * childVec: reference for the childVector of the node
       */
-    std::unique_ptr<NonTerminalNode> refactorDeclList(auto (Parser::*func)(), Node::Types nodeType);
-
+    bool refactorDeclList(auto (Parser::*func)(), std::vector<std::unique_ptr<Node>>& childVec);
     /*
-     * this function refactors grammar for parameter/variable/constant declarations
-     * PARAM:
+     * this function refactors grammar for parameter/variable/constant declarations;
+     * it evaluates the children and returns whether parsing for them was successful.
+     *
+     * Arguments:
      * func*: the function pointer for the expectFunction mentioned above (e.g. identifier for declarator-list)
-     * NodeType: the NodeType for the returned NonTerminalNode
+     * childVec: reference for the childVector of the node
      * keywordType: type of the keyword that starts this expression,e.g. "PARAM", "BEGIN"
      * endingKeyword:type of the keyword that ends this expression,e.g. ";", "END"
       */
-    std::unique_ptr<NonTerminalNode> refactorDeclaration(auto (Parser::*func)(), Node::Types startingKeyword, TokenTypes endingKeyword, Node::Types nodeType);
+    bool refactorDeclaration(auto (Parser::*func)(), Node::Types startingKeyword, TokenTypes endingKeyword, std::vector<std::unique_ptr<Node>>& childVec);
     /*
      * this function refactors grammar productions of this form, identifier assignmentOperator (literal | additive-expression)
      * PARAM:
      * *func1, *func2: the function pointer for the expectFunction mentioned above (e.g. identifier for declarator-list)
-     * NodeType: the NodeType for the returned NonTerminalNode
      * operator1, operator2: token type of the operator, e.g. "*","+"
+     * childVec: reference for the childVector of the evaluated node
       */
-    std::unique_ptr<NonTerminalNode> refactorExpression(auto (Parser::*func1)(),auto (Parser::*func2)(), Node::Types nodeType, TokenTypes operator1, TokenTypes operator2);
+    bool refactorExpression(auto (Parser::*func1)(),auto (Parser::*func2)(), TokenTypes operator1, const TokenTypes operator2, std::vector<std::unique_ptr<Node>>& childVec);
     /*
      * this helper function resets the backtrack-token
      */

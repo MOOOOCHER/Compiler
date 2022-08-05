@@ -43,13 +43,13 @@ class PljitHandle{
     explicit PljitHandle(Pljit::PljitStatus& jit): jit(jit){}
 
     public:
-    template <std::integral... Args>
+    template <std::floating_point ... Args>
     std::optional<double> operator()(Args... args) {
         if(jit.code.empty()){
             std::cout << "Please insert code!" << std::endl;
             return {};
         }
-        std::vector<long> vec = {args...};
+        std::vector<double> vec = {args...};
 
         {
             std::unique_lock lock(mutex);

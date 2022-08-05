@@ -19,12 +19,12 @@ namespace semantic{
         friend class ASTOperationExpressionNode;
 
         std::unordered_map<std::string_view, std::optional<double>> variables;
-        std::vector<long> arguments;
+        std::vector<double> arguments;
         /*
          * this function initializes the parameters with the arguments;
          */
         public:
-        std::optional<double> evaluateFunction(std::vector<long> arg,semantic::ASTNode& node);
+        std::optional<double> evaluateFunction(std::vector<double> arg,semantic::ASTNode& node);
     };
 } // namespace semantic
 

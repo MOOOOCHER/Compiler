@@ -61,6 +61,8 @@ namespace semantic{
         std::unique_ptr<ASTNode> getChild(){
             return std::move(child);
         }
+        void accept(ASTTreeVisitor& visitor) const override = 0;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override = 0;
     };
     /*
      * AST node class for nodes with two children
@@ -70,6 +72,8 @@ namespace semantic{
         std::unique_ptr<ASTNode> leftChild;
         std::unique_ptr<ASTNode> rightChild;
         ASTBinaryNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right);
+        void accept(ASTTreeVisitor& visitor) const override = 0;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override = 0;
     };
     /*
      * AST node class for nodes with multiple children
@@ -84,6 +88,8 @@ namespace semantic{
             //Only for testing
             return std::move(children);
         }
+        void accept(ASTTreeVisitor& visitor) const override = 0;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override = 0;
     };
     //------------------------------------------------------------------------------------------------------------------------------------
     class ASTIdentifierNode: public ASTNode{
@@ -162,6 +168,8 @@ namespace semantic{
         friend class ASTTreePrintVisitor;
         public:
         ASTStatementNode(ASTNodeType type, std::unique_ptr<ASTNode> child);
+        void accept(ASTTreeVisitor& visitor) const override = 0;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override = 0;
     };
     class ASTReturnStatementNode: public ASTStatementNode{
         friend class ConstantPropagationPass;
@@ -185,6 +193,8 @@ namespace semantic{
         friend class ASTTreePrintVisitor;
         public:
         explicit ASTExpressionNode(ASTNodeType type): ASTNode(type){}
+        void accept(ASTTreeVisitor& visitor) const override = 0;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override = 0;
     };
     class ASTOperationExpressionNode: public ASTExpressionNode{
         friend class ConstantPropagationPass;

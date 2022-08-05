@@ -62,10 +62,10 @@ class ParseTreePrintVisitor;
     //Terminal Node---------------------------------------------------------------------------------------------------------------------
     class TerminalNode: public Node{
         protected:
-
         TerminalNode(SourceCodeReference sourceCodeReference, typename Node::Types type);
         public:
-
+        ~TerminalNode() override = default;
+        void accept(ParseTreeVisitor& visitor) const override = 0;
     };
     //Terminal Node subclasses----------------------------------------------------------------------------------------------------------
     class IdentifierNode: public TerminalNode{
@@ -95,15 +95,78 @@ class ParseTreePrintVisitor;
     class NonTerminalNode: public Node{
         friend class Parser;
         friend class ParseTreePrintVisitor;
+        protected:
         std::vector<std::unique_ptr<Node>> children;
+        NonTerminalNode(Node::Types type,std::vector<std::unique_ptr<Node>> children);
         /*
          * this function computes the source code Reference for a non-terminal node (e.g. Function Definition), given a vector of child nodes
          */
         static SourceCodeReference computeSourceCodeReferenceFromChildren(std::vector<std::unique_ptr<Node>>& children);
         public:
-        NonTerminalNode(Node::Types type,std::vector<std::unique_ptr<Node>> children);
+        ~NonTerminalNode() override = default;
         std::vector<std::unique_ptr<Node>> getChildren();
         void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class FunctionDefinitionNode: public NonTerminalNode{
+        public:
+        explicit FunctionDefinitionNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(FunctionDefinition,std::move(children)){}
+    };
+    class ParameterDeclarationNode: public NonTerminalNode{
+        public:
+        explicit ParameterDeclarationNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(ParameterDeclaration,std::move(children)){}
+    };
+    class VariableDeclarationNode: public NonTerminalNode{
+        public:
+        explicit VariableDeclarationNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(VariableDeclaration,std::move(children)){}
+    };
+    class ConstantDeclarationNode: public NonTerminalNode{
+        public:
+        explicit ConstantDeclarationNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(ConstantDeclaration,std::move(children)){}
+    };
+    class DeclaratorListNode: public NonTerminalNode{
+        public:
+        explicit DeclaratorListNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(DeclaratorList,std::move(children)){}
+    };
+    class InitDeclaratorListNode: public NonTerminalNode{
+        public:
+        explicit InitDeclaratorListNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(InitDeclaratorList,std::move(children)){}
+    };
+    class InitDeclaratorNode: public NonTerminalNode{
+        public:
+        explicit InitDeclaratorNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(InitDeclarator,std::move(children)){}
+    };
+    //-----------------------------------------------------------------------------------------------------------------------
+    class CompoundStatementNode: public NonTerminalNode{
+        public:
+        explicit CompoundStatementNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(CompoundStatement,std::move(children)){}
+    };
+    class StatementListNode: public NonTerminalNode{
+        public:
+        explicit StatementListNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(StatementList,std::move(children)){}
+    };
+    class StatementNode: public NonTerminalNode{
+        public:
+        explicit StatementNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(Statement,std::move(children)){}
+    };
+    class AssignmentExpressionNode: public NonTerminalNode{
+        public:
+        explicit AssignmentExpressionNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(AssignmentExpression,std::move(children)){}
+    };
+    class AdditiveExpressionNode: public NonTerminalNode{
+        public:
+        explicit AdditiveExpressionNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(AdditiveExpression,std::move(children)){}
+    };
+    class MultiplicativeExpressionNode: public NonTerminalNode{
+        public:
+        explicit MultiplicativeExpressionNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(MultiplicativeExpression,std::move(children)){}
+    };
+    class UnaryExpressionNode: public NonTerminalNode{
+        public:
+        explicit UnaryExpressionNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(UnaryExpression,std::move(children)){}
+    };
+    class PrimaryExpressionNode: public NonTerminalNode{
+        public:
+        explicit PrimaryExpressionNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(PrimaryExpression,std::move(children)){}
     };
 } // namespace parser
 #endif //PLJIT_NODE_H
