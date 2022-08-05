@@ -6,7 +6,8 @@ namespace parser{
 using Token = lexer::Token;
 using Tokenizer = lexer::Tokenizer;
 using Node = parser::Node;
-using TokenTypes =lexer::TokenTypes;
+using TokenTypes = lexer::TokenTypes;
+
 class Parser{
     Tokenizer tokenizer;
     Token backtrackToken = Token(tokenizer.getManager());   //default

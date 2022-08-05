@@ -250,6 +250,7 @@ TEST(TestParser, ExpectAssignmentExpressionInvalid){
     checkInvalid("BEGIN a := --adas END.");
     checkInvalid("BEGIN a := a * (a * a + (super) END.");
     checkInvalid("BEGIN a = 1 END.");
+    checkInvalid("BEGIN a : = 1 END.");
     checkInvalid("BEGIN 1234 := a * (a * a + (super)) END.");
     std::cout << "=========================================================" << std::endl;
 }

@@ -26,9 +26,7 @@ std::vector<std::unique_ptr<Node>> NonTerminalNode::getChildren(){
     return std::move(children);
 }
 NonTerminalNode::NonTerminalNode(Node::Types type,std::vector<std::unique_ptr<Node>> children): Node(type,computeSourceCodeReferenceFromChildren(children)), children(std::move(children)) {}
-void NonTerminalNode::accept(ParseTreeVisitor& visitor) const{
-    visitor.visit(*this);
-}
+
 SourceCodeReference NonTerminalNode::computeSourceCodeReferenceFromChildren(std::vector<std::unique_ptr<Node>>& children){
     auto firstChildRef = children[0]->getReference();
     auto lastChildRef = children[children.size()-1]->getReference();
@@ -37,4 +35,49 @@ SourceCodeReference NonTerminalNode::computeSourceCodeReferenceFromChildren(std:
     return {startingPosition,children[0]->getReference().getManager(),length};
 }
 //Node--------------------------------------------------------------------
+void FunctionDefinitionNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void ParameterDeclarationNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void VariableDeclarationNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void ConstantDeclarationNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void DeclaratorListNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void InitDeclaratorListNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void InitDeclaratorNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void CompoundStatementNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void StatementListNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void StatementNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void AssignmentExpressionNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void AdditiveExpressionNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void MultiplicativeExpressionNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void UnaryExpressionNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void PrimaryExpressionNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
 } // namespace parser
