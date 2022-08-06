@@ -15,4 +15,10 @@ namespace semantic {
     ASTSymbolTable::ASTSymbolEntry& ASTSymbolTable::get(std::string_view identifier){
         return table.find(identifier)->second;
     }
+    void ASTSymbolTable::printVariableWasDeclaredHereErrorMessage(std::string_view identifier){
+        if(table.contains(identifier)){
+            auto entry = get(identifier);
+            entry.sourceCodeReference.printContext("note: '"+std::string(identifier)+ "' was declared here.");
+        }
+    }
 } // namespace semantic

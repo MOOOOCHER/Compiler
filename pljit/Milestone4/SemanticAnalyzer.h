@@ -13,11 +13,11 @@ class SemanticAnalyzer {
     std::unique_ptr<ASTNode> getChild( auto func, auto child);
     bool refactorDeclaration(auto& astNode,ASTNode::ASTNodeType astChildType, parser::NonTerminalNode& parseNode, size_t expectedArgSize);
 
-    std::unique_ptr<ASTParamDeclaratorListNode> analyzeParameterDeclaration(const std::vector<double>& arg,parser::NonTerminalNode& parseNode);
-    std::unique_ptr<ASTVarDeclaratorListNode> analyzeVariableDeclaration(parser::NonTerminalNode& parseNode);
-    std::unique_ptr<ASTInitDeclaratorListNode> analyzeConstantDeclaration(parser::NonTerminalNode& parseNode);
-    std::unique_ptr<ASTCompoundStatement> analyzeCompoundStatement(parser::NonTerminalNode& parseNode);
-    std::unique_ptr<ASTStatementNode> analyzeStatement(parser::NonTerminalNode& parseNode);
+    std::unique_ptr<ASTParamDeclaratorListNode> analyzeParameterDeclaration(const std::vector<double>& arg,parser::ParameterDeclarationNode& parseNode);
+    std::unique_ptr<ASTVarDeclaratorListNode> analyzeVariableDeclaration(parser::VariableDeclarationNode& parseNode);
+    std::unique_ptr<ASTInitDeclaratorListNode> analyzeConstantDeclaration(parser::ConstantDeclarationNode& parseNode);
+    std::unique_ptr<ASTCompoundStatement> analyzeCompoundStatement(parser::CompoundStatementNode& parseNode);
+    std::unique_ptr<ASTStatementNode> analyzeStatement(parser::StatementNode& parseNode);
     std::unique_ptr<ASTNode> analyzeExpression(parser::NonTerminalNode& parseNode);
     /*
      * this function is used for identifier which are being initialized (in declarator list)
@@ -27,9 +27,9 @@ class SemanticAnalyzer {
      * this function is used for identifier which are being used in expressions
      */
     std::unique_ptr<ASTIdentifierNode> analyzeIdentifier(parser::IdentifierNode& parseNode);
-    std::unique_ptr<ASTNode> analyzeInitDeclarator(parser::NonTerminalNode& parseNode);
+    std::unique_ptr<ASTNode> analyzeInitDeclarator(parser::InitDeclaratorNode& parseNode);
     public:
-    std::unique_ptr<ASTFunctionNode> analyzeFunction(const std::vector<double>& arg, parser::NonTerminalNode& parseNode);
+    std::unique_ptr<ASTFunctionNode> analyzeFunction(const std::vector<double>& arg, parser::FunctionDefinitionNode& parseNode);
     SemanticAnalyzer() = default;
 };
 } // namespace semantic

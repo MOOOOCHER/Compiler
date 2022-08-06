@@ -6,7 +6,6 @@
 namespace semantic{
 using namespace sourceCodeManagement;
 ASTUnaryNode::ASTUnaryNode(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTNode(type),child(std::move(child)){}
-ASTBinaryNode::ASTBinaryNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTNode(type),leftChild(std::move(left)),rightChild(std::move(right)){}
 MultiASTNode::MultiASTNode(ASTNodeType type): ASTNode(type){}
 //----------------------------------------------------------------------------------------------------------------
 ASTIdentifierNode::ASTIdentifierNode(ASTNodeType type, std::string_view value): ASTNode(type), value(value){}
@@ -23,7 +22,7 @@ ASTFunctionNode::ASTFunctionNode(): MultiASTNode(FunctionDefinition){}
 ASTParamDeclaratorListNode::ASTParamDeclaratorListNode(): MultiASTNode(ParamDeclaratorList){}
 ASTVarDeclaratorListNode::ASTVarDeclaratorListNode(): MultiASTNode(VarDeclaratorList){}
 ASTInitDeclaratorListNode::ASTInitDeclaratorListNode(): MultiASTNode(InitDeclaratorList){}
-ASTInitDeclaratorNode::ASTInitDeclaratorNode(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTBinaryNode(InitDeclarator,std::move(left), std::move(right)){}
+ASTInitDeclaratorNode::ASTInitDeclaratorNode(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTNode(InitDeclarator),leftChild(std::move(left)),rightChild(std::move(right)){}
 
 ASTCompoundStatement::ASTCompoundStatement(): MultiASTNode(CompoundStatement){}
 void ASTCompoundStatement::pop_back_child(){ children.pop_back(); }

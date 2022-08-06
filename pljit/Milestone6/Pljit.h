@@ -4,7 +4,6 @@
 #include <vector>
 #include <iostream>
 #include <mutex>
-#include "../Milestone1/SourceCodeManager.h"
 #include "../Milestone4/ASTNode.h"
 #include "../Milestone2/Token.h"
 #include "../Milestone3/Parser.h"

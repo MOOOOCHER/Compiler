@@ -1,38 +1,38 @@
 #include "SemanticAnalyzer.h"
 namespace semantic {
 using NodeType = parser::Node::Types;
-
 std::unique_ptr<ASTNode> SemanticAnalyzer::getChild(auto func, auto child){
     parser::NonTerminalNode* nonTerminalNode = static_cast<parser::NonTerminalNode*>(child);
     return std::move((this->*func)(*nonTerminalNode));
 }
-/*
- * TODO: parse node type change from NonTerminal Node to their respective Nodes
- */
-std::unique_ptr<ASTFunctionNode> SemanticAnalyzer::analyzeFunction(const std::vector<double>& arg,parser::NonTerminalNode& parseNode){
+std::unique_ptr<ASTFunctionNode> SemanticAnalyzer::analyzeFunction(const std::vector<double>& arg,parser::FunctionDefinitionNode& parseNode){
     if(parseNode.getType() == NodeType::FunctionDefinition){
         std::unique_ptr<ASTFunctionNode> node = std::make_unique<ASTFunctionNode>();
         bool hasParams = false;
-        /*
-         * lambda for calling analyze child function, adding the child to the newly created ASTNode and return false if there are compilation errors
-         */
-        auto func = [&node, this](auto func2, auto child){
-            auto astVar = this->getChild(func2, child);
-            if(!astVar) return false;
-            node->children.push_back(std::move(astVar));
-            return true;
-        };
         for(auto& child: parseNode.getChildren()){
             if(child->getType() == NodeType::ParameterDeclaration){
-                parser::NonTerminalNode* nonTerminalNode = static_cast<parser::NonTerminalNode*>(child.get());
-                auto astParam = analyzeParameterDeclaration(arg,*nonTerminalNode);
+                parser::ParameterDeclarationNode* paramDecl = static_cast<parser::ParameterDeclarationNode*>(child.get());
+                auto astParam = analyzeParameterDeclaration(arg,*paramDecl);
                 if(!astParam) return nullptr;
                 node->children.push_back(std::move(astParam));
                 hasParams = true;
-            } else if((child->getType() == NodeType::VariableDeclaration && !func(&SemanticAnalyzer::analyzeVariableDeclaration, child.get()))
-                       || (child->getType() == NodeType::ConstantDeclaration && !func(&SemanticAnalyzer::analyzeConstantDeclaration, child.get()))
-                       || (child->getType() == NodeType::CompoundStatement && !func(&SemanticAnalyzer::analyzeCompoundStatement, child.get()))){
-                return nullptr;
+            } else if(child->getType() == NodeType::VariableDeclaration){
+                parser::VariableDeclarationNode* varDecl = static_cast<parser::VariableDeclarationNode*>(child.get());
+                auto ast = analyzeVariableDeclaration(*varDecl);
+                if(!ast) return nullptr;
+                node->children.push_back(std::move(ast));
+            } else if (child->getType() == NodeType::ConstantDeclaration){
+                parser::ConstantDeclarationNode* constDecl = static_cast<parser::ConstantDeclarationNode*>(child.get());
+                auto ast = analyzeConstantDeclaration(*constDecl);
+                if(!ast) return nullptr;
+                node->children.push_back(std::move(ast));
+            } else if (child->getType() == NodeType::CompoundStatement){
+                parser::CompoundStatementNode* compStatement = static_cast<parser::CompoundStatementNode*>(child.get());
+                auto ast = analyzeCompoundStatement(*compStatement);
+                if(!ast) return nullptr;
+                node->children.push_back(std::move(ast));
+            } else {
+                continue;
             }
         }
         if(!hasParams && !arg.empty()) return nullptr; //if we don't have parameters, but there are still arguments
@@ -44,7 +44,7 @@ bool SemanticAnalyzer::refactorDeclaration(auto& astNode, ASTNode::ASTNodeType a
     auto children = parseNode.getChildren();
     auto declList = std::move(children[1]);
     if(declList->getType() == NodeType::DeclaratorList) {
-        parser::NonTerminalNode* decl = static_cast<parser::NonTerminalNode*>(declList.get());
+        parser::DeclaratorListNode* decl = static_cast<parser::DeclaratorListNode*>(declList.get());
         auto declChildren = decl->getChildren();
         if (parseNode.getType() == parser::Node::ParameterDeclaration && declChildren.size() / 2 + 1 != expectedArgSize) { //we should have arg.size()-1 commas as children => decl->getChildren().size()/2+1 when they are not included
             //if parameters size don't match
@@ -63,25 +63,26 @@ bool SemanticAnalyzer::refactorDeclaration(auto& astNode, ASTNode::ASTNodeType a
     }
     return false;
 }
-std::unique_ptr<ASTParamDeclaratorListNode> SemanticAnalyzer::analyzeParameterDeclaration(const std::vector<double>& arg,parser::NonTerminalNode& parseNode){
+std::unique_ptr<ASTParamDeclaratorListNode> SemanticAnalyzer::analyzeParameterDeclaration(const std::vector<double>& arg,parser::ParameterDeclarationNode& parseNode){
     std::unique_ptr<ASTParamDeclaratorListNode> node = std::make_unique<ASTParamDeclaratorListNode>();
     if(!refactorDeclaration(*node,ASTNode::Parameter,parseNode,arg.size())) return nullptr;
     return node;
 }
-std::unique_ptr<ASTVarDeclaratorListNode> SemanticAnalyzer::analyzeVariableDeclaration(parser::NonTerminalNode& parseNode){
+std::unique_ptr<ASTVarDeclaratorListNode> SemanticAnalyzer::analyzeVariableDeclaration(parser::VariableDeclarationNode& parseNode){
     std::unique_ptr<ASTVarDeclaratorListNode> node = std::make_unique<ASTVarDeclaratorListNode>();
     if(!refactorDeclaration(*node,ASTNode::Variable,parseNode, 0)) return nullptr;
     return node;
 }
-std::unique_ptr<ASTInitDeclaratorListNode> SemanticAnalyzer::analyzeConstantDeclaration(parser::NonTerminalNode& parseNode){
+std::unique_ptr<ASTInitDeclaratorListNode> SemanticAnalyzer::analyzeConstantDeclaration(parser::ConstantDeclarationNode& parseNode){
     std::unique_ptr<ASTInitDeclaratorListNode> node = std::make_unique<ASTInitDeclaratorListNode>();
     auto children = parseNode.getChildren();
     auto declList = std::move(children[1]);
     if(declList->getType() == NodeType::InitDeclaratorList){
-        parser::NonTerminalNode* decl = static_cast<parser::NonTerminalNode*>(declList.get());
+        parser::InitDeclaratorListNode* decl = static_cast<parser::InitDeclaratorListNode*>(declList.get());
         for(auto& child: decl->getChildren()){
             if(child->getType() == NodeType::InitDeclarator){
-                auto astIdentifier = getChild(&SemanticAnalyzer::analyzeInitDeclarator,child.get());
+                parser::InitDeclaratorNode* initDecl = static_cast<parser::InitDeclaratorNode*>(child.get());
+                auto astIdentifier = analyzeInitDeclarator(*initDecl);
                 if(!astIdentifier) return nullptr;
                 node->children.push_back(std::move(astIdentifier));
             }
@@ -90,7 +91,7 @@ std::unique_ptr<ASTInitDeclaratorListNode> SemanticAnalyzer::analyzeConstantDecl
     }
     return nullptr;
 }
-std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeInitDeclarator(parser::NonTerminalNode& parseNode){
+std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeInitDeclarator(parser::InitDeclaratorNode& parseNode){
     if(parseNode.getType() == NodeType::InitDeclarator){
         auto children = parseNode.getChildren();
         parser::IdentifierNode* identifierNode = static_cast<parser::IdentifierNode*>(children[0].get());
@@ -104,7 +105,7 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeInitDeclarator(parser::NonTerm
     }
     return nullptr;
 }
-std::unique_ptr<ASTCompoundStatement> SemanticAnalyzer::analyzeCompoundStatement(parser::NonTerminalNode& parseNode){
+std::unique_ptr<ASTCompoundStatement> SemanticAnalyzer::analyzeCompoundStatement(parser::CompoundStatementNode& parseNode){
     std::unique_ptr<ASTCompoundStatement> node = std::make_unique<ASTCompoundStatement>();
     auto children = parseNode.getChildren();
     auto declList = std::move(children[1]);
@@ -113,21 +114,22 @@ std::unique_ptr<ASTCompoundStatement> SemanticAnalyzer::analyzeCompoundStatement
         parser::NonTerminalNode* decl = static_cast<parser::NonTerminalNode*>(declList.get());
         for(auto& child: decl->getChildren()){
             if(child->getType() == NodeType::Statement){
-                auto astStatement = getChild(&SemanticAnalyzer::analyzeStatement,child.get());
+                parser::StatementNode* statementNode = static_cast<parser::StatementNode*>(child.get());
+                auto astStatement = analyzeStatement(*statementNode);
                 if(!astStatement) return nullptr;
                 else if(astStatement->getType() == ASTNode::ReturnStatement) hasReturnStatement = true; //check for return statement
                 node->children.push_back(std::move(astStatement));
             }
         }
         if(!hasReturnStatement) {
-            parseNode.getReference().printContext("error: missing return statement");
+            parseNode.getReference().printContext("error: missing return statement!");
             return nullptr;
         }
         return node;
     }
     return nullptr;
 }
-std::unique_ptr<ASTStatementNode> SemanticAnalyzer::analyzeStatement(parser::NonTerminalNode& parseNode){
+std::unique_ptr<ASTStatementNode> SemanticAnalyzer::analyzeStatement(parser::StatementNode& parseNode){
     auto returnASTStatement = [this](auto child) -> std::unique_ptr<ASTNode>{
         parser::NonTerminalNode* childNode = static_cast<parser::NonTerminalNode*>(child);
         auto childAST = getChild(&SemanticAnalyzer::analyzeExpression,childNode);
@@ -152,6 +154,7 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
         auto childName = childIdentifier->getReference().getText();
         if(table.contains(childName) && table.get(childName).identifierType == ASTNode::Constant){
             parseNode.getReference().printContext("error: cannot assign a value to a constant!");
+            table.printVariableWasDeclaredHereErrorMessage(childName);
             return nullptr;
         }
         auto identifier = analyzeIdentifier(*childIdentifier);
@@ -211,23 +214,26 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
 }
 std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeInitIdentifier(ASTNode::ASTNodeType type, parser::IdentifierNode& parseNode){
     //this function is used for identifier declarations
-    if(table.contains(parseNode.getText())){
+    auto identifierName = parseNode.getText();
+    if(table.contains(identifierName)){
         //double declaration
-        parseNode.getReference().printContext("error: '"+ std::string(parseNode.getText()) +"' is already declared!");
+        parseNode.getReference().printContext("error: '"+ std::string(identifierName) +"' is already declared!");
+        table.printVariableWasDeclaredHereErrorMessage(identifierName);
         return nullptr;
     }
     table.insert(type,parseNode.getReference());
-    return std::make_unique<ASTIdentifierNode>(type,parseNode.getText());
+    return std::make_unique<ASTIdentifierNode>(type,identifierName);
 }
 std::unique_ptr<ASTIdentifierNode> SemanticAnalyzer::analyzeIdentifier(parser::IdentifierNode& parseNode){
     //this function is used, when analyzing statements
-    if(!table.contains(parseNode.getText())){
+    auto identifierName = parseNode.getText();
+    if(!table.contains(identifierName)){
         //undeclared identifier
-        parseNode.getReference().printContext("error: '"+ std::string(parseNode.getText()) +"' is undeclared!");
+        parseNode.getReference().printContext("error: '"+ std::string(identifierName) +"' is undeclared!");
         return nullptr;
     }
-    auto entry = table.get(parseNode.getText());
+    auto entry = table.get(identifierName);
     ASTNode::ASTNodeType type = entry.identifierType;
-    return std::make_unique<ASTIdentifierNode>(type,parseNode.getText());
+    return std::make_unique<ASTIdentifierNode>(type,identifierName);
 }
 } //namespace semantic

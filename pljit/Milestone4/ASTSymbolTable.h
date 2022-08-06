@@ -28,13 +28,17 @@ class ASTSymbolTable {
      */
     void insert(ASTNode::ASTNodeType identifierType, const SourceCodeReference& sourceCodeReference);
     /*
-     * checks whether the hastable contains a node
+     * checks whether the hashtable contains a node
      */
     bool contains(std::string_view identifier);
     /*
      * gets an entry with the identifier name, returns empty string if there is none
      */
     ASTSymbolEntry& get(std::string_view identifier);
+    /*
+     * prints an error message for the declared identifier
+     */
+    void printVariableWasDeclaredHereErrorMessage(std::string_view identifier);
 };
 } // namespace semantic
 

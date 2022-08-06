@@ -65,17 +65,6 @@ namespace semantic{
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override = 0;
     };
     /*
-     * AST node class for nodes with two children
-     */
-    class ASTBinaryNode: public ASTNode {
-        protected:
-        std::unique_ptr<ASTNode> leftChild;
-        std::unique_ptr<ASTNode> rightChild;
-        ASTBinaryNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right);
-        void accept(ASTTreeVisitor& visitor) const override = 0;
-        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override = 0;
-    };
-    /*
      * AST node class for nodes with multiple children
      */
     class MultiASTNode: public ASTNode{
@@ -144,9 +133,11 @@ namespace semantic{
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
-    class ASTInitDeclaratorNode: public ASTBinaryNode{
+    class ASTInitDeclaratorNode: public ASTNode{
         friend class ConstantPropagationPass;
         friend class ASTTreePrintVisitor;
+        std::unique_ptr<ASTNode> leftChild;
+        std::unique_ptr<ASTNode> rightChild;
         public:
         ASTInitDeclaratorNode(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right);
         void accept(ASTTreeVisitor& visitor) const override;
