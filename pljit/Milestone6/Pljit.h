@@ -34,6 +34,7 @@ class Pljit {
     public:
     PljitHandle registerFunction(std::string_view code);
 };
+
 class PljitHandle{
     friend class Pljit;
     Pljit::PljitStatus& jit;

@@ -69,6 +69,7 @@ namespace semantic{
      */
     class MultiASTNode: public ASTNode{
         friend class SemanticAnalyzer;
+        friend class ASTTreePrintVisitor;
         protected:
         std::vector<std::unique_ptr<ASTNode>> children;
         explicit MultiASTNode(ASTNodeType type);
