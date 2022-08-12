@@ -63,7 +63,7 @@ class PljitHandle{
                     return {};
                 }
                 SemanticAnalyzer semantic = SemanticAnalyzer();
-                auto semanticNode = semantic.analyzeFunction(vec, *parseNode);
+                auto semanticNode = semantic.analyzeFunction(*parseNode);
                 if (!semanticNode) {
                     //semantic analyze failed
                     return {};

@@ -23,7 +23,7 @@ static auto setupWithOptimizationShort(const std::vector<double>& args, const st
     auto parseNode = parser.expectFunctionDefinition();
     SemanticAnalyzer semantic = SemanticAnalyzer();
     semantic::ASTEvaluator evaluator = semantic::ASTEvaluator();
-    auto astNode = semantic.analyzeFunction(args,*parseNode);
+    auto astNode = semantic.analyzeFunction(*parseNode);
     //optimization
     DeadCodeEliminationPass pass = DeadCodeEliminationPass();
     pass.optimize(*astNode);
@@ -31,14 +31,14 @@ static auto setupWithOptimizationShort(const std::vector<double>& args, const st
     constantPropagationPass.optimize(*astNode);
     return evaluator.evaluateFunction(args,*astNode);
 }
-static auto setupWithOptimization(const std::vector<double>& args, const std::string_view& input){
+static auto setupWithOptimization( const std::string_view& input){
     SourceCodeManager manager(input);
     Tokenizer tokenizer = Tokenizer(manager);
 
     Parser parser = Parser(tokenizer);
     auto parseNode = parser.expectFunctionDefinition();
     SemanticAnalyzer semantic = SemanticAnalyzer();
-    auto astNode = semantic.analyzeFunction(args,*parseNode);
+    auto astNode = semantic.analyzeFunction(*parseNode);
     //optimization
     DeadCodeEliminationPass pass = DeadCodeEliminationPass();
     pass.optimize(*astNode);
@@ -49,7 +49,7 @@ static auto setupWithOptimization(const std::vector<double>& args, const std::st
 
 TEST(TestEvaluation, ConstantPropagation){
     auto args = std::vector<double>();
-    auto astNode = setupWithOptimization(args,"CONST a = 1, b = 2; BEGIN RETURN a+b END.");
+    auto astNode = setupWithOptimization("CONST a = 1, b = 2; BEGIN RETURN a+b END.");
     //test statement child nodes
     auto astChild = astNode->getChildren();
     ASSERT_EQ(astChild.size(), 2);
@@ -62,7 +62,7 @@ TEST(TestEvaluation, ConstantPropagation){
     EXPECT_EQ(statementChild->getType(), semantic::ASTNode::LiteralConstant);
     EXPECT_EQ(statementChild->getValue(), 3);
 
-    astNode = setupWithOptimization(args,"VAR a, b; BEGIN a := 1; b := a+1; RETURN a+b END.");
+    astNode = setupWithOptimization("VAR a, b; BEGIN a := 1; b := a+1; RETURN a+b END.");
     //test statement child nodes
     astChild = astNode->getChildren();
     ASSERT_EQ(astChild.size(), 2);
@@ -75,17 +75,17 @@ TEST(TestEvaluation, ConstantPropagation){
     EXPECT_EQ(statementChild->getType(), semantic::ASTNode::LiteralConstant);
     EXPECT_EQ(statementChild->getValue(), 3);
 
-    astNode = setupWithOptimization(args,"VAR a, b; BEGIN a := 1; b := 1; RETURN (a+b * 2/(4+4)) END.");
+    astNode = setupWithOptimization("VAR a, b; BEGIN a := 1; b := 1; RETURN (a+b * 2/(4+4)) END.");
     auto evaluator =   semantic::ASTEvaluator ();
     auto result = evaluator.evaluateFunction(args,*astNode);
     EXPECT_EQ(result.value(), 1.25);
-    astNode = setupWithOptimization(args,"CONST a = 1, b = 2; BEGIN RETURN a *(-b + 55 * (1-(-1)) ) END.");
+    astNode = setupWithOptimization("CONST a = 1, b = 2; BEGIN RETURN a *(-b + 55 * (1-(-1)) ) END.");
     result = evaluator.evaluateFunction(args,*astNode);
     EXPECT_EQ(result.value(), 108);
 }
 TEST(TestEvaluation, DeadCodeElimination){
     auto args = std::vector<double>();
-    auto astNode = setupWithOptimization(args,"VAR a,b,c,d,e,f,z,g,i,j,ab,aaa ; BEGIN ab := 1 ;RETURN ab;ab := 1 ;ab := 1 ;ab := 1  END.");
+    auto astNode = setupWithOptimization("VAR a,b,c,d,e,f,z,g,i,j,ab,aaa ; BEGIN ab := 1 ;RETURN ab;ab := 1 ;ab := 1 ;ab := 1  END.");
     ASSERT_EQ(astNode->getType(), semantic::ASTNode::FunctionDefinition);
     //check we only have 2 statements in the optimized tree
     auto funcDef = static_cast<semantic::ASTFunctionNode*>(astNode.get());
@@ -97,7 +97,7 @@ TEST(TestEvaluation, DeadCodeElimination){
 }
 TEST(TestEvaluation,MixedOptimization){
     auto args = std::vector<double>();
-    auto astNode = setupWithOptimization(args,"VAR a, b; BEGIN a := 1; b := 1; RETURN a *(-b + 55 * (1-(-1))) ;a := 1; b := 1;a := 1; b := 1 END.");
+    auto astNode = setupWithOptimization("VAR a, b; BEGIN a := 1; b := 1; RETURN a *(-b + 55 * (1-(-1))) ;a := 1; b := 1;a := 1; b := 1 END.");
     semantic::ASTEvaluator evaluator = semantic::ASTEvaluator();
     auto result = evaluator.evaluateFunction(args,*astNode);
     EXPECT_EQ(result.value(), 109);
@@ -121,6 +121,14 @@ TEST(TestEvaluation, InvalidEvaluation){
     result = setupWithOptimizationShort(std::vector<double>{0,2},"PARAM a,b; VAR c; BEGIN c:=2+b ;RETURN b*c/a END.");
     EXPECT_EQ(result.has_value(), false);
     result = setupWithOptimizationShort(std::vector<double>{50,2},"PARAM a,b; CONST c=2; BEGIN a:=a+c ;RETURN a/(b-c) END.");
+    EXPECT_EQ(result.has_value(), false);
+    std::cout << "=========================================================" << std::endl;
+}
+TEST(TestEvaluation, AnalyzeFunctionNoInitialization){
+    std::cout << "Testing no initialization for constant and parameter:" << std::endl;
+    auto result = setupWithOptimizationShort(std::vector<double>(),"PARAM b; CONST a=1; BEGIN b := a +2; RETURN b END.");
+    EXPECT_EQ(result.has_value(), false);
+    result = setupWithOptimizationShort(std::vector<double>{1,1},"PARAM b; CONST a=1; BEGIN b := a +2; RETURN b END.");
     EXPECT_EQ(result.has_value(), false);
     std::cout << "=========================================================" << std::endl;
 }
