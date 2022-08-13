@@ -1,8 +1,8 @@
 #include "ASTNode.h"
 #include "ASTTreePrintVisitor.h"
 #include "../Milestone5/ASTEvaluator.h"
-#include "../Milestone1/SourceCodeManager.h"
 #include <iostream>
+#include <utility>
 namespace semantic{
 using namespace sourceCodeManagement;
 ASTUnaryNode::ASTUnaryNode(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTNode(type),child(std::move(child)){}
@@ -28,7 +28,7 @@ ASTCompoundStatement::ASTCompoundStatement(): MultiASTNode(CompoundStatement){}
 void ASTCompoundStatement::pop_back_child(){ children.pop_back(); }
 
 ASTStatementNode::ASTStatementNode(ASTNodeType type, std::unique_ptr<ASTNode> child): ASTUnaryNode(type, std::move(child)){}
-ASTOperationExpressionNode::ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTExpressionNode(type),leftChild(std::move(left)), rightChild(std::move(right)){}
+ASTOperationExpressionNode::ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right, SourceCodeReference sourceCodeReference): ASTExpressionNode(type),leftChild(std::move(left)), rightChild(std::move(right)), sourceCodeReference(std::move(sourceCodeReference)){}
 ASTAssignmentExpression::ASTAssignmentExpression(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTExpressionNode(AssignmentExpression),leftChild(std::move(left)), rightChild(std::move(right)){}
 ASTUnaryExpression::ASTUnaryExpression(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTExpressionNode(type),child(std::move(child)){}
 //-----------------------------------------------------------------------------------------------------------------
@@ -175,9 +175,7 @@ std::optional<double> ASTOperationExpressionNode::acceptEvaluation(ASTEvaluator&
         return leftExpr.value() * rightExpr.value();
     } else if(type== ASTNode::DivOperator){
         if(rightExpr == 0){
-            SourceCodeManager defaultManager = SourceCodeManager();
-            SourceCodeReference a = SourceCodeReference (defaultManager);
-            a.printContext("error: division by zero!");
+            sourceCodeReference.printContext("error: division by zero!");
             return {}; //abort compilation
         }
         return leftExpr.value() / rightExpr.value();

@@ -9,29 +9,25 @@ std::unique_ptr<ASTFunctionNode> SemanticAnalyzer::analyzeFunction(parser::Funct
     if(parseNode.getType() == NodeType::FunctionDefinition){
         std::unique_ptr<ASTFunctionNode> node = std::make_unique<ASTFunctionNode>();
         for(auto& child: parseNode.getChildren()){
+            std::unique_ptr<ASTNode> ast;
             if(child->getType() == NodeType::ParameterDeclaration){
                 parser::ParameterDeclarationNode& paramDecl = static_cast<parser::ParameterDeclarationNode&>(*child);
-                auto astParam = analyzeParameterDeclaration(paramDecl);
-                if(!astParam) return nullptr;
-                node->children.push_back(std::move(astParam));
+                ast = analyzeParameterDeclaration(paramDecl);
             } else if(child->getType() == NodeType::VariableDeclaration){
                 parser::VariableDeclarationNode& varDecl = static_cast<parser::VariableDeclarationNode&>(*child);
-                auto ast = analyzeVariableDeclaration(varDecl);
-                if(!ast) return nullptr;
-                node->children.push_back(std::move(ast));
+                ast = analyzeVariableDeclaration(varDecl);
             } else if (child->getType() == NodeType::ConstantDeclaration){
                 parser::ConstantDeclarationNode& constDecl = static_cast<parser::ConstantDeclarationNode&>(*child);
-                auto ast = analyzeConstantDeclaration(constDecl);
-                if(!ast) return nullptr;
-                node->children.push_back(std::move(ast));
+                ast = analyzeConstantDeclaration(constDecl);
             } else if (child->getType() == NodeType::CompoundStatement){
                 parser::CompoundStatementNode& compStatement = static_cast<parser::CompoundStatementNode&>(*child);
-                auto ast = analyzeCompoundStatement(compStatement);
-                if(!ast) return nullptr;
-                node->children.push_back(std::move(ast));
+                ast = analyzeCompoundStatement(compStatement);
+
             } else {
                 continue;
             }
+            if(!ast) return nullptr;
+            node->children.push_back(std::move(ast));
         }
         return node;
     }
@@ -161,13 +157,13 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
             auto astSndExpr = getChild(&SemanticAnalyzer::analyzeExpression, children[2].get());
             if(!astFirstExpr || !astSndExpr) return nullptr;
             else if(operatorType == NodeType::PlusOperator){
-                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::PlusOperator,std::move(astFirstExpr),std::move(astSndExpr));
+                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::PlusOperator,std::move(astFirstExpr),std::move(astSndExpr), parseNode.getReference());
             }else if(operatorType == NodeType::MinusOperator) {
-                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::MinusOperator,std::move(astFirstExpr),std::move(astSndExpr));
+                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::MinusOperator,std::move(astFirstExpr),std::move(astSndExpr), parseNode.getReference());
             }else if(operatorType == NodeType::MulOperator){
-                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::MulOperator,std::move(astFirstExpr),std::move(astSndExpr));
+                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::MulOperator,std::move(astFirstExpr),std::move(astSndExpr), parseNode.getReference());
             }else if(operatorType == NodeType::DivOperator){
-                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::DivOperator,std::move(astFirstExpr),std::move(astSndExpr));
+                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::DivOperator,std::move(astFirstExpr),std::move(astSndExpr), parseNode.getReference());
             }
         }
     } else if(parseType == NodeType::UnaryExpression){
@@ -177,7 +173,7 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
             //get child expression
             auto child = getChild(&SemanticAnalyzer::analyzeExpression, children[1].get());
             if(!child) return nullptr;
-            if(opType == NodeType::MinusOperator){
+            else if(opType == NodeType::MinusOperator){
                 return std::make_unique<ASTUnaryExpression>(ASTNode::ASTNodeType::UnaryMinus, std::move(child));
             } else {
                 return std::make_unique<ASTUnaryExpression>(ASTNode::ASTNodeType::UnaryPlus, std::move(child));

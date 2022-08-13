@@ -4,6 +4,8 @@
 #include <utility>
 #include <vector>
 #include <optional>
+#include "../Milestone1/SourceCodeManager.h"
+
 namespace semantic{
     class SemanticAnalyzer;
     class ASTTreePrintVisitor;
@@ -11,7 +13,7 @@ namespace semantic{
     class ASTEvaluator;
     class ConstantPropagationPass;
     class DeadCodeEliminationPass;
-
+    using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
     class ASTNode{
         friend class SemanticAnalyzer;
         friend class ASTSymbolTable;
@@ -193,8 +195,9 @@ namespace semantic{
         friend class ASTTreePrintVisitor;
         std::unique_ptr<ASTNode> leftChild;
         std::unique_ptr<ASTNode> rightChild;
+        SourceCodeReference sourceCodeReference;
         public:
-        ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right);
+        ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right, SourceCodeReference sourceCodeReference);
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };

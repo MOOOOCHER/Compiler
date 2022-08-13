@@ -49,7 +49,6 @@ class PljitHandle{
             std::cout << "Please insert code!" << std::endl;
             return {};
         }
-        std::vector<double> vec = {args...};
 
         {
             std::unique_lock lock(mutex);
@@ -76,6 +75,7 @@ class PljitHandle{
                 jit.astNode = std::move(semanticNode);
             }
         }
+        std::vector<double> vec = {args...};
         ASTEvaluator evaluator = ASTEvaluator();
         return evaluator.evaluateFunction(vec,*jit.astNode); // the ast tree will not be modified in the evaluation, hence no need of synchronization
     }

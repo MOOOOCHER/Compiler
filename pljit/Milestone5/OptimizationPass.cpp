@@ -85,11 +85,17 @@ namespace semantic{
         } else if(node.getType() == ASTNode::AssignmentExpression){
             auto& assignmentExpr = static_cast<ASTAssignmentExpression&>(node);
             auto optimized = optimizeExpression(*assignmentExpr.rightChild);
+            auto name = static_cast<ASTIdentifierNode*>(assignmentExpr.leftChild.get());
             if(optimized.has_value()){
-                auto name = static_cast<ASTIdentifierNode*>(assignmentExpr.leftChild.get());
                 //change child to constant
                 assignmentExpr.rightChild = std::make_unique<ASTLiteralNode>(optimized.value());
-                variables.insert(std::make_pair(name->getValue(),optimized.value()));
+                variables[name->getValue()]  = optimized.value();
+            } else {
+                //remove if variable isn't constexpr anymore
+                auto it = variables.find(name->getValue());
+                if(it != std::end(variables)){
+                    variables.erase(it);
+                }
             }
             return {};
         }

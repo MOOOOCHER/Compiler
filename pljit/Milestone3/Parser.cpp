@@ -59,7 +59,7 @@ bool Parser::refactorDeclList(auto (Parser::*func)(), std::vector<std::unique_pt
             if(separator.getType() == TokenTypes::Invalid ){
                 return false;
             } else if(separator.getType() == TokenTypes::Identifier ||separator.getType()==TokenTypes::Dot){
-                printErrorMsg(separator,"error: expected ','");
+                printErrorMsg(separator,"error: expected ','!");
                 return false;
             } else if(separator.getType() != lexer::TokenTypes::Comma){
                 backtrackToken = separator;
@@ -96,7 +96,7 @@ bool Parser::refactorDeclaration(auto (Parser::*func)(), Node::Types startingKey
 }
 bool Parser::refactorExpression(auto (Parser::*func1)(),auto (Parser::*func2)(), const TokenTypes operator1, const TokenTypes operator2, std::vector<std::unique_ptr<Node>>& childVec){
     if(!tokenizer.hasNext()){
-        printDefaultErrorMsg("error: expected expression");
+        printDefaultErrorMsg("error: an expression is expected!");
         return false;
     }
     auto firstExpr = (this->*func1)();
@@ -405,7 +405,7 @@ std::unique_ptr<MultiplicativeExpressionNode> Parser::expectMultiplicativeExpres
 std::unique_ptr<UnaryExpressionNode> Parser::expectUnaryExpression(){
     //check for optional
     if(!tokenizer.hasNext()){
-        printDefaultErrorMsg("error: expected expression!");
+        printDefaultErrorMsg("error: an expression is expected!");
         return nullptr;
     }
     auto token = tokenizer.next();
@@ -432,7 +432,7 @@ std::unique_ptr<PrimaryExpressionNode> Parser::expectPrimaryExpression(){
     Token token = backtrackToken;
     if(backtrackToken.getType() == TokenTypes::Invalid){
         if(!tokenizer.hasNext()){
-            printDefaultErrorMsg("error: expected expression!");
+            printDefaultErrorMsg("error: an expression is expected!");
             return nullptr;
         }
         token = tokenizer.next();
@@ -471,7 +471,7 @@ std::unique_ptr<PrimaryExpressionNode> Parser::expectPrimaryExpression(){
             }
         }
         if(token2.getType() != lexer::TokenTypes::CloseBracket){
-            printErrorMsg(token2, "error: expected ')'!");
+            printErrorMsg(token2, "error: expected ')'");
             return nullptr;
         }
         resetBacktrackToken();
@@ -480,7 +480,7 @@ std::unique_ptr<PrimaryExpressionNode> Parser::expectPrimaryExpression(){
         childVec.push_back(std::make_unique<GenericNode>(token2.getSourceCodeReference(), Node::Types::CloseBracket));
         return std::make_unique<PrimaryExpressionNode>(std::move(childVec));
     }else{
-        printErrorMsg(token, "error: an expression is expected");
+        printErrorMsg(token, "error: an expression is expected!");
         return nullptr;
     }
 }

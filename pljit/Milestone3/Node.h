@@ -8,6 +8,7 @@ namespace parser{
 using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
 using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
 class ParseTreeVisitor;
+
 class ParseTreePrintVisitor;
     class Node{
         public:
@@ -54,7 +55,7 @@ class ParseTreePrintVisitor;
         virtual void accept(ParseTreeVisitor& visitor) const = 0;
         protected:
         Types type;
-        SourceCodeReference sourceCodeReference;
+        sourceCodeManagement::SourceCodeReference sourceCodeReference;
         explicit Node(Types type,SourceCodeReference sourceCodeReference): type(type), sourceCodeReference(std::move(sourceCodeReference)){};
     };
 
