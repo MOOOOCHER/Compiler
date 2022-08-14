@@ -80,7 +80,7 @@ namespace semantic{
             auto& constantExpr = static_cast<ASTIdentifierNode&>(node);
             auto variableName = constantExpr.getValue();
             if(variables.contains(variableName)){
-                return variables.find(variableName)->second;
+                return variables[variableName];
             }
         } else if(node.getType() == ASTNode::AssignmentExpression){
             auto& assignmentExpr = static_cast<ASTAssignmentExpression&>(node);
@@ -97,7 +97,6 @@ namespace semantic{
                     variables.erase(it);
                 }
             }
-            return {};
         }
         else if(node.getType() == ASTNode::UnaryPlus || node.getType() == ASTNode::UnaryMinus){
             auto& unaryExpr = static_cast<ASTUnaryExpression&>(node);
@@ -105,7 +104,7 @@ namespace semantic{
             if(optimized.has_value()){
                 //change child to constant
                 if(node.getType() == ASTNode::UnaryMinus){
-                    optimized = std::optional<double>(optimized.value()*-1);
+                    optimized = std::optional<double>(optimized.value()*(-1));
                 }
                 unaryExpr.child = std::make_unique<ASTLiteralNode>(optimized.value());
             }

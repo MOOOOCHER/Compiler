@@ -95,7 +95,6 @@ std::optional<double> ASTFunctionNode::acceptEvaluation(ASTEvaluator& visitor)  
             }
             child->acceptEvaluation(visitor);
         }
-
     }
     std::cout<< "something has gone wrong!"<<std::endl;
     return {};
@@ -107,13 +106,13 @@ std::optional<double> ASTIdentifierNode::acceptEvaluation(ASTEvaluator& visitor)
         return 0;
     } else {
         //we are in the statement evaluation phase => return value for variable
-        return visitor.variables.find(value)->second.value();
+        return visitor.variables[value];
     }
 }
-std::optional<double> ASTLiteralNode::acceptEvaluation(ASTEvaluator&)  {
+std::optional<double> ASTLiteralNode::acceptEvaluation(ASTEvaluator&) {
     return value;
 }
-std::optional<double> ASTParamDeclaratorListNode::acceptEvaluation(ASTEvaluator& visitor)  {
+std::optional<double> ASTParamDeclaratorListNode::acceptEvaluation(ASTEvaluator& visitor) {
     if(children.size() != visitor.arguments.size()){
         //if parameters size don't match
         return {};
@@ -125,7 +124,7 @@ std::optional<double> ASTParamDeclaratorListNode::acceptEvaluation(ASTEvaluator&
     }
     return 0;
 }
-std::optional<double> ASTVarDeclaratorListNode::acceptEvaluation(ASTEvaluator& visitor)  {
+std::optional<double> ASTVarDeclaratorListNode::acceptEvaluation(ASTEvaluator& visitor) {
     for(auto& child: children){
         child->acceptEvaluation(visitor);
     }
@@ -139,10 +138,8 @@ std::optional<double> ASTInitDeclaratorNode::acceptEvaluation(ASTEvaluator& visi
     //we are in the initialization phase, Init Declarator only applies to constants
     leftChild->acceptEvaluation(visitor);
     auto astLeft = static_cast<ASTIdentifierNode*>(leftChild.get());
-    auto variableName = astLeft->getValue();
-
     auto rightLiteral = leftChild->acceptEvaluation(visitor);
-    visitor.variables.find(variableName)->second = rightLiteral;
+    visitor.variables[astLeft->getValue()] = rightLiteral;
     return {};
 }
 std::optional<double> ASTCompoundStatement::acceptEvaluation(ASTEvaluator& visitor)  {
@@ -187,11 +184,9 @@ std::optional<double> ASTOperationExpressionNode::acceptEvaluation(ASTEvaluator&
 std::optional<double> ASTAssignmentExpression::acceptEvaluation(ASTEvaluator& visitor)  {
     if(leftChild->getType() == ASTNode::Variable ||leftChild->getType() == ASTNode::Parameter ){
         auto astLeft = static_cast<ASTIdentifierNode*>(leftChild.get());
-        auto variableName = astLeft->getValue();
-
         auto rightLiteral = rightChild->acceptEvaluation(visitor);
         if(!rightLiteral.has_value()) return {};
-        visitor.variables.find(variableName)->second = rightLiteral;
+        visitor.variables[astLeft->getValue()] = rightLiteral;
         return 0; //return code that it went smoothly
     }
     return {};

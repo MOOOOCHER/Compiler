@@ -42,6 +42,8 @@ TEST(TestParser, ExpectFunctionDefinitionInvalid){
     checkInvalid("BEGIN a := 1 END");
     checkInvalid("VAR b; PARAM a; .");
     checkInvalid("VAR b; PARAM a; CONST c= 0; BEGIN a := 1 END.");
+    checkInvalid("CONST c= 0; VAR b;  BEGIN a := 1 END.");
+    checkInvalid("CONST c= 0; PARAM b;  BEGIN a := 1 END.");
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectCompoundStatementValid){
@@ -65,6 +67,7 @@ TEST(TestParser, ExpectCompoundStatementInvalid){
     std::cout << "Testing invalid compound statement declarator:" << std::endl;
     checkInvalid("RETURN 1 END.");
     checkInvalid("BEGIN RETURN 1 .");
+    checkInvalid("BEGIN END.");
     checkInvalid("VAR a; RETURN 1 END.");
     std::cout << "=========================================================" << std::endl;
 }
@@ -98,7 +101,11 @@ TEST(TestParser, ExpectParamDeclarationInvalid){
     std::cout << "Testing invalid init parameter declarations:" << std::endl;
     checkInvalid("PARAM a");
     checkInvalid("PARA a,b;");
+    checkInvalid("PARAM a,b");
     checkInvalid("PARAM a b;");
+    checkInvalid("PARAM a,b c;");
+    checkInvalid("PARAM 123;");
+    checkInvalid("PARAM *;");
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectVariableDeclarationValid){
@@ -118,9 +125,11 @@ TEST(TestParser, ExpectVariableDeclarationValid){
 }
 TEST(TestParser, ExpectVariableDeclarationInvalid){
     std::cout << "Testing invalid init variable declarations:" << std::endl;
-    checkInvalid("VAR a BEGIN a:=1 END.");
-    checkInvalid("VA a,b;BEGIN a:=1 END.");
-    checkInvalid("VAR a b;BEGIN a:=1 END.");
+    checkInvalid("VAR a");
+    checkInvalid("VA a,b;");
+    checkInvalid("VAR a b;");
+    checkInvalid("VAR a,b c;");
+    checkInvalid("VAR 123;");
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectConstantDeclarationValid){
@@ -154,11 +163,18 @@ TEST(TestParser, ExpectConstantDeclarationValid){
 }
 TEST(TestParser, ExpectConstantDeclarationInvalid){
     std::cout << "Testing invalid constant declaration:" << std::endl;
-    checkInvalid("CONST a;BEGIN a:=1 END.");
+    //invalid Init-Declarator
+    checkInvalid("CONST a;");
+    checkInvalid("CONST a 1;");
+    checkInvalid("CONST a:=1;");
+    checkInvalid("CONST a=a;");
+    checkInvalid("CONST 1234=a;");
+    checkInvalid("CONST a=1, 1234=a;");
+    //invalid constant declaration
     checkInvalid("CONST a=1 BEGIN a:=1 END.");
-    checkInvalid("CONST a 1; BEGIN a:=1 END.");
-    checkInvalid("CONST a=a, b=2;BEGIN a:=1 END.");
+    checkInvalid("CONST a=1, b=2 BEGIN a:=1 END.");
     checkInvalid("CONST a=1 b=2;BEGIN a:=1 END.");
+    checkInvalid("CONS a=1 b=2;");
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectPrimaryExpressionValid){
@@ -172,7 +188,8 @@ TEST(TestParser, ExpectPrimaryExpressionValid){
 TEST(TestParser, ExpectPrimaryExpressionInvalid){
     std::cout << "Testing invalid primary expression:" << std::endl;
     checkInvalid("BEGIN RETURN END.");
-    checkInvalid("BEGIN RETURN (1234 END.");
+    checkInvalid("BEGIN RETURN * END.");
+    checkInvalid("BEGIN RETURN 1234); END.");
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectUnaryExpressionValid){
@@ -190,6 +207,7 @@ TEST(TestParser, ExpectUnaryExpressionInvalid){
     checkInvalid("BEGIN RETURN -(identifier END.");
     checkInvalid("BEGIN RETURN +(1234 END.");
     checkInvalid("BEGIN RETURN --(1234) END.");
+    checkInvalid("BEGIN RETURN ++1234 END.");
     std::cout << "=========================================================" << std::endl;
 }
 
@@ -210,6 +228,7 @@ TEST(TestParser, ExpectAdditiveExpressionInvalid){
     checkInvalid("BEGIN RETURN a + a * b -1234+ END.");
     checkInvalid("BEGIN a:= a + a +*b END.");
     checkInvalid("BEGIN a:= ((a + a) -b END.");
+    checkInvalid("BEGIN a:= a + a) -b END.");
     checkInvalid("BEGIN a:= a + a * b -1234+ END.");
     std::cout << "=========================================================" << std::endl;
 }
@@ -235,9 +254,9 @@ TEST(TestParser, ExpectMultiplicativeExpressionValid){
 TEST(TestParser, ExpectMultiplicativeExpressionInvalid){
     std::cout << "Testing invalid multiplicative expression:" << std::endl;
     checkInvalid("BEGIN a:= --adas END.");
-    checkInvalid("BEGIN a:= a * (a * a + (super) END.");
+    checkInvalid("BEGIN a:=\n a * (a * a + (super) \nEND.");
     checkInvalid("BEGIN RETURN --adas END;");
-    checkInvalid("BEGIN RETURN a * (a * a + (super) END.");
+    checkInvalid("BEGIN RETURN a * (a * a + (super))) END.");
     std::cout << "=========================================================" << std::endl;
 }
 
@@ -251,6 +270,8 @@ TEST(TestParser, ExpectAssignmentExpressionInvalid){
     checkInvalid("BEGIN a := a * (a * a + (super) END.");
     checkInvalid("BEGIN a = 1 END.");
     checkInvalid("BEGIN a : = 1 END.");
+    checkInvalid("BEGIN * : = 1 END.");
+    checkInvalid("BEGIN PARAM : = 1 END.");
     checkInvalid("BEGIN 1234 := a * (a * a + (super)) END.");
     std::cout << "=========================================================" << std::endl;
 }
@@ -264,10 +285,10 @@ TEST(TestParser, ExpectStatementListValid){
 }
 TEST(TestParser, ExpectStatementListInvalid){
     std::cout << "Testing invalid statement:" << std::endl;
-    checkInvalid("BEGIN a = 1 END.");
+    checkInvalid("\n\n \n\n BEGIN a = 1 END.");
     checkInvalid("BEGIN a := 1; END.");
-    checkInvalid("BEGIN a := 1; a := 1; END.");
-    checkInvalid("BEGIN a := 1, a := 1 END.");
+    checkInvalid("BEGIN a := 1;\n a := 1; END.");
+    checkInvalid("BEGIN a := 1,\n\n a := 1 END.");
     checkInvalid("BEGIN a := 1 a := 1 END.");
     checkInvalid("BEGIN a := 1 RETURN a END.");
     std::cout << "=========================================================" << std::endl;

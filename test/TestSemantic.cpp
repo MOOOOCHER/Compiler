@@ -44,6 +44,10 @@ TEST(TestSemantic, AnalyzeFunctionUndeclaredIdentifier){
     std::cout << "Testing undeclared identifier:" << std::endl;
     auto result = setup("PARAM ab, a; BEGIN c := 1; RETURN c END.");
     EXPECT_EQ(result, nullptr);
+    result = setup("PARAM ab, a; BEGIN RETURN c END.");
+    EXPECT_EQ(result, nullptr);
+    result = setup("PARAM ab, a; BEGIN ab := (4+1)*a-(ab+a -(ab*2 +c)) -1 END.");
+    EXPECT_EQ(result, nullptr);
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestSemantic, AnalyzeFunctionAssignToConstant){
@@ -78,6 +82,6 @@ TEST(TestSemantic, AnalyzeFunctionValid){
     EXPECT_NE(result, nullptr);
     result = setup("VAR a, b; BEGIN a := 1; b := 1; RETURN a *(-b + 55 * (1-(-1)) )END.");
     EXPECT_NE(result, nullptr);
-    visitor = semantic::ASTTreePrintVisitor();
-    visitor.printTree(*result);
+    //visitor = semantic::ASTTreePrintVisitor();
+    //visitor.printTree(*result);
 }

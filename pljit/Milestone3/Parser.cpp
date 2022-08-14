@@ -59,7 +59,7 @@ bool Parser::refactorDeclList(auto (Parser::*func)(), std::vector<std::unique_pt
             if(separator.getType() == TokenTypes::Invalid ){
                 return false;
             } else if(separator.getType() == TokenTypes::Identifier ||separator.getType()==TokenTypes::Dot){
-                printErrorMsg(separator,"error: expected ','!");
+                printErrorMsg(separator,"error: expected ',' in between!");
                 return false;
             } else if(separator.getType() != lexer::TokenTypes::Comma){
                 backtrackToken = separator;
@@ -91,7 +91,7 @@ bool Parser::refactorDeclaration(auto (Parser::*func)(), Node::Types startingKey
         resetBacktrackToken();
         return true;
     }
-    printErrorMsg(backtrackToken,"error: expected "+returnCorrectGenericForErrorMsg(endingKeyword)+"!");
+    printErrorMsg(backtrackToken,"error: expected "+returnCorrectGenericForErrorMsg(endingKeyword));
     return false;
 }
 bool Parser::refactorExpression(auto (Parser::*func1)(),auto (Parser::*func2)(), const TokenTypes operator1, const TokenTypes operator2, std::vector<std::unique_ptr<Node>>& childVec){
@@ -319,7 +319,11 @@ std::unique_ptr<StatementListNode> Parser::expectStatementList(){
             if(separator.getType() == lexer::TokenTypes::END) {
                 backtrackToken = separator;
                 return std::make_unique<StatementListNode>(std::move(childVec));
-            } else if(separator.getType()!=TokenTypes::Semicolon){
+            } else if (separator.getType() == TokenTypes::CloseBracket){
+                printErrorMsg(separator,"error: no corresponding '('");
+                return nullptr;
+            }
+            else if(separator.getType()!=TokenTypes::Semicolon){
                 printErrorMsg(separator,"error: expected ';'");
                 return nullptr;
             }
