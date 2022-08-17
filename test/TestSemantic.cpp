@@ -65,6 +65,15 @@ TEST(TestSemantic, AnalyzeFunctionNoReturn){
     std::cout << "=========================================================" << std::endl;
 }
 
+TEST(TestSemantic, AnalyzeFunctionUninitializedVariable){
+    std::cout << "Testing uninitialized variable:" << std::endl;
+    auto result = setup("VAR a,b; BEGIN a:=b*5 ; RETURN a END.");
+    EXPECT_EQ(result, nullptr);
+    result = setup("VAR a; BEGIN a:=a*5 ; RETURN a END.");
+    EXPECT_EQ(result, nullptr);
+    std::cout << "=========================================================" << std::endl;
+}
+
 TEST(TestSemantic, AnalyzeFunctionValid){
     auto result = setup("VAR a,b,c,d,e,f,z,g,i,j,ab,aaa ; BEGIN ab := 1 ;RETURN ab END.");
     EXPECT_NE(result, nullptr);

@@ -144,9 +144,11 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
             table.printVariableWasDeclaredHereErrorMessage(childName);
             return nullptr;
         }
-        auto identifier = analyzeIdentifier(childIdentifier);
+
+        auto identifier = analyzeAssignIdentifier(childIdentifier);
         auto expression = getChild(&SemanticAnalyzer::analyzeExpression, children[2].get());
         if(!identifier || !expression) return nullptr;
+        table.get(childName).initialized = true;
         return std::make_unique<ASTAssignmentExpression>(std::move(identifier),std::move(expression));
     } else if(parseType == NodeType::AdditiveExpression || parseType == NodeType::MultiplicativeExpression){
         if(children.size() == 1){    // if we only have one child we can omit this level
@@ -212,6 +214,23 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeInitIdentifier(ASTNode::ASTNod
     return std::make_unique<ASTIdentifierNode>(type,identifierName);
 }
 std::unique_ptr<ASTIdentifierNode> SemanticAnalyzer::analyzeIdentifier(parser::IdentifierNode& parseNode){
+    //this function is used, when analyzing statements
+    auto identifierName = parseNode.getText();
+    if(!table.contains(identifierName)){
+        //undeclared identifier
+        parseNode.getReference().printContext("error: '"+ std::string(identifierName) +"' is undeclared!");
+        return nullptr;
+    }
+    auto entry = table.get(identifierName);
+    if(!entry.initialized){
+        parseNode.getReference().printContext("error: '"+ std::string(identifierName) +"' is uninitialized!");
+        table.printVariableWasDeclaredHereErrorMessage(identifierName);
+        return nullptr;
+    }
+    ASTNode::ASTNodeType type = entry.identifierType;
+    return std::make_unique<ASTIdentifierNode>(type,identifierName);
+}
+std::unique_ptr<ASTIdentifierNode> SemanticAnalyzer::analyzeAssignIdentifier(parser::IdentifierNode& parseNode){
     //this function is used, when analyzing statements
     auto identifierName = parseNode.getText();
     if(!table.contains(identifierName)){

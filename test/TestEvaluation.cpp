@@ -15,7 +15,7 @@ using SemanticAnalyzer = semantic::SemanticAnalyzer;
 using DeadCodeEliminationPass = semantic::DeadCodeEliminationPass;
 using ConstantPropagationPass = semantic::ConstantPropagationPass;
 
-static auto setupWithOptimizationShort(const std::vector<double>& args, const std::string_view& input){
+static void evaluate(const std::vector<double>& args, const std::string_view& input, std::optional<double> expectedResult){
     SourceCodeManager manager(input);
     Tokenizer tokenizer = Tokenizer(manager);
 
@@ -29,7 +29,11 @@ static auto setupWithOptimizationShort(const std::vector<double>& args, const st
     pass.optimize(*astNode);
     ConstantPropagationPass constantPropagationPass = ConstantPropagationPass();
     constantPropagationPass.optimize(*astNode);
-    return evaluator.evaluateFunction(args,*astNode);
+    if(expectedResult.has_value()){
+        EXPECT_EQ(evaluator.evaluateFunction(args,*astNode).value(),expectedResult.value());
+    }else {
+        EXPECT_EQ(evaluator.evaluateFunction(args,*astNode).has_value(),expectedResult.has_value());
+    }
 }
 static auto setupWithOptimization( const std::string_view& input){
     SourceCodeManager manager(input);
@@ -103,32 +107,26 @@ TEST(TestEvaluation,MixedOptimization){
     EXPECT_EQ(result.value(), 109);
 }
 TEST(TestEvaluation, ValidEvaluation){
-    auto result = setupWithOptimizationShort(std::vector<double>(),"VAR a,b,c,d,e,f,z,g,i,j,ab,aaa ; BEGIN ab := 1 ;RETURN ab END.");
-    EXPECT_EQ(result.value(), 1);
-    result = setupWithOptimizationShort(std::vector<double>(),"VAR a,b,c ; BEGIN a := 1; b:=6; c:=2 ;RETURN a+b*(c+2) END.");
-    EXPECT_EQ(result.value(), 25);
-    result = setupWithOptimizationShort(std::vector<double>{50,2},"PARAM a,b; VAR c; BEGIN c:=2+b ;RETURN a+b*c END.");
-    EXPECT_EQ(result.value(), 58);
-    result = setupWithOptimizationShort(std::vector<double>{50,2},"PARAM a,b; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END.");
-    EXPECT_EQ(result.value(), 53);
+    evaluate(std::vector<double>(),"VAR a,b,c,d,e,f,z,g,i,j,ab,aaa ; BEGIN ab := 1 ;RETURN ab END.",1);
+    evaluate(std::vector<double>(),"VAR a,b,c ; BEGIN a := 1; b:=6; c:=2 ;RETURN a+b*(c+2) END.",25);
+    evaluate(std::vector<double>{50,2},"PARAM a,b; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END.",53);
+    evaluate(std::vector<double>{50,2},"PARAM a,b; VAR c; BEGIN c:=2+b ;RETURN a+b*c END.",58);
+    evaluate(std::vector<double>{3,1000, 12},"PARAM a,b,c; VAR d,e; BEGIN a := b*10 + a ; d:=c+1; e:= a+b+c; RETURN (a+b+c+d+e)/5 END.",4408.6);
+
 }
 TEST(TestEvaluation, InvalidEvaluation){
     std::cout << "Testing divide by zero statement:" << std::endl;
-    auto result = setupWithOptimizationShort(std::vector<double>(),"VAR a,b,c,d,e,f,z,g,i,j,ab,aaa ; BEGIN ab := 1/0 ;RETURN ab END.");
-    EXPECT_EQ(result.has_value(), false);
-    result = setupWithOptimizationShort(std::vector<double>(),"VAR a, b; BEGIN a := 1; b := 1; RETURN (a+b * 2/(4-4))END.");
-    EXPECT_EQ(result.has_value(), false);
-    result = setupWithOptimizationShort(std::vector<double>{0,2},"PARAM a,b; VAR c; BEGIN c:=2+b ;RETURN b*c/a END.");
-    EXPECT_EQ(result.has_value(), false);
-    result = setupWithOptimizationShort(std::vector<double>{50,2},"PARAM a,b; CONST c=2; BEGIN a:=a+c ;RETURN a/(b-c) END.");
-    EXPECT_EQ(result.has_value(), false);
+    evaluate(std::vector<double>(),"VAR a,b,c,d,e,f,z,g,i,j,ab,aaa ; BEGIN ab := 1/0 ;RETURN ab END.",std::optional<double>());
+    evaluate(std::vector<double>(),"VAR a, b; BEGIN a := 1; b := 1; RETURN (a+b * 2/(4-4))END.",std::optional<double>());
+    evaluate(std::vector<double>{0,2},"PARAM a,b; VAR c; BEGIN c:=2+b ;RETURN b*c/a END.",std::optional<double>());
+    evaluate(std::vector<double>{50,2},"PARAM a,b; CONST c=2; BEGIN a:=a+c ;RETURN a/(b-c) END.",std::optional<double>());
+    evaluate(std::vector<double>{50,2},"PARAM a,b; CONST c=2; BEGIN a:=a+c ;RETURN a/(b-2) END.",std::optional<double>());
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestEvaluation, AnalyzeFunctionNoInitialization){
     std::cout << "Testing no initialization for constant and parameter:" << std::endl;
-    auto result = setupWithOptimizationShort(std::vector<double>(),"PARAM b; CONST a=1; BEGIN b := a +2; RETURN b END.");
-    EXPECT_EQ(result.has_value(), false);
-    result = setupWithOptimizationShort(std::vector<double>{1,1},"PARAM b; CONST a=1; BEGIN b := a +2; RETURN b END.");
-    EXPECT_EQ(result.has_value(), false);
+    evaluate(std::vector<double>(),"PARAM b; CONST a=1; BEGIN b := a +2; RETURN b END.",std::optional<double>());
+    evaluate(std::vector<double>{1,1},"PARAM b; CONST a=1; BEGIN b := a +2; RETURN b END.",std::optional<double>());
+    evaluate(std::vector<double>{1,1},"VAR b; CONST a=1; BEGIN b := a +2; RETURN b END.",std::optional<double>());
     std::cout << "=========================================================" << std::endl;
 }

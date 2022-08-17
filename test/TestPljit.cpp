@@ -60,6 +60,9 @@ TEST(TestPljit, TestInvalidCode){
     std::cout << "Testing invalid semantic:" << std::endl;
     testInvalidCode(jit, "PARAM a; CONST c=1; BEGIN c:=2;RETURN a+b*c END.");
     testInvalidCode(jit, "PARAM a,b; CONST c=1; BEGIN z:=a+c ;RETURN a+b*c END.");
+    testInvalidCode(jit, "PARAM a,b; CONST b=1; BEGIN a:=a+a ;RETURN a+b*a END.");
+    testInvalidCode(jit, "PARAM a,b; CONST c=1; BEGIN b:=a+c END.");
+    testInvalidCode(jit, "VAR aaa,b; CONST c=1; BEGIN b:=aaa+c; RETURN b END.");
     std::cout << "=========================================================" << std::endl;
     std::cout << "Testing wrong parameter/arguments count:" << std::endl;
     testInvalidCode(jit, "PARAM a,b; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END.");

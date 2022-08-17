@@ -6,7 +6,11 @@ namespace semantic {
         table.insert(std::make_pair(entry.sourceCodeReference.getText(),entry));
     }
     void ASTSymbolTable::insert(ASTNode::ASTNodeType identifierType, const SourceCodeReference& sourceCodeReference){
-        insert(ASTSymbolEntry(identifierType,sourceCodeReference));
+        if(identifierType == ASTNode::Variable){
+            insert(ASTSymbolEntry(identifierType,sourceCodeReference));
+        }{
+            insert(ASTSymbolEntry(identifierType,sourceCodeReference,true));
+        }
     }
 
     bool ASTSymbolTable::contains(std::string_view identifier){

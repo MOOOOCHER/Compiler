@@ -14,8 +14,9 @@ class ASTSymbolTable {
         friend class ASTSymbolTable;
         ASTNode::ASTNodeType identifierType;    //only using parameter,constant or variable
         SourceCodeReference sourceCodeReference;
+        bool initialized;
 
-        ASTSymbolEntry(ASTNode::ASTNodeType identifierType, SourceCodeReference  sourceCodeReference): identifierType(identifierType),sourceCodeReference(std::move(sourceCodeReference)){}
+        ASTSymbolEntry(ASTNode::ASTNodeType identifierType, SourceCodeReference  sourceCodeReference, bool initialized = false): identifierType(identifierType),sourceCodeReference(std::move(sourceCodeReference)), initialized(initialized){}
     };
     ASTSymbolTable() = default;
     std::unordered_map<std::string_view, ASTSymbolEntry> table;
