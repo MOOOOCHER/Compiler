@@ -32,7 +32,7 @@ namespace semantic {
         for(auto& entry: table){
             if(entry.second.identifierType == ASTNode::Parameter){
                 if(count<arg.size()){
-                    entry.second.value = arg[arg.size()-1-count];
+                    entry.second.value = arg[arg.size()-1-count];   //the parameters are stored in the reverse order of their declaration
                     ++count;
                 } else {
                     return printErrorParameter();

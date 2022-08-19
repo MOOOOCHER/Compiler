@@ -13,13 +13,13 @@ class ASTTree {
     friend class ConstantPropagationPass;
     friend class DeadCodeEliminationPass;
     public:
-    ASTTree(std::unique_ptr<ASTFunctionNode> root, ASTSymbolTable table): root(std::move(root)), table(table){}
+    ASTTree(std::unique_ptr<ASTFunctionNode> root, ASTSymbolTable table);
     std::unique_ptr<ASTFunctionNode> root;
-    ASTSymbolTable& getTable(){ return table;}
+    ASTSymbolTable& getTable();
     private:
     ASTSymbolTable table;
 };
-}
+} // namespace semantic
 
 
 #endif //PLJIT_ASTTREE_H

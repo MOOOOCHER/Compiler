@@ -25,11 +25,11 @@ class ASTSymbolTable {
     };
     ASTSymbolTable() = default;
     std::unordered_map<std::string_view, ASTSymbolEntry> table;
-    public:
     /*
      * inserts a node into the hashtable
      */
     void insert(const ASTSymbolEntry& node);
+    public:
     /*
      * inserts a node into the hashtable
      */

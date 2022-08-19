@@ -30,7 +30,7 @@ class SemanticAnalyzer {
      */
     std::unique_ptr<ASTIdentifierNode> analyzeIdentifier(parser::IdentifierNode& parseNode);
     /*
-     * this function is used for identifier which are being used in expressions
+     * this function is used for identifier which are being used in assign statements on the left hand side
      */
     std::unique_ptr<ASTIdentifierNode> analyzeAssignIdentifier(parser::IdentifierNode& parseNode);
     std::unique_ptr<ASTFunctionNode> analyzeFunction(parser::FunctionDefinitionNode& parseNode);
