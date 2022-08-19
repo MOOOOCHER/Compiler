@@ -10,13 +10,8 @@ class ASTTreeVisitor{
     virtual void visit(const semantic::ASTOperationExpressionNode& node) = 0;
     virtual void visit(const semantic::ASTReturnStatementNode& node) = 0;
     virtual void visit(const semantic::ASTAssignmentStatementNode& node) = 0;
-    virtual void visit(const semantic::ASTParamDeclaratorListNode& node) = 0;
-    virtual void visit(const semantic::ASTVarDeclaratorListNode& node) = 0;
     virtual void visit(const semantic::ASTFunctionNode& node) = 0;
-    virtual void visit(const semantic::ASTInitDeclaratorNode& node) = 0;
-    virtual void visit(const semantic::ASTInitDeclaratorListNode& node) = 0;
     virtual void visit(const semantic::ASTAssignmentExpression& node) = 0;
-    virtual void visit(const semantic::ASTCompoundStatement& node) = 0;
     virtual void visit(const semantic::ASTUnaryExpression& node) = 0;
 };
 } // namespace semantic

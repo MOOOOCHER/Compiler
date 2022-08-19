@@ -12,6 +12,7 @@ namespace semantic{
     class ASTTreeVisitor;
     class ASTEvaluator;
     class ConstantPropagationPass;
+    class ASTSymbolTable;
     class DeadCodeEliminationPass;
     using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
     class ASTNode{
@@ -25,15 +26,10 @@ namespace semantic{
             MulOperator,
             DivOperator,
             Constant,
-            Parameter,
             Variable,
+            Parameter,
             LiteralConstant,
             FunctionDefinition,
-            ParamDeclaratorList,
-            VarDeclaratorList,
-            InitDeclaratorList,
-            InitDeclarator,
-            CompoundStatement,
             AssignStatement,
             ReturnStatement,
             UnaryPlus,
@@ -43,7 +39,6 @@ namespace semantic{
         };
         protected:
         ASTNodeType type;
-
         public:
         ASTNodeType getType() const{ return type;}
         explicit ASTNode(ASTNodeType type): type(type){}
@@ -52,37 +47,20 @@ namespace semantic{
         virtual std::optional<double> acceptEvaluation(ASTEvaluator& visitor) = 0;
     };
     //----------------------------------------------------------------------
-    /*
-     * AST node class for nodes with one child
-     */
-    class ASTUnaryNode: public ASTNode{
-        protected:
-        std::unique_ptr<ASTNode> child;
-        ASTUnaryNode(ASTNodeType type,std::unique_ptr<ASTNode> child);
-        public:
-        std::unique_ptr<ASTNode> getChild(){
-            return std::move(child);
-        }
-        void accept(ASTTreeVisitor& visitor) const override = 0;
-        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override = 0;
-    };
-    /*
-     * AST node class for nodes with multiple children
-     */
-    class MultiASTNode: public ASTNode{
+    class ASTFunctionNode: public ASTNode{
         friend class SemanticAnalyzer;
+        friend class DeadCodeEliminationPass;
+        friend class ConstantPropagationPass;
         friend class ASTTreePrintVisitor;
-        protected:
         std::vector<std::unique_ptr<ASTNode>> children;
-        explicit MultiASTNode(ASTNodeType type);
         public:
-        std::vector<std::unique_ptr<ASTNode>> getChildren(){
-            //Only for testing
-            return std::move(children);
-        }
-        void accept(ASTTreeVisitor& visitor) const override = 0;
-        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override = 0;
+        ASTFunctionNode();
+        void accept(ASTTreeVisitor& visitor) const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
+        void pop_back_child();
+        std::vector<std::unique_ptr<ASTNode>> getChildren();
     };
+
     //------------------------------------------------------------------------------------------------------------------------------------
     class ASTIdentifierNode: public ASTNode{
         protected:
@@ -102,68 +80,16 @@ namespace semantic{
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     //----------------------------------------------------------------------------------------------------------------------------
-    class ASTFunctionNode: public MultiASTNode{
-        friend class SemanticAnalyzer;
-        friend class DeadCodeEliminationPass;
+    class ASTStatementNode: public ASTNode{
         friend class ConstantPropagationPass;
         friend class ASTTreePrintVisitor;
-        public:
-        ASTFunctionNode();
-        void accept(ASTTreeVisitor& visitor) const override;
-        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
-    };
-    class ASTParamDeclaratorListNode: public MultiASTNode{
-        friend class ConstantPropagationPass;
-        friend class ASTTreePrintVisitor;
-        public:
-        explicit ASTParamDeclaratorListNode();
-        void accept(ASTTreeVisitor& visitor) const override;
-        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
-    };
-    class ASTVarDeclaratorListNode: public MultiASTNode{
-        friend class ConstantPropagationPass;
-        friend class ASTTreePrintVisitor;
-        public:
-        explicit ASTVarDeclaratorListNode();
-        void accept(ASTTreeVisitor& visitor) const override;
-        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
-    };
-    class ASTInitDeclaratorListNode: public MultiASTNode{
-        friend class ConstantPropagationPass;
-        friend class ASTTreePrintVisitor;
-        public:
-        ASTInitDeclaratorListNode();
-        void accept(ASTTreeVisitor& visitor) const override;
-        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
-    };
-    class ASTInitDeclaratorNode: public ASTNode{
-        friend class ConstantPropagationPass;
-        friend class ASTTreePrintVisitor;
-        std::unique_ptr<ASTNode> leftChild;
-        std::unique_ptr<ASTNode> rightChild;
-        public:
-        ASTInitDeclaratorNode(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right);
-        void accept(ASTTreeVisitor& visitor) const override;
-        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
-    };
-    //---------------------------------------------------------------------------------------
-    class ASTCompoundStatement: public MultiASTNode{
-        friend class ConstantPropagationPass;
-        friend class DeadCodeEliminationPass;
-        friend class ASTTreePrintVisitor;
-        void pop_back_child();
-        public:
-        ASTCompoundStatement();
-        void accept(ASTTreeVisitor& visitor) const override;
-        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
-    };
-    class ASTStatementNode: public ASTUnaryNode{
-        friend class ConstantPropagationPass;
-        friend class ASTTreePrintVisitor;
+        protected:
+        std::unique_ptr<ASTNode> child;
         public:
         ASTStatementNode(ASTNodeType type, std::unique_ptr<ASTNode> child);
         void accept(ASTTreeVisitor& visitor) const override = 0;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override = 0;
+        std::unique_ptr<ASTNode> getChild();
     };
     class ASTReturnStatementNode: public ASTStatementNode{
         friend class ConstantPropagationPass;

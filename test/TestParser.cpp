@@ -298,9 +298,9 @@ TEST(TestParser, ExpectComplexFunctionDefinitionValid){
     ASSERT_NE(result, nullptr);
     EXPECT_EQ(result->getChildren().size(), 5);
     //do it again for printing
-    result = setup("PARAM width, height, depth;\nVAR volume;\nCONST density = 2400;\nBEGIN\nvolume :=width * height * depth;\nRETURN density*volume\nEND.");
-    auto visitor = parser::ParseTreePrintVisitor();
-    visitor.printTree(*result);
+    //result = setup("PARAM width, height, depth;\nVAR volume;\nCONST density = 2400;\nBEGIN\nvolume :=width * height * depth;\nRETURN density*volume\nEND.");
+    //auto visitor = parser::ParseTreePrintVisitor();
+    //visitor.printTree(*result);
 }
 
 

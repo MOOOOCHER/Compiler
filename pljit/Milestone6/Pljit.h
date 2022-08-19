@@ -27,8 +27,8 @@ class Pljit {
         friend class PljitHandle;
 
         std::string_view code;
-        std::unique_ptr<semantic::ASTNode> astNode;
-        PljitStatus(std::string_view code, std::unique_ptr<semantic::ASTNode> astNode);
+        std::unique_ptr<semantic::ASTTree> astNode;
+        PljitStatus(std::string_view code, std::unique_ptr<semantic::ASTTree> astNode);
     };
     std::vector<PljitStatus> functionStatus;
     public:
@@ -50,8 +50,7 @@ class PljitHandle{
             return {};
         }
 
-        {
-            std::unique_lock lock(mutex);
+        std::unique_lock lock(mutex);
             if (jit.astNode == nullptr) {
                 //compile new
                 SourceCodeManager manager(jit.code);
@@ -62,8 +61,8 @@ class PljitHandle{
                     return {};
                 }
                 SemanticAnalyzer semantic = SemanticAnalyzer();
-                auto semanticNode = semantic.analyzeFunction(*parseNode);
-                if (!semanticNode) {
+                auto semanticNode = semantic.analyzeSemantic(*parseNode);
+                if (!semanticNode->root) {
                     //semantic analyze failed
                     return {};
                 }
@@ -74,9 +73,8 @@ class PljitHandle{
                 constantPropagationPass.optimize(*semanticNode);
                 jit.astNode = std::move(semanticNode);
             }
-        }
         std::vector<double> vec = {args...};
-        ASTEvaluator evaluator = ASTEvaluator();
+        ASTEvaluator evaluator = ASTEvaluator(jit.astNode->getTable());
         return evaluator.evaluateFunction(vec,*jit.astNode); // the ast tree will not be modified in the evaluation, hence no need of synchronization
     }
 };

@@ -22,8 +22,8 @@ static void evaluate(const std::vector<double>& args, const std::string_view& in
     Parser parser = Parser(tokenizer);
     auto parseNode = parser.expectFunctionDefinition();
     SemanticAnalyzer semantic = SemanticAnalyzer();
-    semantic::ASTEvaluator evaluator = semantic::ASTEvaluator();
-    auto astNode = semantic.analyzeFunction(*parseNode);
+    auto astNode = semantic.analyzeSemantic(*parseNode);
+    semantic::ASTEvaluator evaluator = semantic::ASTEvaluator(astNode->getTable());
     //optimization
     DeadCodeEliminationPass pass = DeadCodeEliminationPass();
     pass.optimize(*astNode);
@@ -35,6 +35,7 @@ static void evaluate(const std::vector<double>& args, const std::string_view& in
         EXPECT_EQ(evaluator.evaluateFunction(args,*astNode).has_value(),expectedResult.has_value());
     }
 }
+
 static auto setupWithOptimization( const std::string_view& input){
     SourceCodeManager manager(input);
     Tokenizer tokenizer = Tokenizer(manager);
@@ -42,7 +43,7 @@ static auto setupWithOptimization( const std::string_view& input){
     Parser parser = Parser(tokenizer);
     auto parseNode = parser.expectFunctionDefinition();
     SemanticAnalyzer semantic = SemanticAnalyzer();
-    auto astNode = semantic.analyzeFunction(*parseNode);
+    auto astNode = semantic.analyzeSemantic(*parseNode);
     //optimization
     DeadCodeEliminationPass pass = DeadCodeEliminationPass();
     pass.optimize(*astNode);
@@ -55,12 +56,9 @@ TEST(TestEvaluation, ConstantPropagation){
     auto args = std::vector<double>();
     auto astNode = setupWithOptimization("CONST a = 1, b = 2; BEGIN RETURN a+b END.");
     //test statement child nodes
-    auto astChild = astNode->getChildren();
-    ASSERT_EQ(astChild.size(), 2);
-    auto astCompoundStatement = static_cast<semantic::ASTCompoundStatement*>(astChild[1].get());
-    auto astCompoundStatementChild = astCompoundStatement->getChildren();
-    EXPECT_EQ(astCompoundStatementChild.size(),1);
-    auto astStatement = static_cast<semantic::ASTReturnStatementNode*>(astCompoundStatementChild[0].get());
+    auto astChild = astNode->root->getChildren();
+    ASSERT_EQ(astChild.size(), 1);
+    auto astStatement = static_cast<semantic::ASTReturnStatementNode*>(astChild[0].get());
     auto childStatement = astStatement->getChild();
     auto statementChild = static_cast<semantic::ASTLiteralNode*>(childStatement.get());
     EXPECT_EQ(statementChild->getType(), semantic::ASTNode::LiteralConstant);
@@ -68,19 +66,16 @@ TEST(TestEvaluation, ConstantPropagation){
 
     astNode = setupWithOptimization("VAR a, b; BEGIN a := 1; b := a+1; RETURN a+b END.");
     //test statement child nodes
-    astChild = astNode->getChildren();
-    ASSERT_EQ(astChild.size(), 2);
-    astCompoundStatement = static_cast<semantic::ASTCompoundStatement*>(astChild[1].get());
-    astCompoundStatementChild = astCompoundStatement->getChildren();
-    EXPECT_EQ(astCompoundStatementChild.size(),3);
-    astStatement = static_cast<semantic::ASTReturnStatementNode*>(astCompoundStatementChild[2].get());
+    astChild = astNode->root->getChildren();
+    ASSERT_EQ(astChild.size(), 3);
+    astStatement = static_cast<semantic::ASTReturnStatementNode*>(astChild[2].get());
     childStatement = astStatement->getChild();
     statementChild = static_cast<semantic::ASTLiteralNode*>(childStatement.get());
     EXPECT_EQ(statementChild->getType(), semantic::ASTNode::LiteralConstant);
     EXPECT_EQ(statementChild->getValue(), 3);
 
     astNode = setupWithOptimization("VAR a, b; BEGIN a := 1; b := 1; RETURN (a+b * 2/(4+4)) END.");
-    auto evaluator =   semantic::ASTEvaluator ();
+    auto evaluator =   semantic::ASTEvaluator (astNode->getTable());
     auto result = evaluator.evaluateFunction(args,*astNode);
     EXPECT_EQ(result.value(), 1.25);
     astNode = setupWithOptimization("CONST a = 1, b = 2; BEGIN RETURN a *(-b + 55 * (1-(-1)) ) END.");
@@ -90,19 +85,14 @@ TEST(TestEvaluation, ConstantPropagation){
 TEST(TestEvaluation, DeadCodeElimination){
     auto args = std::vector<double>();
     auto astNode = setupWithOptimization("VAR a,b,c,d,e,f,z,g,i,j,ab,aaa ; BEGIN ab := 1 ;RETURN ab;ab := 1 ;ab := 1 ;ab := 1  END.");
-    ASSERT_EQ(astNode->getType(), semantic::ASTNode::FunctionDefinition);
     //check we only have 2 statements in the optimized tree
-    auto funcDef = static_cast<semantic::ASTFunctionNode*>(astNode.get());
-    auto children = funcDef->getChildren();
+    auto children = astNode->root->getChildren();
     EXPECT_EQ(children.size() , 2);
-    auto compoundStatement = static_cast<semantic::ASTCompoundStatement*>(children[1].get());
-    auto compoundStatementChild = compoundStatement->getChildren();
-    EXPECT_EQ(compoundStatementChild.size() , 2);
 }
 TEST(TestEvaluation,MixedOptimization){
     auto args = std::vector<double>();
     auto astNode = setupWithOptimization("VAR a, b; BEGIN a := 1; b := 1; RETURN a *(-b + 55 * (1-(-1))) ;a := 1; b := 1;a := 1; b := 1 END.");
-    semantic::ASTEvaluator evaluator = semantic::ASTEvaluator();
+    semantic::ASTEvaluator evaluator = semantic::ASTEvaluator(astNode->getTable());
     auto result = evaluator.evaluateFunction(args,*astNode);
     EXPECT_EQ(result.value(), 109);
 }
@@ -112,7 +102,18 @@ TEST(TestEvaluation, ValidEvaluation){
     evaluate(std::vector<double>{50,2},"PARAM a,b; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END.",53);
     evaluate(std::vector<double>{50,2},"PARAM a,b; VAR c; BEGIN c:=2+b ;RETURN a+b*c END.",58);
     evaluate(std::vector<double>{3,1000, 12},"PARAM a,b,c; VAR d,e; BEGIN a := b*10 + a ; d:=c+1; e:= a+b+c; RETURN (a+b+c+d+e)/5 END.",4408.6);
-
+    auto func = [](double a, double b, double c){
+        double d,e;
+        const double f = 345000;
+        d = a +(b*a) -5;
+        a *= 10;
+        e = 700000+f;
+        c = d+a;
+        return a+b+c-d-e+f;
+         };
+    evaluate(std::vector<double>{3,5, 12},"PARAM a,b,c; VAR d,e; CONST f= 345000;\n"
+                                               " BEGIN d:= a+(b*a)-5; a:= a*10; e:=700000+f; "
+                                               " c:=d+a; RETURN a+b+c-d-e+f END.",func(3,5,12));
 }
 TEST(TestEvaluation, InvalidEvaluation){
     std::cout << "Testing divide by zero statement:" << std::endl;

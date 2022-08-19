@@ -12,14 +12,20 @@ class ASTSymbolTable {
     class ASTSymbolEntry{
         friend class SemanticAnalyzer;
         friend class ASTSymbolTable;
+        friend class ASTAssignmentExpression;
+        friend class ASTIdentifierNode;
         ASTNode::ASTNodeType identifierType;    //only using parameter,constant or variable
         SourceCodeReference sourceCodeReference;
-        bool initialized;
+        std::optional<double> value;
 
-        ASTSymbolEntry(ASTNode::ASTNodeType identifierType, SourceCodeReference  sourceCodeReference, bool initialized = false): identifierType(identifierType),sourceCodeReference(std::move(sourceCodeReference)), initialized(initialized){}
+        ASTSymbolEntry(ASTNode::ASTNodeType identifierType, SourceCodeReference  sourceCodeReference, std::optional<double> value): identifierType(identifierType),sourceCodeReference(std::move(sourceCodeReference)), value(value){}
+        public:
+        std::optional<double> getValue()const{ return value;}
+        ASTNode::ASTNodeType getIdentifierType() const{return identifierType;}
     };
     ASTSymbolTable() = default;
     std::unordered_map<std::string_view, ASTSymbolEntry> table;
+    public:
     /*
      * inserts a node into the hashtable
      */
@@ -27,7 +33,7 @@ class ASTSymbolTable {
     /*
      * inserts a node into the hashtable
      */
-    void insert(ASTNode::ASTNodeType identifierType, const SourceCodeReference& sourceCodeReference);
+    void insert(ASTNode::ASTNodeType type,  const SourceCodeReference& sourceCodeReference, std::optional<double> value = std::optional<double>());
     /*
      * checks whether the hashtable contains a node
      */
@@ -40,6 +46,13 @@ class ASTSymbolTable {
      * prints an error message for the declared identifier
      */
     void printVariableWasDeclaredHereErrorMessage(std::string_view identifier);
+    /*
+     * initializes parameter identifiers in the table
+     */
+    bool initArguments(std::vector<double> arg);
+    auto& getTable() const{
+        return table;
+    }
 };
 } // namespace semantic
 

@@ -5,8 +5,6 @@
 #include <utility>
 namespace semantic{
 using namespace sourceCodeManagement;
-ASTUnaryNode::ASTUnaryNode(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTNode(type),child(std::move(child)){}
-MultiASTNode::MultiASTNode(ASTNodeType type): ASTNode(type){}
 //----------------------------------------------------------------------------------------------------------------
 ASTIdentifierNode::ASTIdentifierNode(ASTNodeType type, std::string_view value): ASTNode(type), value(value){}
 std::string_view ASTIdentifierNode::getValue() const {
@@ -18,16 +16,19 @@ double ASTLiteralNode::getValue() const{
     return value;
 }
 //-----------------------------------------------------------------------------------------------------------------
-ASTFunctionNode::ASTFunctionNode(): MultiASTNode(FunctionDefinition){}
-ASTParamDeclaratorListNode::ASTParamDeclaratorListNode(): MultiASTNode(ParamDeclaratorList){}
-ASTVarDeclaratorListNode::ASTVarDeclaratorListNode(): MultiASTNode(VarDeclaratorList){}
-ASTInitDeclaratorListNode::ASTInitDeclaratorListNode(): MultiASTNode(InitDeclaratorList){}
-ASTInitDeclaratorNode::ASTInitDeclaratorNode(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTNode(InitDeclarator),leftChild(std::move(left)),rightChild(std::move(right)){}
+ASTFunctionNode::ASTFunctionNode(): ASTNode(FunctionDefinition){}
+void ASTFunctionNode::pop_back_child(){
+    children.pop_back();
+}
+std::vector<std::unique_ptr<ASTNode>> ASTFunctionNode::getChildren(){
+    //Only for testing
+    return std::move(children);
+}
 
-ASTCompoundStatement::ASTCompoundStatement(): MultiASTNode(CompoundStatement){}
-void ASTCompoundStatement::pop_back_child(){ children.pop_back(); }
-
-ASTStatementNode::ASTStatementNode(ASTNodeType type, std::unique_ptr<ASTNode> child): ASTUnaryNode(type, std::move(child)){}
+ASTStatementNode::ASTStatementNode(ASTNodeType type, std::unique_ptr<ASTNode> child): ASTNode(type), child(std::move(child)){}
+std::unique_ptr<ASTNode> ASTStatementNode::getChild(){
+    return std::move(child);
+}
 ASTOperationExpressionNode::ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right, SourceCodeReference sourceCodeReference): ASTExpressionNode(type),leftChild(std::move(left)), rightChild(std::move(right)), sourceCodeReference(std::move(sourceCodeReference)){}
 ASTAssignmentExpression::ASTAssignmentExpression(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTExpressionNode(AssignmentExpression),leftChild(std::move(left)), rightChild(std::move(right)){}
 ASTUnaryExpression::ASTUnaryExpression(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTExpressionNode(type),child(std::move(child)){}
@@ -39,21 +40,6 @@ void ASTIdentifierNode::accept(ASTTreeVisitor& visitor) const {
     visitor.visit(*this);
 }
 void ASTLiteralNode::accept(ASTTreeVisitor& visitor) const {
-    visitor.visit(*this);
-}
-void ASTParamDeclaratorListNode::accept(ASTTreeVisitor& visitor) const {
-    visitor.visit(*this);
-}
-void ASTVarDeclaratorListNode::accept(ASTTreeVisitor& visitor) const {
-    visitor.visit(*this);
-}
-void ASTInitDeclaratorListNode::accept(ASTTreeVisitor& visitor) const {
-    visitor.visit(*this);
-}
-void ASTInitDeclaratorNode::accept(ASTTreeVisitor& visitor) const {
-    visitor.visit(*this);
-}
-void ASTCompoundStatement::accept(ASTTreeVisitor& visitor) const {
     visitor.visit(*this);
 }
 void ASTReturnStatementNode::accept(ASTTreeVisitor& visitor) const {
@@ -73,76 +59,6 @@ void ASTUnaryExpression::accept(ASTTreeVisitor& visitor) const {
 }
 //Evaluation-------------------------------------------------------------------
 std::optional<double> ASTFunctionNode::acceptEvaluation(ASTEvaluator& visitor)  {
-    auto printErrorParameter = []() -> std::optional<double>{
-        SourceCodeManager defaultManager = SourceCodeManager();
-        SourceCodeReference a = SourceCodeReference (defaultManager);
-        a.printContext("error: parameter size doesn't match with argument size!");
-        return {};
-    };
-
-    bool hasParam = false;
-    for(auto& child: children){
-        if(child->getType() == ASTNode::CompoundStatement){
-            return child->acceptEvaluation(visitor);
-        }else if(child->getType() == ParamDeclaratorList){
-            hasParam = true;
-            if(!child->acceptEvaluation(visitor).has_value()){
-                return printErrorParameter();
-            }
-        } else {
-            if(!hasParam && !visitor.arguments.empty()){
-                return printErrorParameter();
-            }
-            child->acceptEvaluation(visitor);
-        }
-    }
-    std::cout<< "something has gone wrong!"<<std::endl;
-    return {};
-}
-std::optional<double> ASTIdentifierNode::acceptEvaluation(ASTEvaluator& visitor)  {
-    if(!visitor.variables.contains(value)){
-        //we are in the initialization phase
-        visitor.variables.insert(std::pair<std::string_view,std::optional<double>>(value,std::optional<double>()));
-        return 0;
-    } else {
-        //we are in the statement evaluation phase => return value for variable
-        return visitor.variables[value];
-    }
-}
-std::optional<double> ASTLiteralNode::acceptEvaluation(ASTEvaluator&) {
-    return value;
-}
-std::optional<double> ASTParamDeclaratorListNode::acceptEvaluation(ASTEvaluator& visitor) {
-    if(children.size() != visitor.arguments.size()){
-        //if parameters size don't match
-        return {};
-    } else {
-        for(size_t i=0;i<children.size();i++){
-            auto identifierChild = static_cast<ASTIdentifierNode*>(children[i].get());
-            visitor.variables.insert(std::make_pair(identifierChild->getValue(),visitor.arguments[i]));
-        }
-    }
-    return 0;
-}
-std::optional<double> ASTVarDeclaratorListNode::acceptEvaluation(ASTEvaluator& visitor) {
-    for(auto& child: children){
-        child->acceptEvaluation(visitor);
-    }
-    return {};
-}
-std::optional<double> ASTInitDeclaratorListNode::acceptEvaluation(ASTEvaluator&)  {
-    //do nothing because constants are optimized out
-    return {};
-}
-std::optional<double> ASTInitDeclaratorNode::acceptEvaluation(ASTEvaluator& visitor)  {
-    //we are in the initialization phase, Init Declarator only applies to constants
-    leftChild->acceptEvaluation(visitor);
-    auto astLeft = static_cast<ASTIdentifierNode*>(leftChild.get());
-    auto rightLiteral = leftChild->acceptEvaluation(visitor);
-    visitor.variables[astLeft->getValue()] = rightLiteral;
-    return {};
-}
-std::optional<double> ASTCompoundStatement::acceptEvaluation(ASTEvaluator& visitor)  {
     for(auto& child: children){
         auto astChild = child->acceptEvaluation(visitor);
         if(!astChild.has_value()) return {};
@@ -153,6 +69,14 @@ std::optional<double> ASTCompoundStatement::acceptEvaluation(ASTEvaluator& visit
     std::cout<<"something has gone wrong!"<<std::endl;
     return {};
 }
+std::optional<double> ASTIdentifierNode::acceptEvaluation(ASTEvaluator& visitor)  {
+        //we are in the statement evaluation phase => return value for variable
+        return visitor.table.get(value).value;
+}
+std::optional<double> ASTLiteralNode::acceptEvaluation(ASTEvaluator&) {
+    return value;
+}
+
 std::optional<double> ASTReturnStatementNode::acceptEvaluation(ASTEvaluator& visitor)  {
     return child->acceptEvaluation(visitor);
 }
@@ -186,7 +110,7 @@ std::optional<double> ASTAssignmentExpression::acceptEvaluation(ASTEvaluator& vi
         auto astLeft = static_cast<ASTIdentifierNode*>(leftChild.get());
         auto rightLiteral = rightChild->acceptEvaluation(visitor);
         if(!rightLiteral.has_value()) return {};
-        visitor.variables[astLeft->getValue()] = rightLiteral;
+        visitor.table.get(astLeft->getValue()).value = rightLiteral;
         return 0; //return code that it went smoothly
     }
     return {};

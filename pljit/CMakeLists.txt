@@ -4,7 +4,7 @@ set(PLJIT_SOURCES
         Milestone3/Node.cpp Milestone3/Parser.cpp Milestone3/ParserTreePrintVisitor.cpp
         Milestone4/ASTNode.cpp Milestone4/ASTSymbolTable.cpp Milestone4/SemanticAnalyzer.cpp Milestone4/ASTTreePrintVisitor.cpp
         Milestone5/ASTEvaluator.cpp Milestone5/OptimizationPass.cpp
-        Milestone6/Pljit.cpp)
+        Milestone6/Pljit.cpp Milestone4/ASTTree.cpp Milestone4/ASTTree.h)
 
 add_library(pljit_core ${PLJIT_SOURCES})
 target_include_directories(pljit_core PUBLIC ${CMAKE_SOURCE_DIR})

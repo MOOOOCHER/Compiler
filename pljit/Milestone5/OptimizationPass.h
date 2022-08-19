@@ -2,16 +2,17 @@
 #define PLJIT_OPTIMIZATIONPASS_H
 #include "../Milestone4/ASTNode.h"
 #include "ASTEvaluator.h"
+#include "../Milestone4/ASTSymbolTable.h"
 namespace semantic{
     class AbstractOptimizationPass {
         protected:
-        virtual void optimize(ASTNode& node) = 0;
+        virtual void optimize(ASTTree& node) = 0;
     };
     class DeadCodeEliminationPass: public AbstractOptimizationPass {
         friend class ASTEvaluator;
 
         public:
-        void optimize(ASTNode& node) override;
+        void optimize(ASTTree& node) override;
     };
     class ConstantPropagationPass: public AbstractOptimizationPass {
         friend class ASTEvaluator;
@@ -23,7 +24,8 @@ namespace semantic{
         std::optional<double> optimizeExpression(ASTNode& node);
 
         public:
-        void optimize(ASTNode& node) override;
+        void optimize(ASTTree& node) override;
     };
-} // namespace semantic
+
+    } // namespace semantic
 #endif //PLJIT_OPTIMIZATIONPASS_H

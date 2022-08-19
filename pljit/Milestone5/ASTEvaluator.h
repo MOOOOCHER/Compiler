@@ -1,30 +1,25 @@
 #ifndef PLJIT_ASTEVALUATOR_H
 #define PLJIT_ASTEVALUATOR_H
-#include "../Milestone4/ASTNode.h"
+#include "../Milestone4/ASTTree.h"
+#include "../Milestone4/ASTSymbolTable.h"
 #include <unordered_map>
 #include <optional>
 namespace semantic{
     class ASTEvaluator {
         friend class ASTIdentifierNode;
-        friend class ASTCompoundStatement;
         friend class ASTLiteralNode;
         friend class ASTUnaryExpression;
         friend class ASTAssignmentExpression;
-        friend class ASTInitDeclaratorListNode;
-        friend class ASTInitDeclaratorNode;
         friend class ASTFunctionNode;
-        friend class ASTParamDeclaratorListNode;
-        friend class ASTVarDeclaratorListNode;
         friend class ASTStatementNode;
         friend class ASTOperationExpressionNode;
-
-        std::unordered_map<std::string_view, std::optional<double>> variables;
-        std::vector<double> arguments;
+        ASTSymbolTable& table;
         /*
          * this function initializes the parameters with the arguments;
          */
         public:
-        std::optional<double> evaluateFunction(std::vector<double> arg,semantic::ASTNode& node);
+        ASTEvaluator(ASTSymbolTable& table): table(table){}
+        std::optional<double> evaluateFunction(std::vector<double> arg,ASTTree& node);
     };
 } // namespace semantic
 

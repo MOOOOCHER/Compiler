@@ -18,7 +18,7 @@ static auto setup(const std::string_view& input){
     Parser parser = Parser(tokenizer);
     auto parseNode = parser.expectFunctionDefinition();
     SemanticAnalyzer semantic = SemanticAnalyzer();
-    return semantic.analyzeFunction(*parseNode);
+    return std::move(semantic.analyzeSemantic(*parseNode)->root);
 }
 TEST(TestSemantic, AnalyzeFunctionSimpleValid){
     auto result = setup("PARAM ab; BEGIN ab := 1 ;RETURN ab END.");
@@ -46,7 +46,7 @@ TEST(TestSemantic, AnalyzeFunctionUndeclaredIdentifier){
     EXPECT_EQ(result, nullptr);
     result = setup("PARAM ab, a; BEGIN RETURN c END.");
     EXPECT_EQ(result, nullptr);
-    result = setup("PARAM ab, a; BEGIN ab := (4+1)*a-(ab+a -(ab*2 +c)) -1 END.");
+    result = setup("PARAM ab, a;\n\t BEGIN ab := (4+1)*a-(ab+a -(ab*2 +c)) -1 END.");
     EXPECT_EQ(result, nullptr);
     std::cout << "=========================================================" << std::endl;
 }
@@ -69,7 +69,7 @@ TEST(TestSemantic, AnalyzeFunctionUninitializedVariable){
     std::cout << "Testing uninitialized variable:" << std::endl;
     auto result = setup("VAR a,b; BEGIN a:=b*5 ; RETURN a END.");
     EXPECT_EQ(result, nullptr);
-    result = setup("VAR a; BEGIN a:=a*5 ; RETURN a END.");
+    result = setup("VAR a;\n\t  BEGIN a:=a*5 ; RETURN a END.");
     EXPECT_EQ(result, nullptr);
     std::cout << "=========================================================" << std::endl;
 }
@@ -85,8 +85,8 @@ TEST(TestSemantic, AnalyzeFunctionValid){
     EXPECT_NE(result, nullptr);
     result = setup("PARAM width, height, depth;\nVAR volume;\nCONST density = 2400;\nBEGIN\nvolume :=width * height * depth;\nRETURN density*volume\nEND.");
     EXPECT_NE(result, nullptr);
-    auto visitor = semantic::ASTTreePrintVisitor();
-    visitor.printTree(*result);
+    //auto visitor = semantic::ASTTreePrintVisitor();
+    //visitor.printTree(*result);
     result = setup("VAR a, b; BEGIN a := 1; b := 1; RETURN (a+b * 2/(123+4))END.");
     EXPECT_NE(result, nullptr);
     result = setup("VAR a, b; BEGIN a := 1; b := 1; RETURN a *(-b + 55 * (1-(-1)) )END.");

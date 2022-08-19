@@ -1,58 +1,32 @@
 #include "OptimizationPass.h"
 namespace semantic{
-    void DeadCodeEliminationPass::optimize(ASTNode& node) {
-        if(node.getType() == ASTNode::FunctionDefinition){
-            auto& functionDefinition = static_cast<ASTFunctionNode&>(node);
-            for(auto& child: functionDefinition.children){
-                if(child->getType() == ASTNode::CompoundStatement){
-                    optimize(*child);
-                    return;
-                }
-            }
-        }
-        else if(node.getType() == ASTNode::CompoundStatement){
-            auto& compoundStatement = static_cast<ASTCompoundStatement&>(node);
+    void DeadCodeEliminationPass::optimize(ASTTree& node) {
+        if(node.root->getType() == ASTNode::FunctionDefinition){
+            auto& functionDefinition = static_cast<ASTFunctionNode&>(*node.root);
             while(true){
                 //start removing statements from the end until return statement is reached
-                if(compoundStatement.children[compoundStatement.children.size()-1]->getType() == ASTNode::ReturnStatement){
+                if(functionDefinition.children[functionDefinition.children.size()-1]->getType() == ASTNode::ReturnStatement){
                     return;
                 }
-                compoundStatement.pop_back_child();
+                functionDefinition.pop_back_child();
             }
         }
     }
     //ConstantPropagation---------------------------------------------------------------------------------------------------------
-    void ConstantPropagationPass::optimize(ASTNode& node) {
-        if(node.getType() == ASTNode::FunctionDefinition){
-            auto& functionDefinition = static_cast<ASTFunctionNode&>(node);
+    void ConstantPropagationPass::optimize(ASTTree& node) {
+        for(auto& entry: node.table.getTable()){
+            //get Values
+            if(entry.second.getIdentifierType() == ASTNode::Constant){
+                auto name = entry.first;
+                auto value = entry.second.getValue();
+                variables.insert(std::pair<std::string_view,double>(name,value.value()));
+            }
+
+        }
+        if(node.root->getType() == ASTNode::FunctionDefinition){
+            auto& functionDefinition = static_cast<ASTFunctionNode&>(*node.root);
             for(auto& child: functionDefinition.children){
-                switch(child->getType()){
-                    case ASTNode::InitDeclaratorList: {
-                        optimize(*child);
-                        break;
-                    }
-                    case ASTNode::CompoundStatement:{
-                        optimize(*child);
-                        return;
-                    }
-                    default: break;
-                }
-            }
-        } else if(node.getType() == ASTNode::InitDeclaratorList){
-            //initialize table with constant values
-            auto& constInitDeclList = static_cast<ASTInitDeclaratorListNode&>(node);
-            for(auto& child: constInitDeclList.children){
-                auto constInitDecl = static_cast<ASTInitDeclaratorNode*>(child.get());
-                //get Values
-                auto name = static_cast<ASTIdentifierNode*>(constInitDecl->leftChild.get());
-                auto value = static_cast<ASTLiteralNode*>(constInitDecl->rightChild.get());
-                variables.insert(std::pair<std::string_view,double>(name->getValue(),value->getValue()));
-            }
-        } else if(node.getType() == ASTNode::CompoundStatement){
-            //optimize each statement
-            auto& compoundStatement = static_cast<ASTCompoundStatement&>(node);
-            for(auto& child: compoundStatement.children){
-                    optimizeStatement(*child);
+                optimizeStatement(*child);
             }
         }
     }
