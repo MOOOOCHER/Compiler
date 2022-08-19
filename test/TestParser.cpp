@@ -218,7 +218,7 @@ TEST(TestParser, ExpectAdditiveExpressionValid){
     ASSERT_NE(result, nullptr);
     result = setup("BEGIN RETURN a * a END.");
     ASSERT_NE(result, nullptr);
-    result = setup("BEGIN a:= a * a END.");
+    result = setup("BEGIN a:= a * a --a ++ a END.");
     ASSERT_NE(result, nullptr);
 }
 TEST(TestParser, ExpectAdditiveExpressionInvalid){

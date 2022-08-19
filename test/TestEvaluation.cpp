@@ -101,6 +101,7 @@ TEST(TestEvaluation, ValidEvaluation){
     evaluate(std::vector<double>(),"VAR a,b,c ; BEGIN a := 1; b:=6; c:=2 ;RETURN a+b*(c+2) END.",25);
     evaluate(std::vector<double>{50,2},"PARAM a,b; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END.",53);
     evaluate(std::vector<double>{50,2},"PARAM a,b; VAR c; BEGIN c:=2+b ;RETURN a+b*c END.",58);
+    evaluate(std::vector<double>{3,2},"PARAM a,b; VAR c; BEGIN c:=2+b ;RETURN a+b-c+a-b END.",2);
     evaluate(std::vector<double>{3,1000, 12},"PARAM a,b,c; VAR d,e; BEGIN a := b*10 + a ; d:=c+1; e:= a+b+c; RETURN (a+b+c+d+e)/5 END.",4408.6);
     auto func = [](double a, double b, double c){
         double d,e;

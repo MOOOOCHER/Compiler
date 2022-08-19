@@ -15,7 +15,7 @@ namespace semantic{
     //ConstantPropagation---------------------------------------------------------------------------------------------------------
     void ConstantPropagationPass::optimize(ASTTree& node) {
         for(auto& entry: node.table.getTable()){
-            //get Values
+            //get constant values and add them into the map
             if(entry.second.getIdentifierType() == ASTNode::Constant){
                 auto name = entry.first;
                 auto value = entry.second.getValue();
