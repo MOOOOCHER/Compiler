@@ -69,6 +69,8 @@ class PljitHandle{
                 //optimization
                 DeadCodeEliminationPass pass = DeadCodeEliminationPass();
                 pass.optimize(*semanticNode);
+                semantic::AssociationPass associationPass;
+                associationPass.optimize(*semanticNode);
                 ConstantPropagationPass constantPropagationPass = ConstantPropagationPass();
                 constantPropagationPass.optimize(*semanticNode);
                 jit.astNode = std::move(semanticNode);

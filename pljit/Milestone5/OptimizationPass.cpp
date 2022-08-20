@@ -132,59 +132,49 @@ namespace semantic{
         }
     }
    void AssociationPass::optimizeExpression(std::unique_ptr<ASTNode>& node){
+       auto func = [&node, this](ASTNode::ASTNodeType op1, ASTNode::ASTNodeType op2){
+           //binary operation
+           auto* expr = static_cast<ASTOperationExpressionNode*>(node.get());
+           std::unique_ptr<ASTOperationExpressionNode> currentBuild;
+           bool changed = expr->rightChild->getType() == op1 || expr->rightChild->getType()  == op2;
+           auto currentTraverse = expr;
+
+           while(currentTraverse->rightChild->getType() == op1 || currentTraverse->rightChild->getType()  == op2){
+               auto& rightChild = static_cast<ASTOperationExpressionNode&>(*currentTraverse->rightChild);
+               if(currentTraverse == expr){
+                   optimizeExpression(currentTraverse->leftChild);
+                   optimizeExpression(rightChild.leftChild);
+                   //first initialize
+                   currentBuild = std::make_unique<ASTOperationExpressionNode>(currentTraverse->getType(),std::move(currentTraverse->leftChild),std::move(rightChild.leftChild));
+               } else {
+                   optimizeExpression(rightChild.leftChild);
+                   currentBuild = std::make_unique<ASTOperationExpressionNode>(currentTraverse->getType(),std::move(currentBuild),std::move(rightChild.leftChild));
+
+               }
+               //if we break before the next iteration we need to add the furthest right child of the original tree to the new tree
+               if(rightChild.rightChild->getType() != op1 && rightChild.rightChild->getType()  != op2){
+                    //add the furthest right child to the tree
+                    optimizeExpression(rightChild.rightChild);
+                    currentBuild = std::make_unique<ASTOperationExpressionNode>(rightChild.getType(),std::move(currentBuild),std::move(rightChild.rightChild));
+                    break;
+                }
+               currentTraverse = static_cast<ASTOperationExpressionNode*>(currentTraverse->rightChild.get());
+
+           }
+           if(changed){
+               //if we changed the tree structure => update
+               node = std::move(currentBuild);
+           }
+           return;
+       };
         if(node->getType() == ASTNode::AssignmentExpression){
             auto& assignmentExpr = static_cast<ASTAssignmentExpression&>(*node);
             optimizeExpression(assignmentExpr.rightChild);
         } else if(node->getType() == ASTNode::PlusOperator || node->getType() == ASTNode::MinusOperator){
-            //binary operation
-            auto* expr = static_cast<ASTOperationExpressionNode*>(node.get());
-            std::unique_ptr<ASTOperationExpressionNode> currentBuild;
-
-            if(expr->rightChild->getType() == ASTNode::PlusOperator || expr->rightChild->getType()  == ASTNode::MinusOperator){
-                auto currentTraverse = expr;
-                auto& rightChild = static_cast<ASTOperationExpressionNode&>(*currentTraverse->rightChild);
-                optimizeExpression(currentTraverse->leftChild);
-                optimizeExpression(rightChild.leftChild);
-                //first initialize
-                currentBuild = std::make_unique<ASTOperationExpressionNode>(currentTraverse->getType(),std::move(currentTraverse->leftChild),std::move(rightChild.leftChild));
-                currentTraverse = static_cast<ASTOperationExpressionNode*>(currentTraverse->rightChild.get());
-                while(currentTraverse->rightChild->getType() == ASTNode::PlusOperator || currentTraverse->rightChild->getType()  == ASTNode::MinusOperator){
-                    auto& newRightChild = static_cast<ASTOperationExpressionNode&>(*currentTraverse->rightChild);
-                    optimizeExpression(newRightChild.leftChild);
-                    currentBuild = std::make_unique<ASTOperationExpressionNode>(currentTraverse->getType(),std::move(currentBuild),std::move(newRightChild.leftChild));
-
-                    currentTraverse = static_cast<ASTOperationExpressionNode*>(currentTraverse->rightChild.get());
-
-                }
-                /*if(newRightChild.rightChild->getType() != ASTNode::PlusOperator && newRightChild.rightChild->getType()  != ASTNode::MinusOperator){
-                    //add the furthest right child to the tree
-                    optimizeExpression(newRightChild.leftChild);
-                    currentBuild = std::make_unique<ASTOperationExpressionNode>(currentTraverse->getType(),std::move(currentBuild),std::move(currentTraverse->rightChild));
-                    break;
-                }*/
-                node = std::move(currentBuild);
-            }
+            func(ASTNode::PlusOperator,ASTNode::MinusOperator);
             return;
         } else if (node->getType() == ASTNode::MulOperator || node->getType() == ASTNode::DivOperator){
-            auto* expr = static_cast<ASTOperationExpressionNode*>(node.get());
-            std::unique_ptr<ASTOperationExpressionNode> currentBuild;
-            auto currentTraverse = expr;
-            if(currentTraverse->rightChild->getType() == ASTNode::MulOperator || currentTraverse->rightChild->getType()  == ASTNode::DivOperator){
-                auto& rightChild = static_cast<ASTOperationExpressionNode&>(*currentTraverse->rightChild);
-                optimizeExpression(currentTraverse->leftChild);
-                optimizeExpression(rightChild.leftChild);
-                //first initialize
-                currentBuild = std::make_unique<ASTOperationExpressionNode>(currentTraverse->getType(),std::move(currentTraverse->leftChild),std::move(rightChild.leftChild));
-                currentTraverse = static_cast<ASTOperationExpressionNode*>(currentTraverse->rightChild.get());
-                while(currentTraverse->rightChild->getType() == ASTNode::MulOperator || currentTraverse->rightChild->getType()  == ASTNode::DivOperator){
-                    auto& newRightChild = static_cast<ASTOperationExpressionNode&>(*currentTraverse->rightChild);
-                    optimizeExpression(newRightChild.leftChild);
-                    currentBuild = std::make_unique<ASTOperationExpressionNode>(currentTraverse->getType(),std::move(currentBuild),std::move(newRightChild.leftChild));
-                    currentTraverse = static_cast<ASTOperationExpressionNode*>(currentTraverse->rightChild.get());
-                }
-                node = std::move(currentBuild);
-            }
-            return;
+            func(ASTNode::MulOperator,ASTNode::DivOperator);
         }else if(node->getType() == ASTNode::UnaryPlus || node->getType() == ASTNode::UnaryMinus){
             auto& unaryExpr = static_cast<ASTUnaryExpression&>(*node);
             optimizeExpression(unaryExpr.child);
