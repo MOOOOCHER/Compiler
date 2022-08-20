@@ -7,21 +7,22 @@
 namespace semantic {
 using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
 class SemanticAnalyzer;
+class ConstantPropagationPass;
+class ASTEvaluator;
 class ASTSymbolTable {
     friend class SemanticAnalyzer;
+    friend class ConstantPropagationPass;
+    friend class ASTEvaluator;
     class ASTSymbolEntry{
         friend class SemanticAnalyzer;
         friend class ASTSymbolTable;
-        friend class ASTAssignmentExpression;
-        friend class ASTIdentifierNode;
+        friend class ConstantPropagationPass;
+        friend class ASTEvaluator;
         ASTNode::ASTNodeType identifierType;    //only using parameter,constant or variable
         SourceCodeReference sourceCodeReference;
         std::optional<double> value;
 
         ASTSymbolEntry(ASTNode::ASTNodeType identifierType, SourceCodeReference  sourceCodeReference, std::optional<double> value): identifierType(identifierType),sourceCodeReference(std::move(sourceCodeReference)), value(value){}
-        public:
-        std::optional<double> getValue()const{ return value;}
-        ASTNode::ASTNodeType getIdentifierType() const{return identifierType;}
     };
     ASTSymbolTable() = default;
     std::unordered_map<std::string_view, ASTSymbolEntry> table;
@@ -46,13 +47,6 @@ class ASTSymbolTable {
      * prints an error message for the declared identifier
      */
     void printVariableWasDeclaredHereErrorMessage(std::string_view identifier);
-    /*
-     * initializes parameter identifiers in the table
-     */
-    bool initArguments(std::vector<double> arg);
-    auto& getTable() const{
-        return table;
-    }
 };
 } // namespace semantic
 

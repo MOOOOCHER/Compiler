@@ -50,7 +50,11 @@ class PljitHandle{
             return {};
         }
 
-        std::unique_lock lock(mutex);
+        {
+            //synchronization is only used for compiling the program
+            // we don't need synchronization for evaluation, since we then only have a read-only on the handle
+            // (more specifically: the SymbolTable of the ASTTree within PljitStatus)
+            std::unique_lock lock(mutex);
             if (jit.astNode == nullptr) {
                 //compile new
                 SourceCodeManager manager(jit.code);
@@ -75,8 +79,9 @@ class PljitHandle{
                 constantPropagationPass.optimize(*semanticNode);
                 jit.astNode = std::move(semanticNode);
             }
+        }
         std::vector<double> vec = {args...};
-        ASTEvaluator evaluator = ASTEvaluator(jit.astNode->getTable());
+        ASTEvaluator evaluator = ASTEvaluator();
         return evaluator.evaluateFunction(vec,*jit.astNode); // the ast tree will not be modified in the evaluation, hence no need of synchronization
     }
 };

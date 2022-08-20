@@ -71,7 +71,7 @@ std::optional<double> ASTFunctionNode::acceptEvaluation(ASTEvaluator& visitor)  
 }
 std::optional<double> ASTIdentifierNode::acceptEvaluation(ASTEvaluator& visitor)  {
         //we are in the statement evaluation phase => return value for variable
-        return visitor.table.get(value).value;
+        return visitor.variables[value];
 }
 std::optional<double> ASTLiteralNode::acceptEvaluation(ASTEvaluator&) {
     return value;
@@ -112,7 +112,7 @@ std::optional<double> ASTAssignmentExpression::acceptEvaluation(ASTEvaluator& vi
         auto astLeft = static_cast<ASTIdentifierNode*>(leftChild.get());
         auto rightLiteral = rightChild->acceptEvaluation(visitor);
         if(!rightLiteral.has_value()) return {};
-        visitor.table.get(astLeft->getValue()).value = rightLiteral;
+        visitor.variables[astLeft->getValue()] = rightLiteral;
         return 0; //return code that it went smoothly
     }
     return {};

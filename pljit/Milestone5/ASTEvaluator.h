@@ -13,12 +13,11 @@ namespace semantic{
         friend class ASTFunctionNode;
         friend class ASTStatementNode;
         friend class ASTOperationExpressionNode;
-        ASTSymbolTable& table;
+        std::unordered_map<std::string_view, std::optional<double>> variables;
         /*
          * this function initializes the parameters with the arguments;
          */
         public:
-        explicit ASTEvaluator(ASTSymbolTable& table): table(table){}
         std::optional<double> evaluateFunction(std::vector<double> arg,ASTTree& node);
     };
 } // namespace semantic

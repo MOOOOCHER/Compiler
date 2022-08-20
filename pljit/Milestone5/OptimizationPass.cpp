@@ -14,12 +14,10 @@ namespace semantic{
     }
     //ConstantPropagation---------------------------------------------------------------------------------------------------------
     void ConstantPropagationPass::optimize(ASTTree& node) {
-        for(auto& entry: node.table.getTable()){
+        for(auto& [name,entry]: node.table.table){
             //get constant values and add them into the map
-            if(entry.second.getIdentifierType() == ASTNode::Constant){
-                auto name = entry.first;
-                auto value = entry.second.getValue();
-                variables.insert(std::pair<std::string_view,double>(name,value.value()));
+            if(entry.identifierType== ASTNode::Constant){
+                variables.insert(std::pair<std::string_view,double>(name,entry.value.value()));
             }
 
         }

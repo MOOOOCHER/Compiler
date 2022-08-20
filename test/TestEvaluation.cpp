@@ -23,7 +23,7 @@ static void evaluate(const std::vector<double>& args, const std::string_view& in
     auto parseNode = parser.expectFunctionDefinition();
     SemanticAnalyzer semantic = SemanticAnalyzer();
     auto astNode = semantic.analyzeSemantic(*parseNode);
-    semantic::ASTEvaluator evaluator = semantic::ASTEvaluator(astNode->getTable());
+    semantic::ASTEvaluator evaluator;
     //optimization
     DeadCodeEliminationPass pass = DeadCodeEliminationPass();
     pass.optimize(*astNode);
@@ -77,7 +77,7 @@ TEST(TestEvaluation, ConstantPropagation){
     EXPECT_EQ(statementChild->getValue(), 3);
 
     astNode = setupWithOptimization("VAR a, b; BEGIN a := 1; b := 1; RETURN (a+b * 2/(4+4)) END.");
-    auto evaluator =   semantic::ASTEvaluator (astNode->getTable());
+    semantic::ASTEvaluator evaluator;
     auto result = evaluator.evaluateFunction(args,*astNode);
     EXPECT_EQ(result.value(), 1.25);
     astNode = setupWithOptimization("CONST a = 1, b = 2; BEGIN RETURN a *(-b + 55 * (1-(-1)) ) END.");
@@ -94,7 +94,7 @@ TEST(TestEvaluation, DeadCodeElimination){
 TEST(TestEvaluation,MixedOptimization){
     auto args = std::vector<double>();
     auto astNode = setupWithOptimization("VAR a, b; BEGIN a := 1; b := 1; RETURN a *(-b + 55 * (1-(-1))) ;a := 1; b := 1;a := 1; b := 1 END.");
-    semantic::ASTEvaluator evaluator = semantic::ASTEvaluator(astNode->getTable());
+    semantic::ASTEvaluator evaluator;
     auto result = evaluator.evaluateFunction(args,*astNode);
     EXPECT_EQ(result.value(), 109);
 }
