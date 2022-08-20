@@ -15,6 +15,8 @@ using SemanticAnalyzer = semantic::SemanticAnalyzer;
 using DeadCodeEliminationPass = semantic::DeadCodeEliminationPass;
 using ConstantPropagationPass = semantic::ConstantPropagationPass;
 using AssociationPass = semantic::AssociationPass;
+
+//TODO: more constant propagation tests
 static void evaluate(const std::vector<double>& args, const std::string_view& input, std::optional<double> expectedResult){
     SourceCodeManager manager(input);
     Tokenizer tokenizer = Tokenizer(manager);

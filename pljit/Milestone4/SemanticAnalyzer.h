@@ -36,7 +36,6 @@ class SemanticAnalyzer {
     std::unique_ptr<ASTFunctionNode> analyzeFunction(parser::FunctionDefinitionNode& parseNode);
     public:
     std::unique_ptr<ASTTree> analyzeSemantic(parser::FunctionDefinitionNode& parseNode);
-    SemanticAnalyzer() = default;
 };
 } // namespace semantic
 #endif //PLJIT_SEMANTICANALYZER_H

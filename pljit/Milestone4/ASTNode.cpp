@@ -29,6 +29,10 @@ ASTStatementNode::ASTStatementNode(ASTNodeType type, std::unique_ptr<ASTNode> ch
 std::unique_ptr<ASTNode> ASTStatementNode::getChild(){
     return std::move(child);
 }
+ASTReturnStatementNode::ASTReturnStatementNode(std::unique_ptr<ASTNode> child): ASTStatementNode(ReturnStatement,std::move(child)){}
+ASTAssignmentStatementNode::ASTAssignmentStatementNode(std::unique_ptr<ASTNode> child): ASTStatementNode(AssignStatement,std::move(child)){}
+
+ASTExpressionNode::ASTExpressionNode(ASTNodeType type): ASTNode(type){}
 ASTOperationExpressionNode::ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTExpressionNode(type),leftChild(std::move(left)), rightChild(std::move(right)){}
 ASTAssignmentExpression::ASTAssignmentExpression(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTExpressionNode(AssignmentExpression),leftChild(std::move(left)), rightChild(std::move(right)){}
 ASTUnaryExpression::ASTUnaryExpression(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTExpressionNode(type),child(std::move(child)){}

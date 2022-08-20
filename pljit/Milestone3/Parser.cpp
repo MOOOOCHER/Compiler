@@ -48,6 +48,8 @@ static Node::Types getNodeTypeFromTokenType(TokenTypes type){
         default: return Node::Invalid;
     }
 }
+//Parser----------------------------------------------------------------------------------------------------
+Parser::Parser(Tokenizer tokenizer): tokenizer(tokenizer){};
 //Refactor--------------------------------------------------------------------------------------------------
 bool Parser::refactorDeclList(auto (Parser::*func)(), std::vector<std::unique_ptr<Node>>& childVec){
     auto element = (this->*func)();

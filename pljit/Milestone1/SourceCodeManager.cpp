@@ -76,6 +76,7 @@ namespace sourceCodeManagement{
         size_t pos = 1;
         std::cout<< std::endl;
         std::cout << "\t";
+
         while(pos<position.second){
             std::cout<< " ";
             ++pos;

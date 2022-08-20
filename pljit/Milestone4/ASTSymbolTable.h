@@ -22,7 +22,7 @@ class ASTSymbolTable {
         SourceCodeReference sourceCodeReference;
         std::optional<double> value;
 
-        ASTSymbolEntry(ASTNode::ASTNodeType identifierType, SourceCodeReference  sourceCodeReference, std::optional<double> value): identifierType(identifierType),sourceCodeReference(std::move(sourceCodeReference)), value(value){}
+        ASTSymbolEntry(ASTNode::ASTNodeType identifierType, SourceCodeReference  sourceCodeReference, std::optional<double> value);
     };
     ASTSymbolTable() = default;
     std::unordered_map<std::string_view, ASTSymbolEntry> table;

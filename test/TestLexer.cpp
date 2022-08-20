@@ -14,6 +14,50 @@ TEST(TestLexer, PrintContext){
     SourceCodeReference location = SourceCodeReference(0,manager, 1);
     location.printContext("Testing Location");
 }
+TEST(TestLexer, InvalidSymbol) {
+    std::string_view view("CONST hello? = 4*4.");
+    SourceCodeManager manager(view);
+
+    Tokenizer tokenizer = Tokenizer(manager);
+    auto token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::CONST);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Invalid);
+
+}
+TEST(TestLexer, InvalidSymbol2) {
+    std::string_view view("VAR\n\n hello_bye.");
+    SourceCodeManager manager(view);
+    Tokenizer tokenizer = Tokenizer(manager);
+    auto token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::VAR);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Invalid);
+}
+TEST(TestLexer, InvalidSymbol3) {
+    std::string_view view("VAR\n hello \nbye?");
+    SourceCodeManager manager(view);
+    Tokenizer tokenizer = Tokenizer(manager);
+    auto token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::VAR);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Invalid); //? is seen as part of bye
+}
+TEST(TestLexer, InvalidSymbol4) {
+    std::string_view view("VAR\n hello \nbye\n ?");
+    SourceCodeManager manager(view);
+    Tokenizer tokenizer = Tokenizer(manager);
+    auto token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::VAR);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Invalid);
+}
 TEST(TestLexer, SimpleTextLexer){
     std::string_view view("PARAM a b");
     SourceCodeManager manager(view);
@@ -61,37 +105,7 @@ TEST(TestLexer, LiteralIdentifier){
     token = tokenizer.next();
     EXPECT_EQ(token.getType(), lexer::TokenTypes::Semicolon);
 }
-TEST(TestLexer, InvalidSymbol) {
-    std::string_view view("CONST hello? = 4*4.");
-    SourceCodeManager manager(view);
 
-    Tokenizer tokenizer = Tokenizer(manager);
-    auto token = tokenizer.next();
-    EXPECT_EQ(token.getType(), lexer::TokenTypes::CONST);
-    token = tokenizer.next();
-    EXPECT_EQ(token.getType(), lexer::TokenTypes::Invalid);
-
-}
-TEST(TestLexer, InvalidSymbol2) {
-    std::string_view view("VAR hello_bye.");
-    SourceCodeManager manager(view);
-    Tokenizer tokenizer = Tokenizer(manager);
-    auto token = tokenizer.next();
-    EXPECT_EQ(token.getType(), lexer::TokenTypes::VAR);
-    token = tokenizer.next();
-    EXPECT_EQ(token.getType(), lexer::TokenTypes::Invalid);
-}
-TEST(TestLexer, InvalidSymbol3) {
-    std::string_view view("VAR hello bye?");
-    SourceCodeManager manager(view);
-    Tokenizer tokenizer = Tokenizer(manager);
-    auto token = tokenizer.next();
-    EXPECT_EQ(token.getType(), lexer::TokenTypes::VAR);
-    token = tokenizer.next();
-    EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
-    token = tokenizer.next();
-    EXPECT_EQ(token.getType(), lexer::TokenTypes::Invalid); //? is seen as part of bye
-}
 TEST(TestLexer, ParamLexer){
     std::string_view view("PARAM wid, hei, dep;");
     SourceCodeManager manager(view);

@@ -1,6 +1,7 @@
 #include "ASTSymbolTable.h"
 
 namespace semantic {
+    ASTSymbolTable::ASTSymbolEntry::ASTSymbolEntry(ASTNode::ASTNodeType identifierType, SourceCodeReference  sourceCodeReference, std::optional<double> value): identifierType(identifierType),sourceCodeReference(std::move(sourceCodeReference)), value(value){}
 
     void ASTSymbolTable::insert(const ASTSymbolEntry& entry){
         table.insert(std::make_pair(entry.sourceCodeReference.getText(),entry));

@@ -28,6 +28,7 @@ using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
         BEGIN,
         END,
     };
+    //TODO: More token classes
 /*
  * class for tokens
  */
@@ -40,10 +41,10 @@ class Token{
      * constructs a "default" token pointing to the last character of the code
      */
     explicit Token(sourceCodeManagement::SourceCodeManager& manager);
+    /*
+     * constructs a token with a reference to the code with a token type
+     */
     Token(SourceCodeReference  characters, TokenTypes type);
-    //copy semantics
-    Token(const Token& other);
-    Token& operator=(const Token& other);
 
     TokenTypes getType() const;
     SourceCodeReference getSourceCodeReference() const{ return sourceCodeReference;}

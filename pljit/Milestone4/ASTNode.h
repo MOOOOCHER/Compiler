@@ -99,7 +99,7 @@ namespace semantic{
         friend class ConstantPropagationPass;
         friend class ASTTreePrintVisitor;
         public:
-        explicit ASTReturnStatementNode(std::unique_ptr<ASTNode> child): ASTStatementNode(ReturnStatement,std::move(child)){}
+        explicit ASTReturnStatementNode(std::unique_ptr<ASTNode> child);
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
@@ -107,7 +107,7 @@ namespace semantic{
         friend class ConstantPropagationPass;
         friend class ASTTreePrintVisitor;
         public:
-        explicit ASTAssignmentStatementNode(std::unique_ptr<ASTNode> child): ASTStatementNode(AssignStatement,std::move(child)){}
+        explicit ASTAssignmentStatementNode(std::unique_ptr<ASTNode> child);
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
@@ -116,7 +116,7 @@ namespace semantic{
         friend class ConstantPropagationPass;
         friend class ASTTreePrintVisitor;
         public:
-        explicit ASTExpressionNode(ASTNodeType type): ASTNode(type){}
+        explicit ASTExpressionNode(ASTNodeType type);
         void accept(ASTTreeVisitor& visitor) const override = 0;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override = 0;
     };

@@ -15,7 +15,6 @@ class ASTTree {
     public:
     ASTTree(std::unique_ptr<ASTFunctionNode> root, ASTSymbolTable table);
     std::unique_ptr<ASTFunctionNode> root;
-    ASTSymbolTable& getTable();
     private:
     ASTSymbolTable table;
 };

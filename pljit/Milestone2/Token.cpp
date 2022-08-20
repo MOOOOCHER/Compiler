@@ -44,16 +44,6 @@ static bool isValidChar(const char& c){
 //Token-----------------------------------------------------------------------------------------------------------------------------
 Token::Token(sourceCodeManagement::SourceCodeManager& manager): sourceCodeReference(SourceCodeReference(manager)),type(TokenTypes::Invalid){}
 Token::Token(SourceCodeReference  characters, TokenTypes type): sourceCodeReference(std::move(characters)), type(type){}
-//copy semantics
-Token::Token(const Token& other) = default;
-Token& Token::operator=(const Token& other){
-    if(&other != this){
-        sourceCodeReference = other.sourceCodeReference;
-        type = other.type;
-    }
-    return *this;
-}
-
 TokenTypes Token::getType() const{
     return type;
 }

@@ -84,6 +84,7 @@ class ParseTreePrintVisitor;
         unsigned getValue() const;
         void accept(ParseTreeVisitor& visitor) const override;
     };
+    //TODO: class for every generic node
     class GenericNode: public TerminalNode{
         friend class ParseTreePrintVisitor;
         public:
@@ -109,78 +110,78 @@ class ParseTreePrintVisitor;
     };
     class FunctionDefinitionNode: public NonTerminalNode{
         public:
-        explicit FunctionDefinitionNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(FunctionDefinition,std::move(children)){}
+        explicit FunctionDefinitionNode(std::vector<std::unique_ptr<Node>> children);
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class ParameterDeclarationNode: public NonTerminalNode{
         public:
-        explicit ParameterDeclarationNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(ParameterDeclaration,std::move(children)){}
+        explicit ParameterDeclarationNode(std::vector<std::unique_ptr<Node>> children);
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class VariableDeclarationNode: public NonTerminalNode{
         public:
-        explicit VariableDeclarationNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(VariableDeclaration,std::move(children)){}
+        explicit VariableDeclarationNode(std::vector<std::unique_ptr<Node>> children);
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class ConstantDeclarationNode: public NonTerminalNode{
         public:
-        explicit ConstantDeclarationNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(ConstantDeclaration,std::move(children)){}
+        explicit ConstantDeclarationNode(std::vector<std::unique_ptr<Node>> children);
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class DeclaratorListNode: public NonTerminalNode{
         public:
-        explicit DeclaratorListNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(DeclaratorList,std::move(children)){}
+        explicit DeclaratorListNode(std::vector<std::unique_ptr<Node>> children);
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class InitDeclaratorListNode: public NonTerminalNode{
         public:
-        explicit InitDeclaratorListNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(InitDeclaratorList,std::move(children)){}
+        explicit InitDeclaratorListNode(std::vector<std::unique_ptr<Node>> children);
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class InitDeclaratorNode: public NonTerminalNode{
         public:
-        explicit InitDeclaratorNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(InitDeclarator,std::move(children)){}
+        explicit InitDeclaratorNode(std::vector<std::unique_ptr<Node>> children);
         void accept(ParseTreeVisitor& visitor) const override;
     };
     //-----------------------------------------------------------------------------------------------------------------------
     class CompoundStatementNode: public NonTerminalNode{
         public:
-        explicit CompoundStatementNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(CompoundStatement,std::move(children)){}
+        explicit CompoundStatementNode(std::vector<std::unique_ptr<Node>> children);
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class StatementListNode: public NonTerminalNode{
         public:
-        explicit StatementListNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(StatementList,std::move(children)){}
+        explicit StatementListNode(std::vector<std::unique_ptr<Node>> children);
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class StatementNode: public NonTerminalNode{
         public:
-        explicit StatementNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(Statement,std::move(children)){}
+        explicit StatementNode(std::vector<std::unique_ptr<Node>> children);
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class AssignmentExpressionNode: public NonTerminalNode{
         public:
-        explicit AssignmentExpressionNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(AssignmentExpression,std::move(children)){}
+        explicit AssignmentExpressionNode(std::vector<std::unique_ptr<Node>> children);
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class AdditiveExpressionNode: public NonTerminalNode{
         public:
-        explicit AdditiveExpressionNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(AdditiveExpression,std::move(children)){}
+        explicit AdditiveExpressionNode(std::vector<std::unique_ptr<Node>> children);
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class MultiplicativeExpressionNode: public NonTerminalNode{
         public:
-        explicit MultiplicativeExpressionNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(MultiplicativeExpression,std::move(children)){}
+        explicit MultiplicativeExpressionNode(std::vector<std::unique_ptr<Node>> children);
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class UnaryExpressionNode: public NonTerminalNode{
         public:
-        explicit UnaryExpressionNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(UnaryExpression,std::move(children)){}
+        explicit UnaryExpressionNode(std::vector<std::unique_ptr<Node>> children);
         void accept(ParseTreeVisitor& visitor) const override;
     };
     class PrimaryExpressionNode: public NonTerminalNode{
         public:
-        explicit PrimaryExpressionNode(std::vector<std::unique_ptr<Node>> children): NonTerminalNode(PrimaryExpression,std::move(children)){}
+        explicit PrimaryExpressionNode(std::vector<std::unique_ptr<Node>> children);
         void accept(ParseTreeVisitor& visitor) const override;
     };
 } // namespace parser

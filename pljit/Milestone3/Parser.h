@@ -12,7 +12,7 @@ class Parser{
     Tokenizer tokenizer;
     Token backtrackToken = Token(tokenizer.getManager());   //default
     public:
-    explicit Parser(Tokenizer tokenizer): tokenizer(tokenizer){};
+    explicit Parser(Tokenizer tokenizer);
 
     //---------------------------------------------------------------------------------------------------------
     /*
