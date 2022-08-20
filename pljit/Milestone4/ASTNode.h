@@ -11,10 +11,12 @@ namespace semantic{
     class ASTTreePrintVisitor;
     class ASTTreeVisitor;
     class ASTEvaluator;
-    class ConstantPropagationPass;
     class ASTSymbolTable;
+    class ConstantPropagationPass;
     class DeadCodeEliminationPass;
+    class AssociationPass;
     using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
+
     class ASTNode{
         friend class SemanticAnalyzer;
         friend class ASTSymbolTable;
@@ -51,6 +53,7 @@ namespace semantic{
         friend class SemanticAnalyzer;
         friend class DeadCodeEliminationPass;
         friend class ConstantPropagationPass;
+        friend class AssociationPass;
         friend class ASTTreePrintVisitor;
         std::vector<std::unique_ptr<ASTNode>> children;
         public:
@@ -82,6 +85,7 @@ namespace semantic{
     //----------------------------------------------------------------------------------------------------------------------------
     class ASTStatementNode: public ASTNode{
         friend class ConstantPropagationPass;
+        friend class AssociationPass;
         friend class ASTTreePrintVisitor;
         protected:
         std::unique_ptr<ASTNode> child;
@@ -118,17 +122,18 @@ namespace semantic{
     };
     class ASTOperationExpressionNode: public ASTExpressionNode{
         friend class ConstantPropagationPass;
+        friend class AssociationPass;
         friend class ASTTreePrintVisitor;
         std::unique_ptr<ASTNode> leftChild;
         std::unique_ptr<ASTNode> rightChild;
-        SourceCodeReference sourceCodeReference;
         public:
-        ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right, SourceCodeReference sourceCodeReference);
+        ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right);
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) override;
     };
     class ASTUnaryExpression: public ASTExpressionNode{
         friend class ConstantPropagationPass;
+        friend class AssociationPass;
         friend class ASTTreePrintVisitor;
         std::unique_ptr<ASTNode> child;
         //type should only be UnaryPlus or UnaryMinus
@@ -139,6 +144,7 @@ namespace semantic{
     };
     class ASTAssignmentExpression: public ASTExpressionNode{
         friend class ConstantPropagationPass;
+        friend class AssociationPass;
         friend class ASTTreePrintVisitor;
         std::unique_ptr<ASTNode> leftChild;
         std::unique_ptr<ASTNode> rightChild;

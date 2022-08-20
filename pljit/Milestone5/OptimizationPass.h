@@ -26,6 +26,15 @@ namespace semantic{
         public:
         void optimize(ASTTree& node) override;
     };
-
+    /*
+     * class for turning from right-to-left association to left-to-right association
+     */
+    class AssociationPass: public AbstractOptimizationPass {
+        friend class ASTEvaluator;
+        void optimizeStatement(ASTNode& node);
+        void optimizeExpression(std::unique_ptr<ASTNode> &node);
+        public:
+        void optimize(ASTTree& node) override;
+    };
     } // namespace semantic
 #endif //PLJIT_OPTIMIZATIONPASS_H

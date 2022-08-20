@@ -18,7 +18,7 @@ namespace semantic{
          * this function initializes the parameters with the arguments;
          */
         public:
-        ASTEvaluator(ASTSymbolTable& table): table(table){}
+        explicit ASTEvaluator(ASTSymbolTable& table): table(table){}
         std::optional<double> evaluateFunction(std::vector<double> arg,ASTTree& node);
     };
 } // namespace semantic

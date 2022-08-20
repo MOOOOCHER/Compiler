@@ -14,7 +14,7 @@ using Node = parser::Node;
 using SemanticAnalyzer = semantic::SemanticAnalyzer;
 using DeadCodeEliminationPass = semantic::DeadCodeEliminationPass;
 using ConstantPropagationPass = semantic::ConstantPropagationPass;
-
+using AssociationPass = semantic::AssociationPass;
 static void evaluate(const std::vector<double>& args, const std::string_view& input, std::optional<double> expectedResult){
     SourceCodeManager manager(input);
     Tokenizer tokenizer = Tokenizer(manager);
@@ -27,6 +27,8 @@ static void evaluate(const std::vector<double>& args, const std::string_view& in
     //optimization
     DeadCodeEliminationPass pass = DeadCodeEliminationPass();
     pass.optimize(*astNode);
+    AssociationPass assPass = AssociationPass ();
+    assPass.optimize(*astNode);
     ConstantPropagationPass constantPropagationPass = ConstantPropagationPass();
     constantPropagationPass.optimize(*astNode);
     if(expectedResult.has_value()){
@@ -101,7 +103,8 @@ TEST(TestEvaluation, ValidEvaluation){
     evaluate(std::vector<double>(),"VAR a,b,c ; BEGIN a := 1; b:=6; c:=2 ;RETURN a+b*(c+2) END.",25);
     evaluate(std::vector<double>{50,2},"PARAM a,b; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END.",53);
     evaluate(std::vector<double>{50,2},"PARAM a,b; VAR c; BEGIN c:=2+b ;RETURN a+b*c END.",58);
-    evaluate(std::vector<double>{3,2},"PARAM a,b; VAR c; BEGIN c:=2+b ;RETURN a+b-c+a-b END.",2);
+    //evaluate(std::vector<double>{3,2},"PARAM a,b; VAR c; BEGIN c:=2+b ;RETURN a+b-c+a-b END.",2);
+    evaluate(std::vector<double>{},"BEGIN RETURN 1-1-1-1 END.",-2);
     evaluate(std::vector<double>{3,1000, 12},"PARAM a,b,c; VAR d,e; BEGIN a := b*10 + a ; d:=c+1; e:= a+b+c; RETURN (a+b+c+d+e)/5 END.",4408.6);
     auto func = [](double a, double b, double c){
         double d,e;
@@ -115,6 +118,7 @@ TEST(TestEvaluation, ValidEvaluation){
     evaluate(std::vector<double>{3,5, 12},"PARAM a,b,c; VAR d,e; CONST f= 345000;\n"
                                                " BEGIN d:= a+(b*a)-5; a:= a*10; e:=700000+f; "
                                                " c:=d+a; RETURN a+b+c-d-e+f END.",func(3,5,12));
+    evaluate(std::vector<double>{}," BEGIN RETURN 2/2/2 END.",0.5);
 }
 TEST(TestEvaluation, InvalidEvaluation){
     std::cout << "Testing divide by zero statement:" << std::endl;

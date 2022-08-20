@@ -29,7 +29,7 @@ ASTStatementNode::ASTStatementNode(ASTNodeType type, std::unique_ptr<ASTNode> ch
 std::unique_ptr<ASTNode> ASTStatementNode::getChild(){
     return std::move(child);
 }
-ASTOperationExpressionNode::ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right, SourceCodeReference sourceCodeReference): ASTExpressionNode(type),leftChild(std::move(left)), rightChild(std::move(right)), sourceCodeReference(std::move(sourceCodeReference)){}
+ASTOperationExpressionNode::ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTExpressionNode(type),leftChild(std::move(left)), rightChild(std::move(right)){}
 ASTAssignmentExpression::ASTAssignmentExpression(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTExpressionNode(AssignmentExpression),leftChild(std::move(left)), rightChild(std::move(right)){}
 ASTUnaryExpression::ASTUnaryExpression(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTExpressionNode(type),child(std::move(child)){}
 //-----------------------------------------------------------------------------------------------------------------
@@ -96,7 +96,9 @@ std::optional<double> ASTOperationExpressionNode::acceptEvaluation(ASTEvaluator&
         return leftExpr.value() * rightExpr.value();
     } else if(type== ASTNode::DivOperator){
         if(rightExpr == 0){
-            sourceCodeReference.printContext("error: division by zero!");
+            sourceCodeManagement::SourceCodeManager defaultManager = sourceCodeManagement::SourceCodeManager();
+            SourceCodeReference a = SourceCodeReference (defaultManager);
+            a.printContext("error: division by zero!");
             return {}; //abort compilation
         }
         return leftExpr.value() / rightExpr.value();

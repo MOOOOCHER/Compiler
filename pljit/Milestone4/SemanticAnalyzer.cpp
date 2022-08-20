@@ -148,13 +148,13 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
             auto astSndExpr = getChild(&SemanticAnalyzer::analyzeExpression, children[2].get());
             if(!astFirstExpr || !astSndExpr) return nullptr;
             else if(operatorType == NodeType::PlusOperator){
-                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::PlusOperator,std::move(astFirstExpr),std::move(astSndExpr), parseNode.getReference());
+                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::PlusOperator,std::move(astFirstExpr),std::move(astSndExpr));
             }else if(operatorType == NodeType::MinusOperator) {
-                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::MinusOperator,std::move(astFirstExpr),std::move(astSndExpr), parseNode.getReference());
+                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::MinusOperator,std::move(astFirstExpr),std::move(astSndExpr));
             }else if(operatorType == NodeType::MulOperator){
-                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::MulOperator,std::move(astFirstExpr),std::move(astSndExpr), parseNode.getReference());
+                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::MulOperator,std::move(astFirstExpr),std::move(astSndExpr));
             }else if(operatorType == NodeType::DivOperator){
-                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::DivOperator,std::move(astFirstExpr),std::move(astSndExpr), parseNode.getReference());
+                return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::DivOperator,std::move(astFirstExpr),std::move(astSndExpr));
             }
         }
     } else if(parseType == NodeType::UnaryExpression){
@@ -174,8 +174,9 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
         return analyzeExpression(expr);
     } else if(parseType == NodeType::PrimaryExpression){
         if(children.size() > 1){
-            //case (expr)
-            return getChild(&SemanticAnalyzer::analyzeExpression, children[1].get());
+            //case (expr), has to be treated differently due to evaluation association optimization
+            return std::make_unique<ASTUnaryExpression>(ASTNode::ASTNodeType::UnaryPlus, getChild(&SemanticAnalyzer::analyzeExpression, children[1].get()));
+            //return getChild(&SemanticAnalyzer::analyzeExpression, children[1].get());
         } else {
             if(children[0]->getType() == NodeType::Identifier){
                 //case identifier
