@@ -92,41 +92,41 @@ Token Tokenizer::next(const std::string_view& sourceCode) {
             current+=c;
             switch (c) {
                 case '.':{
-                    return {SourceCodeReference(startingPos,manager), TokenTypes::Dot};
+                    return SeparatorToken{SourceCodeReference(startingPos,manager), TokenTypes::Dot};
                 }
                 case ';':{
-                    return {SourceCodeReference(startingPos,manager), TokenTypes::Semicolon};
+                    return SeparatorToken{SourceCodeReference(startingPos,manager), TokenTypes::Semicolon};
                 }
                 case ',':{
-                    return {SourceCodeReference(startingPos,manager), TokenTypes::Comma};
+                    return SeparatorToken{SourceCodeReference(startingPos,manager), TokenTypes::Comma};
                 }
                 case '+':{
-                    return {SourceCodeReference(startingPos,manager), TokenTypes::PlusOperator};
+                    return OperatorToken{SourceCodeReference(startingPos,manager), TokenTypes::PlusOperator};
                 }
                 case '-':{
-                    return {SourceCodeReference(startingPos,manager),TokenTypes::MinusOperator};
+                    return OperatorToken{SourceCodeReference(startingPos,manager),TokenTypes::MinusOperator};
                 }
                 case '/':{
-                    return {SourceCodeReference(startingPos,manager),TokenTypes::DivOperator};
+                    return OperatorToken{SourceCodeReference(startingPos,manager),TokenTypes::DivOperator};
                 }
                 case '*':{
-                    return {SourceCodeReference(startingPos,manager),TokenTypes::MulOperator};
+                    return OperatorToken{SourceCodeReference(startingPos,manager),TokenTypes::MulOperator};
                 }
                 case ':':{
                     break;
                 }
                 case '=':{
                     if(current == ":="){
-                        return {SourceCodeReference(startingPos,manager,2),TokenTypes::AssignEquals};
+                        return OperatorToken{SourceCodeReference(startingPos,manager,2),TokenTypes::AssignEquals};
                     } else{
-                        return {SourceCodeReference(startingPos,manager),TokenTypes::InitEquals};
+                        return OperatorToken{SourceCodeReference(startingPos,manager),TokenTypes::InitEquals};
                     }
                 }
                 case '(':{
-                    return {SourceCodeReference(startingPos,manager),TokenTypes::OpenBracket};
+                    return SeparatorToken{SourceCodeReference(startingPos,manager),TokenTypes::OpenBracket};
                 }
                 case ')':{
-                    return {SourceCodeReference(startingPos, manager), TokenTypes::CloseBracket};
+                    return SeparatorToken{SourceCodeReference(startingPos, manager), TokenTypes::CloseBracket};
                 }
                 default:{
                    continue;
@@ -141,26 +141,26 @@ Token Tokenizer::next(const std::string_view& sourceCode) {
     if(!current.empty()){
         if(current =="PARAM"){
             //the position of the last character of the string is the given argument (line,linePos)
-            return {SourceCodeReference(startingPos, manager, current.size()), TokenTypes::PARAM};
+            return KeywordToken{SourceCodeReference(startingPos, manager, current.size()), TokenTypes::PARAM};
         } else if (current=="VAR"){
-            return {SourceCodeReference(startingPos, manager, current.size()), TokenTypes::VAR};
+            return KeywordToken{SourceCodeReference(startingPos, manager, current.size()), TokenTypes::VAR};
         }
         else if (current=="CONST"){
-            return {SourceCodeReference(startingPos, manager, current.size()), TokenTypes::CONST};
+            return KeywordToken{SourceCodeReference(startingPos, manager, current.size()), TokenTypes::CONST};
         }
         else if (current=="BEGIN"){
-            return {SourceCodeReference(startingPos, manager, current.size()), TokenTypes::BEGIN};
+            return KeywordToken{SourceCodeReference(startingPos, manager, current.size()), TokenTypes::BEGIN};
         }
         else if (current=="END"){
-            return {SourceCodeReference(startingPos, manager, current.size()), TokenTypes::END};
+            return KeywordToken{SourceCodeReference(startingPos, manager, current.size()), TokenTypes::END};
         }
         else if (current=="RETURN"){
-            return {SourceCodeReference(startingPos, manager, current.size()), TokenTypes::RETURN};
+            return KeywordToken{SourceCodeReference(startingPos, manager, current.size()), TokenTypes::RETURN};
         }else if(hasOnlyDigits(current)){
             //if there are only digit it has to be a literal
-            return {SourceCodeReference(startingPos, manager, current.size()), TokenTypes::Literal};
-        } else{
-            return {SourceCodeReference(startingPos, manager, current.size()), TokenTypes::Identifier};
+            return LiteralToken{SourceCodeReference(startingPos, manager, current.size())};
+        } else if(hasOnlyLetters(current)){
+            return IdentifierToken{SourceCodeReference(startingPos, manager, current.size())};
         }
     }
     auto s = SourceCodeReference(position,manager);

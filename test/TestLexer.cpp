@@ -26,11 +26,13 @@ TEST(TestLexer, InvalidSymbol) {
 
 }
 TEST(TestLexer, InvalidSymbol2) {
-    std::string_view view("VAR\n\n hello_bye.");
+    std::string_view view("VAR\n\n hello:bye.");
     SourceCodeManager manager(view);
     Tokenizer tokenizer = Tokenizer(manager);
     auto token = tokenizer.next();
     EXPECT_EQ(token.getType(), lexer::TokenTypes::VAR);
+    token = tokenizer.next();
+    EXPECT_EQ(token.getType(), lexer::TokenTypes::Identifier);
     token = tokenizer.next();
     EXPECT_EQ(token.getType(), lexer::TokenTypes::Invalid);
 }

@@ -28,12 +28,12 @@ using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
         BEGIN,
         END,
     };
-    //TODO: More token classes
 /*
  * class for tokens
  */
 class Token{
     friend class Tokenizer;
+    protected:
     SourceCodeReference sourceCodeReference;
     TokenTypes type;
     public:
@@ -44,10 +44,30 @@ class Token{
     /*
      * constructs a token with a reference to the code with a token type
      */
-    Token(SourceCodeReference  characters, TokenTypes type);
+    Token(SourceCodeReference characters, TokenTypes type);
 
     TokenTypes getType() const;
     SourceCodeReference getSourceCodeReference() const{ return sourceCodeReference;}
+};
+class IdentifierToken: public Token{
+    public:
+    IdentifierToken(SourceCodeReference characters): Token(characters,TokenTypes::Identifier){}
+};
+class LiteralToken: public Token{
+    public:
+    LiteralToken(SourceCodeReference characters): Token(characters,TokenTypes::Literal){}
+};
+class SeparatorToken: public Token{
+    public:
+    SeparatorToken(SourceCodeReference characters, TokenTypes type): Token(characters,type){}
+};
+class OperatorToken: public Token{
+    public:
+    OperatorToken(SourceCodeReference characters, TokenTypes type): Token(characters,type){}
+};
+class KeywordToken: public Token{
+    public:
+    KeywordToken(SourceCodeReference characters, TokenTypes type): Token(characters,type){}
 };
 /*
  * class for Tokenizing the source code
