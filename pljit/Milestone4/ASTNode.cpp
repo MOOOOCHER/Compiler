@@ -62,7 +62,7 @@ void ASTUnaryExpression::accept(ASTTreeVisitor& visitor) const {
     visitor.visit(*this);
 }
 //Evaluation-------------------------------------------------------------------
-std::optional<double> ASTFunctionNode::acceptEvaluation(ASTEvaluator& visitor)  {
+std::optional<double> ASTFunctionNode::acceptEvaluation(ASTEvaluator& visitor) const {
     for(auto& child: children){
         auto astChild = child->acceptEvaluation(visitor);
         if(!astChild.has_value()) return {};
@@ -73,21 +73,21 @@ std::optional<double> ASTFunctionNode::acceptEvaluation(ASTEvaluator& visitor)  
     std::cout<<"something has gone wrong!"<<std::endl;
     return {};
 }
-std::optional<double> ASTIdentifierNode::acceptEvaluation(ASTEvaluator& visitor)  {
+std::optional<double> ASTIdentifierNode::acceptEvaluation(ASTEvaluator& visitor) const {
         //we are in the statement evaluation phase => return value for variable
         return visitor.variables[value];
 }
-std::optional<double> ASTLiteralNode::acceptEvaluation(ASTEvaluator&) {
+std::optional<double> ASTLiteralNode::acceptEvaluation(ASTEvaluator&) const{
     return value;
 }
 
-std::optional<double> ASTReturnStatementNode::acceptEvaluation(ASTEvaluator& visitor)  {
+std::optional<double> ASTReturnStatementNode::acceptEvaluation(ASTEvaluator& visitor) const {
     return child->acceptEvaluation(visitor);
 }
-std::optional<double> ASTAssignmentStatementNode::acceptEvaluation(ASTEvaluator& visitor)  {
+std::optional<double> ASTAssignmentStatementNode::acceptEvaluation(ASTEvaluator& visitor) const {
     return child->acceptEvaluation(visitor);
 }
-std::optional<double> ASTOperationExpressionNode::acceptEvaluation(ASTEvaluator& visitor)  {
+std::optional<double> ASTOperationExpressionNode::acceptEvaluation(ASTEvaluator& visitor) const {
     auto leftExpr = leftChild->acceptEvaluation(visitor);
     auto rightExpr = rightChild->acceptEvaluation(visitor);
     if(!leftExpr.has_value() || !rightExpr.has_value()){
@@ -111,7 +111,7 @@ std::optional<double> ASTOperationExpressionNode::acceptEvaluation(ASTEvaluator&
         return -1;
     }
 }
-std::optional<double> ASTAssignmentExpression::acceptEvaluation(ASTEvaluator& visitor)  {
+std::optional<double> ASTAssignmentExpression::acceptEvaluation(ASTEvaluator& visitor) const {
     if(leftChild->getType() == ASTNode::Variable ||leftChild->getType() == ASTNode::Parameter ){
         auto astLeft = static_cast<ASTIdentifierNode*>(leftChild.get());
         auto rightLiteral = rightChild->acceptEvaluation(visitor);
@@ -121,7 +121,7 @@ std::optional<double> ASTAssignmentExpression::acceptEvaluation(ASTEvaluator& vi
     }
     return {};
 }
-std::optional<double> ASTUnaryExpression::acceptEvaluation(ASTEvaluator& visitor)  {
+std::optional<double> ASTUnaryExpression::acceptEvaluation(ASTEvaluator& visitor) const {
     auto result = child->acceptEvaluation(visitor);
     if(result.has_value() && type == ASTNode::UnaryMinus){
         result.value() *= -1;

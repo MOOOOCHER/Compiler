@@ -34,37 +34,37 @@ class Token{
     protected:
     SourceCodeReference sourceCodeReference;
     TokenTypes type;
+    /*
+     * constructs a token with a reference to the code with a token type
+     */
+    Token(SourceCodeReference characters, TokenTypes type);
     public:
     /*
      * constructs a "default" token pointing to the last character of the code
      */
     explicit Token(sourceCodeManagement::SourceCodeManager& manager);
-    /*
-     * constructs a token with a reference to the code with a token type
-     */
-    Token(SourceCodeReference characters, TokenTypes type);
 
     TokenTypes getType() const;
     SourceCodeReference getSourceCodeReference() const{ return sourceCodeReference;}
 };
 class IdentifierToken: public Token{
-    public:
+    friend class Tokenizer;
     explicit IdentifierToken(SourceCodeReference characters);
 };
 class LiteralToken: public Token{
-    public:
+    friend class Tokenizer;
     explicit LiteralToken(SourceCodeReference characters);
 };
 class SeparatorToken: public Token{
-    public:
+    friend class Tokenizer;
     SeparatorToken(SourceCodeReference characters, TokenTypes type);
 };
 class OperatorToken: public Token{
-    public:
+    friend class Tokenizer;
     OperatorToken(SourceCodeReference characters, TokenTypes type);
 };
 class KeywordToken: public Token{
-    public:
+    friend class Tokenizer;
     KeywordToken(SourceCodeReference characters, TokenTypes type);
 };
 /*
