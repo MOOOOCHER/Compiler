@@ -31,11 +31,25 @@ TEST(TestParser, ExpectFunctionDefinitionValid){
     result = setup("CONST c= 0; BEGIN a := 1 END.");
     ASSERT_NE(result, nullptr);
     EXPECT_EQ(result->getChildren().size(), 3);
+    result = setup("VAR b; BEGIN a := 1 END.");
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 3);
+    result = setup("PARAM a; BEGIN a := 1 END.");
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 3);
     result = setup("VAR b; CONST c= 0; BEGIN a := 1 END.");
     ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 4);
+    result = setup("PARAM a; VAR b; BEGIN a := 1 END.");
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 4);
+    result = setup("PARAM a; CONST c= 0; BEGIN a := 1 END.");
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->getChildren().size(), 4);
     result = setup("PARAM a; VAR b; CONST c= 0; BEGIN a := 1 END.");
     ASSERT_NE(result, nullptr);
     EXPECT_EQ(result->getChildren().size(), 5);
+
 }
 TEST(TestParser, ExpectFunctionDefinitionInvalid){
     std::cout << "Testing invalid function definition declarator:" << std::endl;
@@ -44,6 +58,9 @@ TEST(TestParser, ExpectFunctionDefinitionInvalid){
     checkInvalid("VAR b; PARAM a; CONST c= 0; BEGIN a := 1 END.");
     checkInvalid("CONST c= 0; VAR b;  BEGIN a := 1 END.");
     checkInvalid("CONST c= 0; PARAM b;  BEGIN a := 1 END.");
+    checkInvalid("PARAM a,b; CONST c= 0;");
+    checkInvalid("PARAM a,b;");
+    checkInvalid("VAR a,b;");
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectCompoundStatementValid){
@@ -62,6 +79,9 @@ TEST(TestParser, ExpectCompoundStatementValid){
     EXPECT_EQ(children.size(), 2);
     EXPECT_EQ(children[0]->getType(), Node::Types::CompoundStatement);
     EXPECT_EQ(children[1]->getType(), Node::Types::Dot);
+
+    result = setup("BEGIN RETURN 1; a:=1 END.");
+    ASSERT_NE(result, nullptr);
 }
 TEST(TestParser, ExpectCompoundStatementInvalid){
     std::cout << "Testing invalid compound statement declarator:" << std::endl;
@@ -69,6 +89,8 @@ TEST(TestParser, ExpectCompoundStatementInvalid){
     checkInvalid("BEGIN RETURN 1 .");
     checkInvalid("BEGIN END.");
     checkInvalid("VAR a; RETURN 1 END.");
+    checkInvalid("VAR a; BEGIN a:=1; RETURN 1;END.");
+    checkInvalid("VAR a; BEGIN a:=1; RETURN 1 a:=1 END.");
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectParamDeclarationValid){
@@ -190,6 +212,7 @@ TEST(TestParser, ExpectPrimaryExpressionInvalid){
     checkInvalid("BEGIN RETURN END.");
     checkInvalid("BEGIN RETURN * END.");
     checkInvalid("BEGIN RETURN 1234); END.");
+    checkInvalid("BEGIN RETURN 1234");
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestParser, ExpectUnaryExpressionValid){
@@ -206,6 +229,7 @@ TEST(TestParser, ExpectUnaryExpressionInvalid){
     std::cout << "Testing invalid unary expression:" << std::endl;
     checkInvalid("BEGIN RETURN -(identifier END.");
     checkInvalid("BEGIN RETURN +(1234 END.");
+    checkInvalid("BEGIN RETURN --(1234) END.");
     checkInvalid("BEGIN RETURN --(1234) END.");
     checkInvalid("BEGIN RETURN ++1234 END.");
     std::cout << "=========================================================" << std::endl;
@@ -298,9 +322,12 @@ TEST(TestParser, ExpectComplexFunctionDefinitionValid){
     ASSERT_NE(result, nullptr);
     EXPECT_EQ(result->getChildren().size(), 5);
     //do it again for printing
-    //result = setup("PARAM width, height, depth;\nVAR volume;\nCONST density = 2400;\nBEGIN\nvolume :=width * height * depth;\nRETURN density*volume\nEND.");
-    //auto visitor = parser::ParseTreePrintVisitor();
-    //visitor.printTree(*result);
+    /*result = setup("PARAM width, height, depth;\nVAR volume;\nCONST density = 2400;\nBEGIN\nvolume :=width * height * depth;\nRETURN density*volume\nEND.");
+    auto visitor = parser::ParseTreePrintVisitor();
+    visitor.printTree(*result);
+    result = setup("PARAM first, second;\nVAR third;\nCONST fourth = 2400;\nBEGIN\nthird :=first +12+100*first-(+height * -depth*10)+100;\nRETURN third*second +(100+first*(-fourth))\nEND.");
+    visitor = parser::ParseTreePrintVisitor();
+    visitor.printTree(*result);*/
 }
 
 

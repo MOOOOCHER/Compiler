@@ -2,8 +2,6 @@
 #define PLJIT_TOKEN_H
 #include "../Milestone1/SourceCodeManager.h"
 #include <string>
-#include <utility>
-#include <vector>
 namespace lexer {
 using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
     enum class TokenTypes {

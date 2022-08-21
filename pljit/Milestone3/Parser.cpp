@@ -10,18 +10,11 @@ void Parser::printErrorMsg(Token& token, std::string_view msg){
         token.getSourceCodeReference().printContext(msg);
 }
 static std::string returnCorrectGenericForErrorMsg(TokenTypes type){
-    switch(type){
+    switch(type){   //can be easily extended
         case lexer::TokenTypes::Dot: return "'.'";
-        case TokenTypes::Comma: return "','";
         case TokenTypes::Semicolon: return "';'";
         case TokenTypes::InitEquals: return "'='";
         case TokenTypes::AssignEquals: return "':='";
-        case TokenTypes::OpenBracket: return "'('";
-        case TokenTypes::CloseBracket: return "')'";
-        case TokenTypes::PlusOperator: return "'+'";
-        case TokenTypes::MinusOperator: return "'-'";
-        case TokenTypes::MulOperator: return "'*'";
-        case TokenTypes::DivOperator: return "'/'";
         case TokenTypes::END: return "'END'";
         default: return "";
     }
@@ -59,14 +52,14 @@ bool Parser::refactorDeclList(auto (Parser::*func)(), std::vector<std::unique_pt
 }
 bool Parser::refactorDeclaration(auto (Parser::*func)(), Node::Types startingKeyword, TokenTypes endingKeyword, std::vector<std::unique_ptr<Node>>& childVec){
     //we only get in here if the check was successful
-    if(startingKeyword == Node::BEGIN){
-        childVec.push_back(std::make_unique<BeginNode>(backtrackToken.getSourceCodeReference()));
+    if(startingKeyword == Node::PARAM){
+        childVec.push_back(std::make_unique<ParameterKeywordNode>(backtrackToken.getSourceCodeReference()));
     }else if(startingKeyword == Node::VAR){
         childVec.push_back(std::make_unique<VariableKeywordNode>(backtrackToken.getSourceCodeReference()));
     }else if(startingKeyword == Node::CONST){
         childVec.push_back(std::make_unique<ConstantKeywordNode>(backtrackToken.getSourceCodeReference()));
-    }else if(startingKeyword == Node::PARAM){
-        childVec.push_back(std::make_unique<ParameterKeywordNode>(backtrackToken.getSourceCodeReference()));
+    }else {
+        childVec.push_back(std::make_unique<BeginNode>(backtrackToken.getSourceCodeReference()));
     }
 
     resetBacktrackToken();
@@ -79,7 +72,8 @@ bool Parser::refactorDeclaration(auto (Parser::*func)(), Node::Types startingKey
         childVec.push_back(std::move(declList));
         if(endingKeyword == lexer::TokenTypes::END){
             childVec.push_back(std::make_unique<EndNode>(backtrackToken.getSourceCodeReference()));
-        }else if(endingKeyword == lexer::TokenTypes::Semicolon){
+        }else {
+            //we would always have a semicolon in this case
             childVec.push_back(std::make_unique<SemicolonNode>(backtrackToken.getSourceCodeReference()));
         }
         resetBacktrackToken();
@@ -135,7 +129,7 @@ bool Parser::refactorExpression(auto (Parser::*func1)(),auto (Parser::*func2)(),
 
 std::unique_ptr<IdentifierNode> Parser::expectIdentifierNode(){
     if(!tokenizer.hasNext()){
-        printDefaultErrorMsg( "error: an identifier is expected!");
+        printDefaultErrorMsg( "error: an identifier is expected afterwards!");
         return nullptr;
     }
     auto token = tokenizer.next();
@@ -151,7 +145,7 @@ std::unique_ptr<IdentifierNode> Parser::expectIdentifierNode(){
 
 std::unique_ptr<LiteralNode> Parser::expectLiteralNode(){
     if(!tokenizer.hasNext()){
-        printDefaultErrorMsg("error: a literal is expected!");
+        printDefaultErrorMsg("error: a literal is expected afterwards!");
         return nullptr;
     }
     auto token = tokenizer.next();
@@ -171,7 +165,7 @@ std::unique_ptr<LiteralNode> Parser::expectLiteralNode(){
 
 std::unique_ptr<TerminalNode> Parser::expectGenericNode(TokenTypes type){
     if(!tokenizer.hasNext()){
-        printDefaultErrorMsg("error: expected"+returnCorrectGenericForErrorMsg(type));
+        printDefaultErrorMsg("error: expected"+returnCorrectGenericForErrorMsg(type) + "afterwards");
         return nullptr;
     }
     auto token = tokenizer.next();
@@ -199,7 +193,10 @@ std::unique_ptr<FunctionDefinitionNode> Parser::expectFunctionDefinition(){
     auto addParseNode = [this,&childVec, &token](auto func){
         backtrackToken = token;
         auto child = (this->*func)();
-        if(!child ||!tokenizer.hasNext()){
+        if(!child){
+            return false;
+        } else if( !tokenizer.hasNext()){
+            printDefaultErrorMsg("error: compound statement is expected afterwards!");
             return false;
         }
         childVec.push_back(std::move(child));
@@ -211,11 +208,16 @@ std::unique_ptr<FunctionDefinitionNode> Parser::expectFunctionDefinition(){
         return true;
     };
 
-    if(token.getType() == TokenTypes::Invalid
-        || (token.getType() == TokenTypes::PARAM && !addParseNode(&Parser::expectParameterDeclaration))
-        || (token.getType() == TokenTypes::VAR && !addParseNode(&Parser::expectVariableDeclaration))
-        || (token.getType() == TokenTypes::CONST && !addParseNode(&Parser::expectConstantDeclaration))){
+    if(token.getType() == TokenTypes::Invalid){
         return nullptr;
+    } else if (token.getType() == TokenTypes::PARAM){
+        if(!addParseNode(&Parser::expectParameterDeclaration))return nullptr;
+    }
+    if(token.getType() == TokenTypes::VAR){
+        if(!addParseNode(&Parser::expectVariableDeclaration))return nullptr;
+    }
+    if(token.getType() == TokenTypes::CONST){
+        if(!addParseNode(&Parser::expectConstantDeclaration))return nullptr;
     }
     if (token.getType() != TokenTypes::BEGIN){
         if(token.getType() == lexer::TokenTypes::Identifier){
@@ -496,7 +498,7 @@ std::unique_ptr<PrimaryExpressionNode> Parser::expectPrimaryExpression(){
         childVec.push_back(std::make_unique<CloseBracketNode>(token2.getSourceCodeReference()));
         return std::make_unique<PrimaryExpressionNode>(std::move(childVec));
     }else{
-        printErrorMsg(token, "error: an expression is expected!");
+        printErrorMsg(token, "error: invalid expression!");
         return nullptr;
     }
 }
