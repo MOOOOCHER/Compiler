@@ -21,6 +21,10 @@ class SourceCodeReference{
      * this function returns the corresponding line and position within the line for a given pointer to the source code
      */
     std::pair<size_t ,size_t> resolveLocation() const;
+    /*
+     * this function returns the corresponding line of the source code
+     */
+    std::string getLineString(size_t line) const;
     public:
     /*
      * This function takes an error message and the length of the marked string (if >1 then we have a range)

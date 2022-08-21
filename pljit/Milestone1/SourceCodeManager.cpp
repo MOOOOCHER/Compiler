@@ -8,7 +8,6 @@ namespace sourceCodeManagement{
             positionInCode = manager.source.size()-1;
         }
     }
-
     SourceCodeReference::SourceCodeReference(const SourceCodeReference& other) = default;
     SourceCodeReference& SourceCodeReference::operator=(const SourceCodeReference& other){
         if(&other!= this){
@@ -18,7 +17,6 @@ namespace sourceCodeManagement{
         }
         return *this;
     }
-
     SourceCodeReference::SourceCodeReference(SourceCodeReference&& other)noexcept: positionInCode(other.positionInCode),manager(other.manager), lengthOfString(other.lengthOfString){
         other.positionInCode = 0;
         other.lengthOfString = 0;
@@ -33,9 +31,7 @@ namespace sourceCodeManagement{
         other.lengthOfString = 0;
         return *this;
     }
-    /*
-     * this function returns the corresponding line and position within the line for a given pointer to the source code
-     */
+
     std::pair<size_t ,size_t> SourceCodeReference::resolveLocation() const{
         size_t line = 1;
         size_t linePos = 1;
@@ -52,6 +48,21 @@ namespace sourceCodeManagement{
         }
         return {};
     }
+    std::string SourceCodeReference::getLineString(size_t line) const {
+        std::string ret = "";
+        size_t index = 1;
+        for(const char& c: manager.source){
+            if(index == line && c!='\n'){
+                ret+=c;
+            }
+            if(c=='\n'){
+                ++index;
+            } else if (index>line){
+                break;
+            }
+        }
+        return ret;
+    }
     void SourceCodeReference::printContext(std::string_view errorMsg) const {
         if(manager.source.empty()) {
             //in case of messages without a location
@@ -61,26 +72,21 @@ namespace sourceCodeManagement{
         std::pair<size_t,size_t> position = resolveLocation();
         //getContext
         std::cout << position.first<<":"<<position.second<<": " << errorMsg<<std::endl;
-        std::cout << "\t";
-        size_t line = 1;
-        for(const char& c: manager.source){
-            if(line == position.first && c!='\n'){
-                std::cout<< c;
-            }
-            if(c=='\n'){
-                ++line;
-            } else if (line>position.first){
-                break;
-            }
-        }
-        size_t pos = 1;
-        std::cout<< std::endl;
-        std::cout << "\t";
+        std::cout << "\t| ";
+        std::string lineCode = getLineString(position.first);
+        std::cout << lineCode <<std::endl;
 
+        std::cout << "\t  ";
+        size_t pos = 1;
         while(pos<position.second){
-            std::cout<< " ";
+            if(lineCode[pos-1] == '\t'){
+                std::cout<< "\t";
+            }else{
+                std::cout<< " ";
+            }
             ++pos;
         }
+
 
         std::cout << "^" ;
         size_t len = 2;

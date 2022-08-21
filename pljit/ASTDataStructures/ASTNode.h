@@ -1,9 +1,9 @@
 #ifndef PLJIT_ASTNODE_H
 #define PLJIT_ASTNODE_H
+#include "pljit/Milestone1/SourceCodeManager.h"
 #include <memory>
-#include <vector>
 #include <optional>
-#include "../Milestone1/SourceCodeManager.h"
+#include <vector>
 
 namespace semantic{
     class SemanticAnalyzer;

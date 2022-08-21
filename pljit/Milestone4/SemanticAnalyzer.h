@@ -1,9 +1,9 @@
 #ifndef PLJIT_SEMANTICANALYZER_H
 #define PLJIT_SEMANTICANALYZER_H
-#include "ASTNode.h"
-#include "ASTTree.h"
-#include "ASTSymbolTable.h"
 #include "../Milestone3/Node.h"
+#include "ASTSymbolTable.h"
+#include "pljit/ASTDataStructures/ASTNode.h"
+#include "pljit/ASTDataStructures/ASTTree.h"
 #include <memory>
 namespace semantic{
 class SemanticAnalyzer {

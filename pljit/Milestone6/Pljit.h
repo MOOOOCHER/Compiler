@@ -1,15 +1,15 @@
 #ifndef PLJIT_PLJIT_H
 #define PLJIT_PLJIT_H
-#include <string>
-#include <vector>
-#include <iostream>
-#include <mutex>
-#include "../Milestone4/ASTNode.h"
 #include "../Milestone2/Token.h"
 #include "../Milestone3/Parser.h"
 #include "../Milestone4/SemanticAnalyzer.h"
 #include "../Milestone5/ASTEvaluator.h"
 #include "../Milestone5/OptimizationPass.h"
+#include "pljit/ASTDataStructures/ASTNode.h"
+#include <iostream>
+#include <mutex>
+#include <string>
+#include <vector>
 namespace pljit {
 using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
 using Tokenizer = lexer::Tokenizer;

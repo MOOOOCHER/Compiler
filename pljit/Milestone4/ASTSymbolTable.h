@@ -1,9 +1,9 @@
 #ifndef PLJIT_ASTSYMBOLTABLE_H
 #define PLJIT_ASTSYMBOLTABLE_H
 #include "../Milestone1/SourceCodeManager.h"
-#include "ASTNode.h"
-#include <utility>
+#include "pljit/ASTDataStructures/ASTNode.h"
 #include <unordered_map>
+#include <utility>
 namespace semantic {
 using SourceCodeReference = sourceCodeManagement::SourceCodeReference;
 class SemanticAnalyzer;
@@ -20,19 +20,19 @@ class ASTSymbolTable {
         friend class ASTEvaluator;
         ASTNode::ASTNodeType identifierType;    //only using parameter,constant or variable
         SourceCodeReference sourceCodeReference;
-        std::optional<double> value;
+        std::optional<double> value;    //used for storing constant value that are needed for later
 
         ASTSymbolEntry(ASTNode::ASTNodeType identifierType, SourceCodeReference  sourceCodeReference, std::optional<double> value);
     };
     ASTSymbolTable() = default;
     std::unordered_map<std::string_view, ASTSymbolEntry> table;
     /*
-     * inserts a node into the hashtable
+     * inserts an identifier into the hashtable with a symbol entry
      */
     void insert(const ASTSymbolEntry& node);
     public:
     /*
-     * inserts a node into the hashtable
+     * inserts an identifier into the hashtable
      */
     void insert(ASTNode::ASTNodeType type,  const SourceCodeReference& sourceCodeReference, std::optional<double> value = std::optional<double>());
     /*

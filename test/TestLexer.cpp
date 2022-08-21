@@ -26,7 +26,7 @@ TEST(TestLexer, InvalidSymbol) {
 
 }
 TEST(TestLexer, InvalidSymbol2) {
-    std::string_view view("VAR\n\n hello:bye.");
+    std::string_view view("VAR\n\n   \t\t\t hello:bye.");
     SourceCodeManager manager(view);
     Tokenizer tokenizer = Tokenizer(manager);
     auto token = tokenizer.next();

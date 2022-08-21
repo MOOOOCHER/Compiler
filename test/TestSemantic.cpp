@@ -32,11 +32,13 @@ TEST(TestSemantic, AnalyzeFunctionDoubleDeclaration){
     EXPECT_EQ(result, nullptr);
     result = setup("PARAM a; VAR ab; CONST c= 1, c= 1; BEGIN ab := 1; RETURN ab END.");
     EXPECT_EQ(result, nullptr);
-    result = setup("PARAM ab; VAR ab; BEGIN ab := 1; RETURN ab END.");
+    result = setup("PARAM ab;\n\t VAR ab;\n BEGIN ab := 1; RETURN ab END.");
     EXPECT_EQ(result, nullptr);
     result = setup("PARAM c; VAR ab; CONST c= 1; BEGIN ab := 1; RETURN ab END.");
     EXPECT_EQ(result, nullptr);
     result = setup("PARAM c; VAR ab; CONST ab= 1; BEGIN ab := 1; RETURN ab END.");
+    EXPECT_EQ(result, nullptr);
+    result = setup("PARAM a,b,c,d; VAR e,f,a; CONST ab= 1; BEGIN ab := 1; RETURN ab END.");
     EXPECT_EQ(result, nullptr);
     std::cout << "=========================================================" << std::endl;
 }
@@ -45,6 +47,8 @@ TEST(TestSemantic, AnalyzeFunctionUndeclaredIdentifier){
     auto result = setup("PARAM ab, a; BEGIN c := 1; RETURN c END.");
     EXPECT_EQ(result, nullptr);
     result = setup("PARAM ab, a; BEGIN RETURN c END.");
+    EXPECT_EQ(result, nullptr);
+    result = setup("PARAM ab, a;\n\t BEGIN RETURN (4+1)*a-(ab+a -(ab*2 +c)) -1 END.");
     EXPECT_EQ(result, nullptr);
     result = setup("PARAM ab, a;\n\t BEGIN ab := (4+1)*a-(ab+a -(ab*2 +c)) -1 END.");
     EXPECT_EQ(result, nullptr);
@@ -77,8 +81,12 @@ TEST(TestSemantic, AnalyzeFunctionUninitializedVariable){
 TEST(TestSemantic, AnalyzeFunctionValid){
     auto result = setup("VAR a,b,c,d,e,f,z,g,i,j,ab,aaa ; BEGIN ab := 1 ;RETURN ab END.");
     EXPECT_NE(result, nullptr);
+    auto children = result->getChildren();
+    EXPECT_EQ(children.size(), 2);
     result = setup("PARAM p, pp ,ppp ,pppp; VAR a,b,c,d,e,f,z,g,i,j,ab,aaa ; BEGIN ab := 1 ;RETURN ab END.");
     EXPECT_NE(result, nullptr);
+    children = result->getChildren();
+    EXPECT_EQ(children.size(), 2);
     result = setup("PARAM p, pp ,ppp ,pppp; VAR a,b,c,d,e,f,z,g,i,j,ab,aaa ; CONST ee=1, eee= 2, eeee= 3; BEGIN ab := 1 ;RETURN ab END.");
     EXPECT_NE(result, nullptr);
     result = setup("PARAM p, pp ,ppp ,pppp; VAR a,b,c,d,e,f,z,g,i,j,ab,aaa ; CONST ee=1, eee= 2, eeee= 3; BEGIN ab := 1 ;RETURN ab END.");

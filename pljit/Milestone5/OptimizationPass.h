@@ -1,8 +1,8 @@
 #ifndef PLJIT_OPTIMIZATIONPASS_H
 #define PLJIT_OPTIMIZATIONPASS_H
-#include "../Milestone4/ASTNode.h"
-#include "ASTEvaluator.h"
 #include "../Milestone4/ASTSymbolTable.h"
+#include "ASTEvaluator.h"
+#include "pljit/ASTDataStructures/ASTNode.h"
 namespace semantic{
     class AbstractOptimizationPass {
         protected:

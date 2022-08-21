@@ -1,6 +1,6 @@
 #include "ASTNode.h"
-#include "ASTTreePrintVisitor.h"
-#include "../Milestone5/ASTEvaluator.h"
+#include "pljit/Milestone4/ASTTreePrintVisitor.h"
+#include "pljit/Milestone5/ASTEvaluator.h"
 #include <utility>
 namespace semantic{
 using namespace sourceCodeManagement;
@@ -108,9 +108,8 @@ std::optional<double> ASTOperationExpressionNode::acceptEvaluation(ASTEvaluator&
             return {}; //abort compilation
         }
         return leftExpr.value() / rightExpr.value();
-    } else {
-        return {};// if we were here, something would have gone very wrong
     }
+    return {};// if we were here, something would have gone very wrong
 }
 std::optional<double> ASTAssignmentExpression::acceptEvaluation(ASTEvaluator& visitor) const {
     if(leftChild->getType() == ASTNode::Variable ||leftChild->getType() == ASTNode::Parameter ){

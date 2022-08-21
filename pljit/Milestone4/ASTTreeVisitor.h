@@ -1,6 +1,6 @@
 #ifndef PLJIT_ASTTREEVISITOR_H
 #define PLJIT_ASTTREEVISITOR_H
-#include "ASTNode.h"
+#include "pljit/ASTDataStructures/ASTNode.h"
 namespace semantic{
 class ASTTreeVisitor{
     public:

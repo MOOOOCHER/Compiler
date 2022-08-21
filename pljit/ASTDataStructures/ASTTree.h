@@ -1,14 +1,14 @@
 #ifndef PLJIT_ASTTREE_H
 #define PLJIT_ASTTREE_H
 #include "ASTNode.h"
-#include "ASTSymbolTable.h"
+#include "pljit/Milestone4/ASTSymbolTable.h"
 #include <memory>
 namespace semantic{
-//wrapper class
 class ASTEvaluator;
 class ConstantPropagationPass;
 class DeadCodeEliminationPass;
 class ASTTree {
+//wrapper class used for storing the tree in a pljit handle
     friend class ASTEvaluator;
     friend class ConstantPropagationPass;
     friend class DeadCodeEliminationPass;

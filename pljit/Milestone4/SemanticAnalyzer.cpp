@@ -14,17 +14,17 @@ std::unique_ptr<ASTFunctionNode> SemanticAnalyzer::analyzeFunction(parser::Funct
     if(parseNode.getType() == NodeType::FunctionDefinition){
         std::unique_ptr<ASTFunctionNode> node = std::make_unique<ASTFunctionNode>();
         for(auto& child: parseNode.getChildren()){
-
             if(child->getType() == NodeType::ParameterDeclaration){
                 parser::ParameterDeclarationNode& paramDecl = static_cast<parser::ParameterDeclarationNode&>(*child);
-                if(! analyzeParameterDeclaration(paramDecl)) return nullptr;
+                if(!analyzeParameterDeclaration(paramDecl)) return nullptr;
             } else if(child->getType() == NodeType::VariableDeclaration){
                 parser::VariableDeclarationNode& varDecl = static_cast<parser::VariableDeclarationNode&>(*child);
                 if(!analyzeVariableDeclaration(varDecl)) return nullptr;
-            } else if (child->getType() == NodeType::ConstantDeclaration){
+            } else if(child->getType() == NodeType::ConstantDeclaration){
                 parser::ConstantDeclarationNode& constDecl = static_cast<parser::ConstantDeclarationNode&>(*child);
                 if(!analyzeConstantDeclaration(constDecl)) return nullptr;
             } else if (child->getType() == NodeType::CompoundStatement){
+                //go into compound statement
                 parser::CompoundStatementNode& compStatement = static_cast<parser::CompoundStatementNode&>(*child);
                 auto children = compStatement.getChildren();
                 auto declList = std::move(children[1]);
@@ -42,7 +42,7 @@ std::unique_ptr<ASTFunctionNode> SemanticAnalyzer::analyzeFunction(parser::Funct
                         }
                     }
                     if(!hasReturnStatement) {
-                        parseNode.getReference().printContext("error: missing return statement!");
+                        compStatement.getReference().printContext("error: missing return statement!");
                         return nullptr;
                     }
                     return node;
@@ -176,16 +176,15 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
         if(children.size() > 1){
             //case (expr)
             return std::make_unique<ASTBracketExpression>(getChild(&SemanticAnalyzer::analyzeExpression, children[1].get()));
-        } else {
-            if(children[0]->getType() == NodeType::Identifier){
-                //case identifier
-                parser::IdentifierNode& identifier = static_cast<parser::IdentifierNode&>(*children[0]);
-                return analyzeIdentifier(identifier);
-            } else {
-                //case literal
-                parser::LiteralNode& literal = static_cast<parser::LiteralNode&>(*children[0]);
-                return std::make_unique<ASTLiteralNode>(literal.getValue());
-            }
+        } if(children[0]->getType() == NodeType::Identifier){
+            //case identifier
+            parser::IdentifierNode& identifier = static_cast<parser::IdentifierNode&>(*children[0]);
+            return analyzeIdentifier(identifier);
+        }
+        else {
+            //case literal
+            parser::LiteralNode& literal = static_cast<parser::LiteralNode&>(*children[0]);
+            return std::make_unique<ASTLiteralNode>(literal.getValue());
         }
     }
     return nullptr;
