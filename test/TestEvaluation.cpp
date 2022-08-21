@@ -126,6 +126,7 @@ TEST(TestEvaluation, ValidEvaluationTestAssociativity){
     evaluate(std::vector<double>{10,1},"PARAM a,b; CONST c=1; BEGIN a:=a+c ;RETURN a+c-(b-c) END.",12);
     evaluate(std::vector<double>{50,2},"PARAM a,b; VAR c; BEGIN c:=2+b ;RETURN a-(b+1+1+1) - b+ c END.",47);
     evaluate(std::vector<double>{3,2},"PARAM a,b; VAR c; BEGIN c:=2+b ;RETURN a+b-(2*2/4*3 -3 +c) END.",1);
+    evaluate(std::vector<double>{3,2,10},"PARAM a,b,ab; BEGIN RETURN a+a+(b-2*a*b/10*(3*3+ab)+3)+2*ab END.",8.2);
     evaluate(std::vector<double>{},"BEGIN RETURN 2*2*2/2/2*(1-1+1-1+1*(1-1+1-1+10*10)) END.",200);
 }
 TEST(TestEvaluation, InvalidEvaluation){

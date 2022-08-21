@@ -51,23 +51,23 @@ class Token{
 };
 class IdentifierToken: public Token{
     public:
-    IdentifierToken(SourceCodeReference characters): Token(characters,TokenTypes::Identifier){}
+    explicit IdentifierToken(SourceCodeReference characters);
 };
 class LiteralToken: public Token{
     public:
-    LiteralToken(SourceCodeReference characters): Token(characters,TokenTypes::Literal){}
+    explicit LiteralToken(SourceCodeReference characters);
 };
 class SeparatorToken: public Token{
     public:
-    SeparatorToken(SourceCodeReference characters, TokenTypes type): Token(characters,type){}
+    SeparatorToken(SourceCodeReference characters, TokenTypes type);
 };
 class OperatorToken: public Token{
     public:
-    OperatorToken(SourceCodeReference characters, TokenTypes type): Token(characters,type){}
+    OperatorToken(SourceCodeReference characters, TokenTypes type);
 };
 class KeywordToken: public Token{
     public:
-    KeywordToken(SourceCodeReference characters, TokenTypes type): Token(characters,type){}
+    KeywordToken(SourceCodeReference characters, TokenTypes type);
 };
 /*
  * class for Tokenizing the source code

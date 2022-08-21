@@ -47,6 +47,11 @@ Token::Token(SourceCodeReference  characters, TokenTypes type): sourceCodeRefere
 TokenTypes Token::getType() const{
     return type;
 }
+IdentifierToken::IdentifierToken(SourceCodeReference characters): Token(std::move(characters),TokenTypes::Identifier){}
+LiteralToken::LiteralToken(SourceCodeReference characters): Token(std::move(characters),TokenTypes::Literal){}
+SeparatorToken::SeparatorToken(SourceCodeReference characters, TokenTypes type): Token(std::move(characters),type){}
+OperatorToken::OperatorToken(SourceCodeReference characters, TokenTypes type): Token(std::move(characters),type){}
+KeywordToken::KeywordToken(SourceCodeReference characters, TokenTypes type): Token(std::move(characters),type){}
 //Tokenizer-------------------------------------------------------------------------------------------------------------------------
 Tokenizer::Tokenizer(sourceCodeManagement::SourceCodeManager& manager): manager(manager){}
 bool Tokenizer::isValidToken(std::string tokenText){
@@ -163,7 +168,7 @@ Token Tokenizer::next(const std::string_view& sourceCode) {
             return IdentifierToken{SourceCodeReference(startingPos, manager, current.size())};
         }
     }
-    auto s = SourceCodeReference(position,manager);
+    auto s = SourceCodeReference(startingPos,manager);
     s.printContext("error: invalid character has been used!");
     return {s, TokenTypes::Invalid};
 }
