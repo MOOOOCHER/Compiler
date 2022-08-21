@@ -1,18 +1,18 @@
 #ifndef PLJIT_OPTIMIZATIONPASS_H
 #define PLJIT_OPTIMIZATIONPASS_H
-#include "../Milestone4/ASTSymbolTable.h"
 #include "ASTEvaluator.h"
+#include "pljit/ASTDataStructures/ASTTree.h"
 #include "pljit/ASTDataStructures/ASTNode.h"
 namespace semantic{
     class AbstractOptimizationPass {
         protected:
-        virtual void optimize(ASTTree& node) = 0;
+        virtual void optimize(ASTTree& tree) = 0;
     };
     class DeadCodeEliminationPass: public AbstractOptimizationPass {
         friend class ASTEvaluator;
 
         public:
-        void optimize(ASTTree& node) override;
+        void optimize(ASTTree& tree) override;
     };
     class ConstantPropagationPass: public AbstractOptimizationPass {
         friend class ASTEvaluator;
@@ -24,7 +24,7 @@ namespace semantic{
         std::optional<double> optimizeExpression(ASTNode& node);
 
         public:
-        void optimize(ASTTree& node) override;
+        void optimize(ASTTree& tree) override;
     };
     /*
      * class for turning from right-to-left association to left-to-right association
@@ -34,7 +34,7 @@ namespace semantic{
         void optimizeStatement(ASTNode& node);
         void optimizeExpression(std::unique_ptr<ASTNode> &node);
         public:
-        void optimize(ASTTree& node) override;
+        void optimize(ASTTree& tree) override;
     };
     } // namespace semantic
 #endif //PLJIT_OPTIMIZATIONPASS_H

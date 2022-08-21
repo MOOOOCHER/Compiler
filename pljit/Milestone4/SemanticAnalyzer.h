@@ -8,12 +8,8 @@
 namespace semantic{
 class SemanticAnalyzer {
     ASTSymbolTable table;
-    /*
-     * this function returns the ASTNode for a given non-terminal child parse node.
-     */
-    std::unique_ptr<ASTNode> getChild( auto func, auto child);
-    bool refactorDeclaration(ASTNode::ASTNodeType astChildType,parser::NonTerminalNode& parseNode);
 
+    bool refactorDeclaration(ASTNode::ASTNodeType astChildType,parser::NonTerminalNode& parseNode);
     bool analyzeParameterDeclaration(parser::ParameterDeclarationNode& parseNode);
     bool analyzeVariableDeclaration(parser::VariableDeclarationNode& parseNode);
     bool analyzeConstantDeclaration(parser::ConstantDeclarationNode& parseNode);

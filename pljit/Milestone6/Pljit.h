@@ -40,7 +40,7 @@ class PljitHandle{
     Pljit::PljitStatus& jit;
     mutable std::mutex mutex;
 
-    explicit PljitHandle(Pljit::PljitStatus& jit): jit(jit){}
+    explicit PljitHandle(Pljit::PljitStatus& jit);
 
     public:
     template <std::floating_point ... Args>
@@ -49,11 +49,10 @@ class PljitHandle{
             std::cout << "Please insert code!" << std::endl;
             return {};
         }
-
         {
             //synchronization is only used for compiling the program
-            // we don't need synchronization for evaluation, since we then only have a read-only on the handle
-            // (more specifically: the SymbolTable of the ASTTree within PljitStatus)
+            // we don't need synchronization for evaluation, since we then only have a read-only on the handle, (more specifically: the SymbolTable of the ASTTree within PljitStatus)
+            // the lock is needed here in order to avoid threads unnecessarily compiling the function again after waiting for the compilation process in a different thread.
             std::unique_lock lock(mutex);
             if (jit.astNode == nullptr) {
                 //compile new
@@ -82,7 +81,7 @@ class PljitHandle{
         }
         std::vector<double> vec = {args...};
         ASTEvaluator evaluator = ASTEvaluator();
-        return evaluator.evaluateFunction(vec,*jit.astNode); // the ast tree will not be modified in the evaluation, hence no need of synchronization
+        return evaluator.evaluateFunction(vec,*jit.astNode); // the ast tree will not be modified in the evaluation, hence no need of synchronization (tradeoff: speed vs memory space)
     }
 };
 } // namespace pljit

@@ -60,6 +60,8 @@ TEST(TestSemantic, AnalyzeFunctionAssignToConstant){
     std::cout << "Testing assign to constant:" << std::endl;
     auto result = setup("CONST a = 1; BEGIN a := 2; RETURN a END.");
     EXPECT_EQ(result, nullptr);
+    result = setup("PARAM ab, a;CONST c = 1; BEGIN a := 2; c:=ab+a; RETURN a END.");
+    EXPECT_EQ(result, nullptr);
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestSemantic, AnalyzeFunctionNoReturn){

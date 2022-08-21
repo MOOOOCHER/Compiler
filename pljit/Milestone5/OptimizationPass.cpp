@@ -1,8 +1,9 @@
 #include "OptimizationPass.h"
+
 namespace semantic{
-    void DeadCodeEliminationPass::optimize(ASTTree& node) {
-        if(node.root->getType() == ASTNode::FunctionDefinition){
-            auto& functionDefinition = static_cast<ASTFunctionNode&>(*node.root);
+    void DeadCodeEliminationPass::optimize(ASTTree& tree) {
+        if(tree.root->getType() == ASTNode::FunctionDefinition){
+            auto& functionDefinition = static_cast<ASTFunctionNode&>(*tree.root);
             while(true){
                 //start removing statements from the end until return statement is reached
                 if(functionDefinition.children[functionDefinition.children.size()-1]->getType() == ASTNode::ReturnStatement){
@@ -13,16 +14,16 @@ namespace semantic{
         }
     }
     //ConstantPropagation---------------------------------------------------------------------------------------------------------
-    void ConstantPropagationPass::optimize(ASTTree& node) {
-        for(auto& [name,entry]: node.table.table){
+    void ConstantPropagationPass::optimize(ASTTree& tree) {
+        for(auto& [name,entry]: tree.table.table){
             //get constant values and add them into the map
             if(entry.identifierType== ASTNode::Constant){
                 variables.insert(std::pair<std::string_view,double>(name,entry.value.value()));
             }
 
         }
-        if(node.root->getType() == ASTNode::FunctionDefinition){
-            auto& functionDefinition = static_cast<ASTFunctionNode&>(*node.root);
+        if(tree.root->getType() == ASTNode::FunctionDefinition){
+            auto& functionDefinition = static_cast<ASTFunctionNode&>(*tree.root);
             for(auto& child: functionDefinition.children){
                 optimizeStatement(*child);
             }
@@ -114,10 +115,10 @@ namespace semantic{
         }
         return {};
     }
-
-    void AssociationPass::optimize(ASTTree& node) {
-        if(node.root->getType() == ASTNode::FunctionDefinition){
-            auto& functionDefinition = static_cast<ASTFunctionNode&>(*node.root);
+    //AssociationPass----------------------------------------------------------------------
+    void AssociationPass::optimize(ASTTree& tree) {
+        if(tree.root->getType() == ASTNode::FunctionDefinition){
+            auto& functionDefinition = static_cast<ASTFunctionNode&>(*tree.root);
             for(auto& child: functionDefinition.children){
                 optimizeStatement(*child);
             }

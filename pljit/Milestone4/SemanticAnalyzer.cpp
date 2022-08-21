@@ -6,10 +6,6 @@ std::unique_ptr<ASTTree> SemanticAnalyzer::analyzeSemantic(parser::FunctionDefin
     auto child = analyzeFunction(parseNode);
     return std::make_unique<ASTTree>(std::move(child),std::move(table));
 }
-std::unique_ptr<ASTNode> SemanticAnalyzer::getChild(auto func, auto child){
-    parser::NonTerminalNode& nonTerminalNode = static_cast<parser::NonTerminalNode&>(*child);
-    return std::move((this->*func)(nonTerminalNode));
-}
 std::unique_ptr<ASTFunctionNode> SemanticAnalyzer::analyzeFunction(parser::FunctionDefinitionNode& parseNode){
     if(parseNode.getType() == NodeType::FunctionDefinition){
         std::unique_ptr<ASTFunctionNode> node = std::make_unique<ASTFunctionNode>();
@@ -115,8 +111,8 @@ bool SemanticAnalyzer::analyzeInitIdentifier(ASTNode::ASTNodeType type, parser::
 //-----------------------------------------------------------------------------------------------------------------------------
 std::unique_ptr<ASTStatementNode> SemanticAnalyzer::analyzeStatement(parser::StatementNode& parseNode){
     auto returnASTStatement = [this](auto child) -> std::unique_ptr<ASTNode>{
-        auto childAST = getChild(&SemanticAnalyzer::analyzeExpression, child);
-        return childAST;
+        parser::NonTerminalNode& nonTerminalNode = static_cast<parser::NonTerminalNode&>(*child);
+        return analyzeExpression(nonTerminalNode);
     };
     auto children = parseNode.getChildren();
     if(children.size() == 2){   //case return expression
@@ -135,18 +131,28 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
     if(parseType == NodeType::AssignmentExpression){
         parser::IdentifierNode& childIdentifier = static_cast<parser::IdentifierNode&>(*children[0]);
         auto identifier = analyzeAssignIdentifier(childIdentifier);
-        auto expression = getChild(&SemanticAnalyzer::analyzeExpression, children[2].get());
-        if(!identifier || !expression) return nullptr;
+        if(!identifier) return nullptr;
+
+        parser::NonTerminalNode& expr = static_cast<parser::NonTerminalNode&>(*children[2]);
+        auto expression = analyzeExpression(expr);
+        if(!expression) return nullptr;
+
         table.get(identifier->getValue()).value = 0;    //set dummy value to make it initialized
         return std::make_unique<ASTAssignmentExpression>(std::move(identifier),std::move(expression));
     } else if(parseType == NodeType::AdditiveExpression || parseType == NodeType::MultiplicativeExpression){
         if(children.size() == 1){    // if we only have one child we can omit this level
-            return getChild(&SemanticAnalyzer::analyzeExpression, children[0].get());
+            parser::NonTerminalNode& childExpr = static_cast<parser::NonTerminalNode&>(*children[0]);
+            return analyzeExpression(childExpr);
         } else {
             auto operatorType = children[1]->getType();
-            auto astFirstExpr = getChild(&SemanticAnalyzer::analyzeExpression, children[0].get());
-            auto astSndExpr = getChild(&SemanticAnalyzer::analyzeExpression, children[2].get());
-            if(!astFirstExpr || !astSndExpr) return nullptr;
+            parser::NonTerminalNode& firstExpr = static_cast<parser::NonTerminalNode&>(*children[0]);
+            auto astFirstExpr = analyzeExpression(firstExpr);
+            if(!astFirstExpr) return nullptr;
+
+            parser::NonTerminalNode& sndExpr = static_cast<parser::NonTerminalNode&>(*children[2]);
+            auto astSndExpr = analyzeExpression(sndExpr);
+            if(!astSndExpr) return nullptr;
+
             else if(operatorType == NodeType::PlusOperator){
                 return std::make_unique<ASTOperationExpressionNode>(ASTNode::ASTNodeType::PlusOperator,std::move(astFirstExpr),std::move(astSndExpr));
             }else if(operatorType == NodeType::MinusOperator) {
@@ -162,7 +168,8 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
             //in case there are +/- signs before the expression
             NodeType opType = children[0]->getType();
             //get child expression
-            auto child = getChild(&SemanticAnalyzer::analyzeExpression, children[1].get());
+            parser::NonTerminalNode& childExpr = static_cast<parser::NonTerminalNode&>(*children[1]);
+            auto child = analyzeExpression(childExpr);
             if(!child) return nullptr;
             else if(opType == NodeType::MinusOperator){
                 return std::make_unique<ASTUnaryExpression>(ASTNode::ASTNodeType::UnaryMinus, std::move(child));
@@ -176,7 +183,8 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
     } else if(parseType == NodeType::PrimaryExpression){
         if(children.size() > 1){
             //case (expr)
-            auto child = getChild(&SemanticAnalyzer::analyzeExpression, children[1].get());
+            parser::NonTerminalNode& childExpr = static_cast<parser::NonTerminalNode&>(*children[1]);
+            auto child = analyzeExpression(childExpr);
             if(!child){
                 return nullptr;
             }

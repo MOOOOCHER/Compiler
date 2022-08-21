@@ -7,4 +7,6 @@ namespace pljit {
         functionStatus.push_back(std::move(status));
         return PljitHandle(functionStatus.back());
     }
+
+    PljitHandle::PljitHandle(Pljit::PljitStatus& jit): jit(jit){}
 } // namespace pljit

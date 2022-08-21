@@ -112,11 +112,11 @@ std::optional<double> ASTOperationExpressionNode::acceptEvaluation(ASTEvaluator&
     return {};// if we were here, something would have gone very wrong
 }
 std::optional<double> ASTAssignmentExpression::acceptEvaluation(ASTEvaluator& visitor) const {
-    if(leftChild->getType() == ASTNode::Variable ||leftChild->getType() == ASTNode::Parameter ){
+    if(leftChild->getType() == ASTNode::Variable ||leftChild->getType() == ASTNode::Parameter){
         auto astLeft = static_cast<ASTIdentifierNode*>(leftChild.get());
-        auto rightLiteral = rightChild->acceptEvaluation(visitor);
-        if(!rightLiteral.has_value()) return {};
-        visitor.variables[astLeft->getValue()] = rightLiteral;
+        auto rightExpr = rightChild->acceptEvaluation(visitor);
+        if(!rightExpr.has_value()) return {};
+        visitor.variables[astLeft->getValue()] = rightExpr;
         return 0; //return code that it went smoothly
     }
     return {};

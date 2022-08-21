@@ -1,12 +1,13 @@
 #include "ASTEvaluator.h"
 #include <utility>
 namespace semantic{
-std::optional<double> ASTEvaluator::evaluateFunction(std::vector<double> arg,ASTTree& node){
+
+bool ASTEvaluator::initArguments(const std::vector<double>& arg, ASTTree& node) {
     auto printErrorParameter = [](){
         sourceCodeManagement::SourceCodeManager defaultManager = sourceCodeManagement::SourceCodeManager();
         SourceCodeReference a = SourceCodeReference (defaultManager);
         a.printContext("error: parameter size doesn't match with argument size!");
-        return std::optional<double>();
+        return false;
     };
     //init variables table
     size_t count = 0;
@@ -19,14 +20,19 @@ std::optional<double> ASTEvaluator::evaluateFunction(std::vector<double> arg,AST
                 return printErrorParameter();
             }
         } else if (entry.second.identifierType == ASTNode::Variable){
-            variables.insert(std::make_pair(entry.first,std::optional<double>()));//the parameters are stored in the reverse order of their declaration
+            variables.insert(std::make_pair(entry.first,std::optional<double>()));
         }
     }
-
     if(count != arg.size()){
         return printErrorParameter();
     }
+    return true;
+}
 
+std::optional<double> ASTEvaluator::evaluateFunction(const std::vector<double>& arg,ASTTree& node){
+    if(!initArguments(arg,node)){
+        return {};
+    }
     return node.root->acceptEvaluation(*this);
 }
 } // namespace semantic
