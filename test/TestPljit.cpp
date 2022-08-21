@@ -39,23 +39,7 @@ TEST(TestPljit, TestValidCodeSimple){
     ASSERT_EQ(result.has_value(), true);
     EXPECT_EQ(result.value(), 6);
 }
-TEST(TestPljit, TestMultiThread){
-    Pljit jit;
-    std::vector<std::thread> threads;
-    auto func = jit.registerFunction("PARAM a; CONST c=5; BEGIN RETURN a*c END.");
-    for(uint32_t i = 0; i<10;++i){
-        threads.emplace_back([&func](){
-            for(double value = 0; value<5;++value){
-                auto result = func(value);
-                ASSERT_EQ(result.has_value(), true);
-                EXPECT_EQ(result.value(), 5*value);
-            }
-        });
-    }
-    for(auto& thread: threads){
-        thread.join();
-    }
-}
+
 TEST(TestPljit, TestInvalidCode){
     Pljit jit;
     std::cout << "Testing invalid tokens/empty code:" << std::endl;
@@ -108,4 +92,22 @@ TEST(TestPljit, TestValidCodeComplex){
                        "\naaa :=1;aaaa:=1;aaaaa:=1;bb:=1;bbb:=1;bbbb:=1;cc:=1;ccc:=1;cccc:=1;dd:=1;ddd:=1;dddd:=1;ee:=1;eee:=1;eeee:=1;ff:=1;fff:=1;"
                        "\nffff:=1;ffff:=1;gg:=1;ggg:=1;gggg:=1;b:=b+dd;b:=b+b*g;"
                        "\nRETURN b END.",26);
+}
+TEST(TestPljit, TestMultiThread){
+    Pljit jit;
+    std::vector<std::thread> threads;
+    auto func = jit.registerFunction("PARAM a; CONST c=5; BEGIN RETURN a*c END.");
+    for(uint32_t i = 0; i<10;++i){
+        threads.emplace_back([func](){
+            for(double value = 0; value<5;++value){
+                auto result = func(value);
+                ASSERT_EQ(result.has_value(), true);
+                EXPECT_EQ(result.value(), 5*value);
+            }
+        });
+    }
+    for(auto& thread: threads){
+        thread.join();
+    }
+
 }

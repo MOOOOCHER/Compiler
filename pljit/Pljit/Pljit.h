@@ -9,6 +9,7 @@
 #include <iostream>
 #include <mutex>
 #include <string>
+#include <memory>
 #include <vector>
 namespace pljit {
 using SourceCodeManager = sourceCodeManagement::SourceCodeManager;
@@ -27,7 +28,7 @@ class Pljit {
         friend class PljitHandle;
 
         std::string code;
-        std::optional<semantic::ASTTree> astTree;
+        std::unique_ptr<semantic::ASTTree> astTree;
         explicit PljitStatus(std::string code);
     };
     std::vector<PljitStatus> functionStatus;
@@ -62,7 +63,7 @@ class PljitHandle{
             // we don't need synchronization for evaluation, since we then only have a read-only on the handle, (more specifically: the SymbolTable of the ASTTree within PljitStatus)
             // the lock is needed here in order to avoid threads unnecessarily compiling the function again after waiting for the compilation process in a different thread.
             std::unique_lock lock(mutex);
-            if (!jit->functionStatus[index].astTree.has_value()) {
+            if (!jit->functionStatus[index].astTree) {
                 //compile new
                 SourceCodeManager manager(jit->functionStatus[index].code);
                 Parser parser = Parser(Tokenizer(manager));
@@ -84,7 +85,7 @@ class PljitHandle{
                 associationPass.optimize(*semanticNode);
                 ConstantPropagationPass constantPropagationPass = ConstantPropagationPass();
                 constantPropagationPass.optimize(*semanticNode);
-                jit->functionStatus[index].astTree = std::move(*semanticNode);
+                jit->functionStatus[index].astTree = std::move(semanticNode);
             }
         }
         std::vector<double> vec = {args...};
