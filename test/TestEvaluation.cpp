@@ -16,7 +16,6 @@ using DeadCodeEliminationPass = semantic::DeadCodeEliminationPass;
 using ConstantPropagationPass = semantic::ConstantPropagationPass;
 using AssociationPass = semantic::AssociationPass;
 
-//TODO: more constant propagation tests
 static void evaluate(const std::vector<double>& args, const std::string_view& input, std::optional<double> expectedResult){
     SourceCodeManager manager(input);
     Tokenizer tokenizer = Tokenizer(manager);
@@ -51,6 +50,8 @@ static auto setupWithOptimization( const std::string_view& input){
     //optimization
     DeadCodeEliminationPass pass = DeadCodeEliminationPass();
     pass.optimize(*astNode);
+    AssociationPass assPass = AssociationPass ();
+    assPass.optimize(*astNode);
     ConstantPropagationPass constantPropagationPass = ConstantPropagationPass();
     constantPropagationPass.optimize(*astNode);
     return astNode;
@@ -78,13 +79,6 @@ TEST(TestEvaluation, ConstantPropagation){
     EXPECT_EQ(statementChild->getType(), semantic::ASTNode::LiteralConstant);
     EXPECT_EQ(statementChild->getValue(), 3);
 
-    astNode = setupWithOptimization("VAR a, b; BEGIN a := 1; b := 1; RETURN (a+b * 2/(4+4)) END.");
-    semantic::ASTEvaluator evaluator;
-    auto result = evaluator.evaluateFunction(args,*astNode);
-    EXPECT_EQ(result.value(), 1.25);
-    astNode = setupWithOptimization("CONST a = 1, b = 2; BEGIN RETURN a *(-b + 55 * (1-(-1)) ) END.");
-    result = evaluator.evaluateFunction(args,*astNode);
-    EXPECT_EQ(result.value(), 108);
 }
 TEST(TestEvaluation, DeadCodeElimination){
     auto args = std::vector<double>();
@@ -101,6 +95,8 @@ TEST(TestEvaluation,MixedOptimization){
     EXPECT_EQ(result.value(), 109);
 }
 TEST(TestEvaluation, ValidEvaluation){
+    evaluate(std::vector<double>(),"VAR a, b; BEGIN a := 1; b := 1; RETURN (a+b * 2/(4+4)) END.",1.25);
+    evaluate(std::vector<double>(),"CONST a = 1, b = 2; BEGIN RETURN a *(-b + 55 * (1-(-1)) ) END.",108);
     evaluate(std::vector<double>(),"VAR a,b,c,d,e,f,z,g,i,j,ab,aaa ; BEGIN ab := 1 ;RETURN ab END.",1);
     evaluate(std::vector<double>(),"VAR a,b,c ; BEGIN a := 1; b:=6; c:=2 ;RETURN a+b*(c+2) END.",25);
     evaluate(std::vector<double>{50,2},"PARAM a,b; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END.",53);

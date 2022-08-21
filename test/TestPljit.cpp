@@ -45,16 +45,16 @@ TEST(TestPljit, TestInvalidCode){
     std::cout << "Testing invalid tokens/empty code:" << std::endl;
     testInvalidCode(jit, "");
     testInvalidCode(jit, "PARAM a,b; CONST c=1; BEGIN a:=a+c? ;RETURN a+b*c END.");
-    testInvalidCode(jit, "PARAM a,&b; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END.");
+    testInvalidCode(jit, "   \t\tPARAM a,&b; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END.");
     testInvalidCode(jit, "PARAM a,b; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END._");
     std::cout << "=========================================================" << std::endl;
     std::cout << "Testing invalid syntax:" << std::endl;
-    testInvalidCode(jit, "PARAM a;b; CONST c=1; BEGIN ;RETURN a+b*c END.");
+    testInvalidCode(jit, "PARAM a;b;\n\n CONST c=1; BEGIN ;RETURN a+b*c END.");
     testInvalidCode(jit, "PARAM a,b; VAR a v; CONST c=1; BEGIN a:=a+c ;RETURN a+b*c END.");
     testInvalidCode(jit, "PARAM a,b; CONST c:=1; BEGIN a:=a+c ;RETURN a+b*c END._");
     std::cout << "Testing invalid semantic:" << std::endl;
     testInvalidCode(jit, "PARAM a; CONST c=1; BEGIN c:=2;RETURN a+b*c END.");
-    testInvalidCode(jit, "PARAM a,b; CONST c=1; BEGIN z:=a+c ;RETURN a+b*c END.");
+    testInvalidCode(jit, "PARAM a,b;\n CONST c=1;\n BEGIN z:=a+c ;RETURN a+b*c END.");
     testInvalidCode(jit, "PARAM a,b; CONST b=1; BEGIN a:=a+a ;RETURN a+b*a END.");
     testInvalidCode(jit, "PARAM a,b; CONST c=1; BEGIN b:=a+c END.");
     testInvalidCode(jit, "VAR aaa,b; CONST c=1; BEGIN b:=aaa+c; RETURN b END.");
@@ -96,7 +96,6 @@ TEST(TestPljit, TestValidCodeComplex){
 TEST(TestPljit, TestMultiThread){
     Pljit jit;
     std::vector<std::thread> threads;
-    std::cout << "Testing multithreading:" << std::endl;
     auto func = jit.registerFunction("PARAM a; CONST c=5; BEGIN RETURN a*c END.");
     for(uint32_t i = 0; i<10;++i){
         threads.emplace_back([func](){

@@ -27,7 +27,6 @@ class Pljit {
         friend class Pljit;
         friend class PljitHandle;
         mutable std::mutex mutex;
-
         std::string code;
         std::unique_ptr<semantic::ASTTree> astTree;
 
@@ -41,7 +40,7 @@ class Pljit {
 
 class PljitHandle{
     friend class Pljit;
-    Pljit::PljitStatus* jit;     //raw pointer is needed to make the handle copyable; shraed_ptr would be very slow
+    Pljit::PljitStatus* jit;     //raw pointer is needed to make the handle copyable; shared_ptr would be very slow
 
     explicit PljitHandle(Pljit::PljitStatus* jit);
     public:

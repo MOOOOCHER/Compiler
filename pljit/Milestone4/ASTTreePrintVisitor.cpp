@@ -18,7 +18,7 @@ static std::string convertTypeToString(ASTNode::ASTNodeType type){
         case ASTNode::UnaryMinus: return "-";
         case ASTNode::PrimaryExpression: return "PrimaryExpression";
         case ASTNode::AssignmentExpression: return ":=";
-        case ASTNode::BracketExpression: return "()";
+        case ASTNode::BracketExpression: return "( )";
         default: return "";
     }
 }
