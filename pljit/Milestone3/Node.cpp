@@ -10,17 +10,31 @@ std::string_view IdentifierNode::getText() const{ return text; }
 void IdentifierNode::accept(ParseTreeVisitor& visitor) const{
     visitor.visit(*this);
 }
-//GenericNode--------------------------------------------------------------
-GenericNode::GenericNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, Types type): TerminalNode(std::move(sourceCodeReference), type){}
-void GenericNode::accept(ParseTreeVisitor& visitor) const{
-    visitor.visit(*this);
-}
 //LiteralNode--------------------------------------------------------------
 LiteralNode::LiteralNode(sourceCodeManagement::SourceCodeReference sourceCodeReference, unsigned value): TerminalNode(std::move(sourceCodeReference), Node::Types::Literal), value(value){}
 unsigned LiteralNode::getValue() const{ return value;}
 void LiteralNode::accept(ParseTreeVisitor& visitor) const{
     visitor.visit(*this);
 }
+//------------------------------------------------------------------------
+DotNode::DotNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), Dot){}
+CommaNode::CommaNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), Comma){}
+SemicolonNode::SemicolonNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), Semicolon){}
+CloseBracketNode::CloseBracketNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), CloseBracket){}
+OpenBracketNode::OpenBracketNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), OpenBracket){}
+InitEqualsNode::InitEqualsNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), InitEquals){}
+AssignEqualsNode::AssignEqualsNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), AssignEquals){}
+PlusOperatorNode::PlusOperatorNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), PlusOperator){}
+MinusOperatorNode::MinusOperatorNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), MinusOperator){}
+MultiplicationOperatorNode::MultiplicationOperatorNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), MulOperator){}
+DivisionOperatorNode::DivisionOperatorNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), DivOperator){}
+ReturnNode::ReturnNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), RETURN){}
+VariableKeywordNode::VariableKeywordNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), VAR){}
+ParameterKeywordNode::ParameterKeywordNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), PARAM){}
+ConstantKeywordNode::ConstantKeywordNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), CONST){}
+BeginNode::BeginNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), BEGIN){}
+EndNode::EndNode(SourceCodeReference sourceCodeReference): TerminalNode(std::move(sourceCodeReference), END){}
+
 //NonTerminalNode----------------------------------------------------------
 std::vector<std::unique_ptr<Node>> NonTerminalNode::getChildren(){
     return std::move(children);
@@ -94,6 +108,58 @@ void UnaryExpressionNode::accept(ParseTreeVisitor& visitor) const{
     visitor.visit(*this);
 }
 void PrimaryExpressionNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+//-----------------------------------------------------------------------
+void DotNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void CommaNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void SemicolonNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void CloseBracketNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void OpenBracketNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void InitEqualsNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void AssignEqualsNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void PlusOperatorNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void MinusOperatorNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void MultiplicationOperatorNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void DivisionOperatorNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void ReturnNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void VariableKeywordNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void ParameterKeywordNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void ConstantKeywordNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void BeginNode::accept(ParseTreeVisitor& visitor) const{
+    visitor.visit(*this);
+}
+void EndNode::accept(ParseTreeVisitor& visitor) const{
     visitor.visit(*this);
 }
 } // namespace parser

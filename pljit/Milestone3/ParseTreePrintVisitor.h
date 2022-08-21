@@ -5,7 +5,6 @@ namespace parser{
     class ParseTreePrintVisitor: public ParseTreeVisitor{
         size_t index = 0;
         public:
-        void visit(const GenericNode& node) override;
         void visit(const LiteralNode& node) override;
         void visit(const IdentifierNode& node) override;
         void visit(const parser::FunctionDefinitionNode& node) override;
@@ -24,7 +23,25 @@ namespace parser{
         void visit(const parser::UnaryExpressionNode& node) override;
         void visit(const parser::PrimaryExpressionNode& node) override;
         void visitRefactor(const NonTerminalNode& node);
+
+        void visit(const parser::DotNode& ) override{};
+        void visit(const parser::CommaNode& ) override{};
+        void visit(const parser::SemicolonNode& ) override{};
+        void visit(const parser::CloseBracketNode& ) override{};
+        void visit(const parser::OpenBracketNode& ) override{};
+        void visit(const parser::InitEqualsNode& )  override{};
+        void visit(const parser::AssignEqualsNode& ) override{};
+        void visit(const parser::PlusOperatorNode& ) override{};
+        void visit(const parser::MinusOperatorNode& ) override{};
+        void visit(const parser::MultiplicationOperatorNode& ) override{};
+        void visit(const parser::DivisionOperatorNode& ) override{};
+        void visit(const parser::ReturnNode& ) override{};
+        void visit(const parser::VariableKeywordNode& ) override{};
+        void visit(const parser::ParameterKeywordNode& ) override{};
+        void visit(const parser::ConstantKeywordNode& ) override{};
+        void visit(const parser::BeginNode& ) override{};
+        void visit(const parser::EndNode& ) override{};
         void printTree(const Node& node);
     };
-}
+} // namespace parser
 #endif //PLJIT_PARSETREEPRINTVISITOR_H

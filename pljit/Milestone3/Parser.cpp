@@ -26,30 +26,9 @@ static std::string returnCorrectGenericForErrorMsg(TokenTypes type){
         default: return "";
     }
 }
-static Node::Types getNodeTypeFromTokenType(TokenTypes type){
-    switch(type){
-        case lexer::TokenTypes::Dot: return Node::Dot;
-        case TokenTypes::Comma: return Node::Comma;
-        case TokenTypes::Semicolon: return Node::Semicolon;
-        case TokenTypes::InitEquals: return Node::InitEquals;
-        case TokenTypes::AssignEquals: return Node::AssignEquals;
-        case TokenTypes::OpenBracket: return Node::OpenBracket;
-        case TokenTypes::CloseBracket: return Node::CloseBracket;
-        case TokenTypes::PlusOperator: return Node::PlusOperator;
-        case TokenTypes::MinusOperator: return Node::MinusOperator;
-        case TokenTypes::MulOperator: return Node::MulOperator;
-        case TokenTypes::DivOperator: return Node::DivOperator;
-        case TokenTypes::RETURN: return Node::RETURN;
-        case TokenTypes::VAR: return Node::VAR;
-        case TokenTypes::PARAM: return Node::PARAM;
-        case TokenTypes::CONST: return Node::CONST;
-        case TokenTypes::BEGIN: return Node::BEGIN;
-        case TokenTypes::END: return Node::END;
-        default: return Node::Invalid;
-    }
-}
+
 //Parser----------------------------------------------------------------------------------------------------
-Parser::Parser(Tokenizer tokenizer): tokenizer(tokenizer){};
+Parser::Parser(Tokenizer tokenizer): tokenizer(tokenizer){}
 //Refactor--------------------------------------------------------------------------------------------------
 bool Parser::refactorDeclList(auto (Parser::*func)(), std::vector<std::unique_ptr<Node>>& childVec){
     auto element = (this->*func)();
@@ -71,7 +50,7 @@ bool Parser::refactorDeclList(auto (Parser::*func)(), std::vector<std::unique_pt
             if(!element) {
                 return false;
             }
-            childVec.push_back(std::make_unique<GenericNode>(separator.getSourceCodeReference(), Node::Types::Comma));
+            childVec.push_back(std::make_unique<CommaNode>(separator.getSourceCodeReference()));
             childVec.push_back(std::move(element));
         }
         return true;
@@ -80,7 +59,16 @@ bool Parser::refactorDeclList(auto (Parser::*func)(), std::vector<std::unique_pt
 }
 bool Parser::refactorDeclaration(auto (Parser::*func)(), Node::Types startingKeyword, TokenTypes endingKeyword, std::vector<std::unique_ptr<Node>>& childVec){
     //we only get in here if the check was successful
-    childVec.push_back(std::make_unique<GenericNode>(backtrackToken.getSourceCodeReference(),startingKeyword));
+    if(startingKeyword == Node::BEGIN){
+        childVec.push_back(std::make_unique<BeginNode>(backtrackToken.getSourceCodeReference()));
+    }else if(startingKeyword == Node::VAR){
+        childVec.push_back(std::make_unique<VariableKeywordNode>(backtrackToken.getSourceCodeReference()));
+    }else if(startingKeyword == Node::CONST){
+        childVec.push_back(std::make_unique<ConstantKeywordNode>(backtrackToken.getSourceCodeReference()));
+    }else if(startingKeyword == Node::PARAM){
+        childVec.push_back(std::make_unique<ParameterKeywordNode>(backtrackToken.getSourceCodeReference()));
+    }
+
     resetBacktrackToken();
     auto declList = (this->*func)();
     if(!declList){
@@ -89,7 +77,11 @@ bool Parser::refactorDeclaration(auto (Parser::*func)(), Node::Types startingKey
     //we have already evaluated this token, but it was optional, so we may need to evaluate it again
     if(backtrackToken.getType() == endingKeyword){
         childVec.push_back(std::move(declList));
-        childVec.push_back(std::make_unique<GenericNode>(backtrackToken.getSourceCodeReference(), getNodeTypeFromTokenType(endingKeyword)));
+        if(endingKeyword == lexer::TokenTypes::END){
+            childVec.push_back(std::make_unique<EndNode>(backtrackToken.getSourceCodeReference()));
+        }else if(endingKeyword == lexer::TokenTypes::Semicolon){
+            childVec.push_back(std::make_unique<SemicolonNode>(backtrackToken.getSourceCodeReference()));
+        }
         resetBacktrackToken();
         return true;
     }
@@ -126,7 +118,16 @@ bool Parser::refactorExpression(auto (Parser::*func1)(),auto (Parser::*func2)(),
     if(!sndExpr){
         return false;
     }
-    childVec.push_back(std::make_unique<GenericNode>(token.getSourceCodeReference(), getNodeTypeFromTokenType(token.getType())));
+    auto operatorType = token.getType();
+    if(operatorType==TokenTypes::PlusOperator){
+        childVec.push_back(std::make_unique<PlusOperatorNode>(token.getSourceCodeReference()));
+    } else if (operatorType == TokenTypes::MinusOperator){
+        childVec.push_back(std::make_unique<MinusOperatorNode>(token.getSourceCodeReference()));
+    } else if (operatorType == TokenTypes::MulOperator){
+        childVec.push_back(std::make_unique<MultiplicationOperatorNode>(token.getSourceCodeReference()));
+    } else if (operatorType == TokenTypes::DivOperator){
+        childVec.push_back(std::make_unique<DivisionOperatorNode>(token.getSourceCodeReference()));
+    }
     childVec.push_back(std::move(sndExpr));
     return true;
 }
@@ -168,7 +169,7 @@ std::unique_ptr<LiteralNode> Parser::expectLiteralNode(){
     }
 }
 
-std::unique_ptr<GenericNode> Parser::expectGenericNode(TokenTypes type){
+std::unique_ptr<TerminalNode> Parser::expectGenericNode(TokenTypes type){
     if(!tokenizer.hasNext()){
         printDefaultErrorMsg("error: expected"+returnCorrectGenericForErrorMsg(type));
         return nullptr;
@@ -177,7 +178,12 @@ std::unique_ptr<GenericNode> Parser::expectGenericNode(TokenTypes type){
     if(token.getType() == TokenTypes::Invalid ){
         return nullptr;
     } else if(type == token.getType()){
-        return std::make_unique<GenericNode>(token.getSourceCodeReference(),getNodeTypeFromTokenType(type));
+        switch(type){   //Only used for these three types, but can be easily extended
+            case TokenTypes::Dot: return std::make_unique<DotNode>(token.getSourceCodeReference());
+            case TokenTypes::InitEquals: return std::make_unique<InitEqualsNode>(token.getSourceCodeReference());
+            case TokenTypes::AssignEquals: return std::make_unique<AssignEqualsNode>(token.getSourceCodeReference());
+            default: break;
+        }
     }
     printErrorMsg(token,"error: expected"+returnCorrectGenericForErrorMsg(type));
     return nullptr;
@@ -333,7 +339,7 @@ std::unique_ptr<StatementListNode> Parser::expectStatementList(){
             if(!element) {
                 return nullptr;
             }
-            childVec.push_back(std::make_unique<GenericNode>(separator.getSourceCodeReference(),Node::Types::Semicolon));
+            childVec.push_back(std::make_unique<SemicolonNode>(separator.getSourceCodeReference()));
             childVec.push_back(std::move(element));
         }
         return std::make_unique<StatementListNode>(std::move(childVec));
@@ -356,7 +362,7 @@ std::unique_ptr<StatementNode> Parser::expectStatement(){
             return nullptr;
         }
         std::vector<std::unique_ptr<Node>> childVec;
-        childVec.push_back(std::make_unique<GenericNode>(token.getSourceCodeReference(), Node::Types::RETURN));
+        childVec.push_back(std::make_unique<ReturnNode>(token.getSourceCodeReference()));
         childVec.push_back(std::move(addExpr));
         return std::make_unique<StatementNode>(std::move(childVec));
     } else {
@@ -420,10 +426,14 @@ std::unique_ptr<UnaryExpressionNode> Parser::expectUnaryExpression(){
     }
     std::vector<std::unique_ptr<Node>> childVec;
 
-    if(token.getType() == lexer::TokenTypes::PlusOperator || token.getType() == lexer::TokenTypes::MinusOperator){
-        childVec.push_back(std::make_unique<GenericNode>(token.getSourceCodeReference(), getNodeTypeFromTokenType(token.getType())));
+    if(token.getType() == lexer::TokenTypes::PlusOperator){
+        childVec.push_back(std::make_unique<PlusOperatorNode>(token.getSourceCodeReference()));
         resetBacktrackToken();
-    } else {
+    } else if(token.getType() == lexer::TokenTypes::MinusOperator){
+        childVec.push_back(std::make_unique<MinusOperatorNode>(token.getSourceCodeReference()));
+        resetBacktrackToken();
+    }
+    else {
         backtrackToken = token;
     }
 
@@ -481,9 +491,9 @@ std::unique_ptr<PrimaryExpressionNode> Parser::expectPrimaryExpression(){
             return nullptr;
         }
         resetBacktrackToken();
-        childVec.push_back(std::make_unique<GenericNode>(token.getSourceCodeReference(), Node::Types::OpenBracket));
+        childVec.push_back(std::make_unique<OpenBracketNode>(token.getSourceCodeReference()));
         childVec.push_back(std::move(addExpr));
-        childVec.push_back(std::make_unique<GenericNode>(token2.getSourceCodeReference(), Node::Types::CloseBracket));
+        childVec.push_back(std::make_unique<CloseBracketNode>(token2.getSourceCodeReference()));
         return std::make_unique<PrimaryExpressionNode>(std::move(childVec));
     }else{
         printErrorMsg(token, "error: an expression is expected!");

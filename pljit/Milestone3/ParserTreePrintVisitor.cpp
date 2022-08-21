@@ -37,13 +37,11 @@ static std::string convertTypeToString(Node::Types type){
         case Node::CONST: return "CONST";
         case Node::BEGIN: return "BEGIN";
         case Node::END: return "END";
-        case Node::Invalid: return "Invalid";
         default: return "";
     }
 }
 
-void ParseTreePrintVisitor::visit(const GenericNode&) {
-}
+
 void ParseTreePrintVisitor::visit(const LiteralNode& node) {
     std::cout << "\t" << index+1 << " [label=\"" << node.getValue()<< "\"];" << std::endl;
     std::cout << "\t" << index << " -> " << index+1 << ";" << std::endl;

@@ -47,7 +47,7 @@ class Parser{
 
     std::unique_ptr<LiteralNode> expectLiteralNode();
 
-    std::unique_ptr<GenericNode> expectGenericNode(TokenTypes type);
+    std::unique_ptr<TerminalNode> expectGenericNode(TokenTypes type);
     /*
      * this function prints error msgs for the parser
      */
@@ -83,7 +83,7 @@ class Parser{
      * operator1, operator2: token type of the operator, e.g. "*","+"
      * childVec: reference for the childVector of the evaluated node
       */
-    bool refactorExpression(auto (Parser::*func1)(),auto (Parser::*func2)(), TokenTypes operator1, const TokenTypes operator2, std::vector<std::unique_ptr<Node>>& childVec);
+    bool refactorExpression(auto (Parser::*func1)(),auto (Parser::*func2)(), TokenTypes operator1, TokenTypes operator2, std::vector<std::unique_ptr<Node>>& childVec);
     /*
      * this helper function resets the backtrack-token
      */

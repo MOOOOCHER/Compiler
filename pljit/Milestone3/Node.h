@@ -84,14 +84,108 @@ class ParseTreePrintVisitor;
         unsigned getValue() const;
         void accept(ParseTreeVisitor& visitor) const override;
     };
-    //TODO: class for every generic node
-    class GenericNode: public TerminalNode{
+    class DotNode: public TerminalNode{
         friend class ParseTreePrintVisitor;
         public:
-        GenericNode(SourceCodeReference sourceCodeReference, Types type);
+        explicit DotNode(SourceCodeReference sourceCodeReference);
         void accept(ParseTreeVisitor& visitor) const override;
     };
-
+    class CommaNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit CommaNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class SemicolonNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit SemicolonNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class CloseBracketNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit CloseBracketNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class OpenBracketNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit OpenBracketNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class InitEqualsNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit InitEqualsNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class AssignEqualsNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit AssignEqualsNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class PlusOperatorNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit PlusOperatorNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class MinusOperatorNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit MinusOperatorNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class MultiplicationOperatorNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit MultiplicationOperatorNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class DivisionOperatorNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit DivisionOperatorNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class ReturnNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit ReturnNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class VariableKeywordNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit VariableKeywordNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class ParameterKeywordNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit ParameterKeywordNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class ConstantKeywordNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit ConstantKeywordNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class BeginNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit BeginNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
+    class EndNode: public TerminalNode{
+        friend class ParseTreePrintVisitor;
+        public:
+        explicit EndNode(SourceCodeReference sourceCodeReference);
+        void accept(ParseTreeVisitor& visitor) const override;
+    };
     //Non-Terminal Node-----------------------------------------------------------------------------------------------------------------------
     class NonTerminalNode: public Node{
         friend class Parser;
