@@ -52,6 +52,8 @@ TEST(TestSemantic, AnalyzeFunctionUndeclaredIdentifier){
     EXPECT_EQ(result, nullptr);
     result = setup("PARAM ab, a;\n\t BEGIN ab := (4+1)*a-(ab+a -(ab*2 +c)) -1 END.");
     EXPECT_EQ(result, nullptr);
+    result = setup("PARAM ab, a;\n\t BEGIN RETURN (4+1)*a-(-(ab+(-c))) -1 END.");
+    EXPECT_EQ(result, nullptr);
     std::cout << "=========================================================" << std::endl;
 }
 TEST(TestSemantic, AnalyzeFunctionAssignToConstant){
@@ -74,6 +76,8 @@ TEST(TestSemantic, AnalyzeFunctionUninitializedVariable){
     auto result = setup("VAR a,b; BEGIN a:=b*5 ; RETURN a END.");
     EXPECT_EQ(result, nullptr);
     result = setup("VAR a;\n\t  BEGIN a:=a*5 ; RETURN a END.");
+    EXPECT_EQ(result, nullptr);
+    result = setup("PARAM ab, a;VAR c;\n\t BEGIN RETURN (4+1)*a-(ab+a -(ab*2 +c)) -1 END.");
     EXPECT_EQ(result, nullptr);
     std::cout << "=========================================================" << std::endl;
 }

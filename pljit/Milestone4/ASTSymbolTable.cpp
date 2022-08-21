@@ -1,5 +1,5 @@
 #include "ASTSymbolTable.h"
-
+#include <utility>
 namespace semantic {
     ASTSymbolTable::ASTSymbolEntry::ASTSymbolEntry(ASTNode::ASTNodeType identifierType, SourceCodeReference  sourceCodeReference, std::optional<double> value): identifierType(identifierType),sourceCodeReference(std::move(sourceCodeReference)), value(value){}
 

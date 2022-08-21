@@ -169,19 +169,23 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
             } else {
                 return std::make_unique<ASTUnaryExpression>(ASTNode::ASTNodeType::UnaryPlus, std::move(child));
             }
+        } else {
+            parser::NonTerminalNode& expr = static_cast<parser::NonTerminalNode&>(*children[0]);
+            return analyzeExpression(expr);
         }
-        parser::NonTerminalNode& expr = static_cast<parser::NonTerminalNode&>(*children[0]);
-        return analyzeExpression(expr);
     } else if(parseType == NodeType::PrimaryExpression){
         if(children.size() > 1){
             //case (expr)
-            return std::make_unique<ASTBracketExpression>(getChild(&SemanticAnalyzer::analyzeExpression, children[1].get()));
+            auto child = getChild(&SemanticAnalyzer::analyzeExpression, children[1].get());
+            if(!child){
+                return nullptr;
+            }
+            return std::make_unique<ASTBracketExpression>(std::move(child));
         } if(children[0]->getType() == NodeType::Identifier){
             //case identifier
             parser::IdentifierNode& identifier = static_cast<parser::IdentifierNode&>(*children[0]);
             return analyzeIdentifier(identifier);
-        }
-        else {
+        } else {
             //case literal
             parser::LiteralNode& literal = static_cast<parser::LiteralNode&>(*children[0]);
             return std::make_unique<ASTLiteralNode>(literal.getValue());
