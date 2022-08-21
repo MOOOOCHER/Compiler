@@ -22,7 +22,7 @@ namespace parser{
         void visit(const parser::MultiplicativeExpressionNode& node) override;
         void visit(const parser::UnaryExpressionNode& node) override;
         void visit(const parser::PrimaryExpressionNode& node) override;
-        void visitRefactor(const NonTerminalNode& node);
+
 
         void visit(const parser::DotNode& ) override{};
         void visit(const parser::CommaNode& ) override{};
@@ -41,6 +41,8 @@ namespace parser{
         void visit(const parser::ConstantKeywordNode& ) override{};
         void visit(const parser::BeginNode& ) override{};
         void visit(const parser::EndNode& ) override{};
+
+        void visitRefactor(const NonTerminalNode& node);
         void printTree(const Node& node);
     };
 } // namespace parser
