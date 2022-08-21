@@ -4,10 +4,11 @@ namespace pljit {
     Pljit::PljitStatus::PljitStatus(std::string code):code(std::move(code)){}
 
     PljitHandle Pljit::registerFunction(std::string code){
-        auto status = PljitStatus(std::move(code));
+        auto status = std::make_unique<PljitStatus>(std::move(code));
+        auto ptr = status.get();
         functionStatus.push_back(std::move(status));
-        return PljitHandle(this);
+        return PljitHandle(ptr);
     }
 
-    PljitHandle::PljitHandle(Pljit* jit): jit(jit), index(jit->functionStatus.size()-1){}
+    PljitHandle::PljitHandle(Pljit::PljitStatus* jit): jit(jit){}
 } // namespace pljit

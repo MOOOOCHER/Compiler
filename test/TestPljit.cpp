@@ -96,6 +96,7 @@ TEST(TestPljit, TestValidCodeComplex){
 TEST(TestPljit, TestMultiThread){
     Pljit jit;
     std::vector<std::thread> threads;
+    std::cout << "Testing multithreading:" << std::endl;
     auto func = jit.registerFunction("PARAM a; CONST c=5; BEGIN RETURN a*c END.");
     for(uint32_t i = 0; i<10;++i){
         threads.emplace_back([func](){
