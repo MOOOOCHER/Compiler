@@ -18,6 +18,7 @@ static std::string convertTypeToString(ASTNode::ASTNodeType type){
         case ASTNode::UnaryMinus: return "-";
         case ASTNode::PrimaryExpression: return "PrimaryExpression";
         case ASTNode::AssignmentExpression: return ":=";
+        case ASTNode::BracketExpression: return "()";
         default: return "";
     }
 }
@@ -52,12 +53,10 @@ void ASTTreePrintVisitor::visit(const semantic::ASTAssignmentExpression& node){
 void ASTTreePrintVisitor::visit(const semantic::ASTUnaryExpression& node) {
     printUnaryAST(node);
 }
-void ASTTreePrintVisitor::printTree(const ASTNode& node){
-    std::cout << "digraph {" << std::endl;
-    std::cout << "\t" << index << " [label=\"" << convertTypeToString(node.getType())<< "\"];" << std::endl;
-    node.accept(*this);
-    std::cout << "}" << std::endl;
+void ASTTreePrintVisitor::visit(const semantic::ASTBracketExpression& node) {
+    printUnaryAST(node);
 }
+
 void ASTTreePrintVisitor::printValueAST(const auto& node) {
     std::cout << "\t" << index+1 << " [label=\"" << node.getValue()<< "\"];" << std::endl;
     std::cout << "\t" << index << " -> " << index+1 << ";" << std::endl;
@@ -79,5 +78,12 @@ void ASTTreePrintVisitor::printBinaryAST(const auto& node){
     std::cout << "\t" << currentIndex << " -> " << index+1 << ";" << std::endl;
     ++index;
     node.rightChild->accept(*this);
+}
+
+void ASTTreePrintVisitor::printTree(const ASTNode& node){
+    std::cout << "digraph {" << std::endl;
+    std::cout << "\t" << index << " [label=\"" << convertTypeToString(node.getType())<< "\"];" << std::endl;
+    node.accept(*this);
+    std::cout << "}" << std::endl;
 }
 } // namespace semantic

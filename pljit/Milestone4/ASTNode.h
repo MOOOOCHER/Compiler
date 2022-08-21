@@ -36,7 +36,8 @@ namespace semantic{
             UnaryPlus,
             UnaryMinus,
             PrimaryExpression,
-            AssignmentExpression
+            AssignmentExpression,
+            BracketExpression
         };
         protected:
         ASTNodeType type;
@@ -147,6 +148,20 @@ namespace semantic{
         //type should only be UnaryPlus or UnaryMinus
         public:
         ASTUnaryExpression(ASTNodeType type,std::unique_ptr<ASTNode> child);
+
+        void accept(ASTTreeVisitor& visitor) const override;
+        std::optional<double> acceptEvaluation(ASTEvaluator& visitor) const override;
+    };
+    /*
+     * this expression type is used for unary-plus, unary-minus and expression containing (expr)
+     */
+    class ASTBracketExpression: public ASTExpressionNode{
+        friend class ConstantPropagationPass;
+        friend class AssociationPass;
+        friend class ASTTreePrintVisitor;
+        std::unique_ptr<ASTNode> child;
+        public:
+        explicit ASTBracketExpression(std::unique_ptr<ASTNode> child);
 
         void accept(ASTTreeVisitor& visitor) const override;
         std::optional<double> acceptEvaluation(ASTEvaluator& visitor) const override;

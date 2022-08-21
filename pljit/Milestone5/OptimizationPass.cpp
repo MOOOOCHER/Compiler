@@ -42,19 +42,20 @@ namespace semantic{
         }
     }
     std::optional<double> ConstantPropagationPass::optimizeExpression(ASTNode& node){
-        if(node.getType() == ASTNode::Constant){
+        auto nodeType = node.getType();
+        if(nodeType == ASTNode::Constant){
             auto& constantExpr = static_cast<ASTIdentifierNode&>(node);
             return variables.find(constantExpr.getValue())->second;
-        } else if(node.getType() == ASTNode::LiteralConstant){
+        } else if(nodeType == ASTNode::LiteralConstant){
             auto& literalExpr = static_cast<ASTLiteralNode&>(node);
             return literalExpr.getValue();
-        }else if(node.getType() == ASTNode::Variable){
+        }else if(nodeType == ASTNode::Variable){
             auto& constantExpr = static_cast<ASTIdentifierNode&>(node);
             auto variableName = constantExpr.getValue();
             if(variables.contains(variableName)){
                 return variables[variableName];
             }
-        } else if(node.getType() == ASTNode::AssignmentExpression){
+        } else if(nodeType == ASTNode::AssignmentExpression){
             auto& assignmentExpr = static_cast<ASTAssignmentExpression&>(node);
             auto optimized = optimizeExpression(*assignmentExpr.rightChild);
             auto name = static_cast<ASTIdentifierNode*>(assignmentExpr.leftChild.get());
@@ -69,8 +70,10 @@ namespace semantic{
                     variables.erase(it);
                 }
             }
-        }
-        else if(node.getType() == ASTNode::UnaryPlus || node.getType() == ASTNode::UnaryMinus){
+        } else if(nodeType == ASTNode::BracketExpression){
+            auto& bracketExpr = static_cast<ASTBracketExpression&>(node);
+            return optimizeExpression(*bracketExpr.child);
+        } else if(nodeType == ASTNode::UnaryPlus || node.getType() == ASTNode::UnaryMinus){
             auto& unaryExpr = static_cast<ASTUnaryExpression&>(node);
             auto optimized = optimizeExpression(*unaryExpr.child);
             if(optimized.has_value()){
@@ -81,8 +84,8 @@ namespace semantic{
                 unaryExpr.child = std::make_unique<ASTLiteralNode>(optimized.value());
             }
             return optimized;
-        } else if(node.getType() == ASTNode::PlusOperator || node.getType() == ASTNode::MinusOperator
-                   || node.getType() == ASTNode::MulOperator || node.getType() == ASTNode::DivOperator){
+        } else if(nodeType == ASTNode::PlusOperator || nodeType == ASTNode::MinusOperator
+                   || nodeType == ASTNode::MulOperator || nodeType == ASTNode::DivOperator){
             //binary operation
             auto& expr = static_cast<ASTOperationExpressionNode&>(node);
             auto optimizedLeft = optimizeExpression(*expr.leftChild);
@@ -130,13 +133,16 @@ namespace semantic{
         }
     }
    void AssociationPass::optimizeExpression(std::unique_ptr<ASTNode>& node){
-       auto func = [&node, this](ASTNode::ASTNodeType op1, ASTNode::ASTNodeType op2){
-           //binary operation
+       /*
+        * this lamdba function converts to the left-to-right association , given the type of operation
+        * we have to group addition and subtraction / multiplication and division together
+        */
+       auto optimizeAssociation = [&node, this](ASTNode::ASTNodeType op1, ASTNode::ASTNodeType op2){
            auto* expr = static_cast<ASTOperationExpressionNode*>(node.get());
            std::unique_ptr<ASTOperationExpressionNode> currentBuild;
            bool changed = expr->rightChild->getType() == op1 || expr->rightChild->getType()  == op2;
            auto currentTraverse = expr;
-
+           // if we have e.g. addition and subtraction, we have to convert the tree until we have a division or multiplication operation
            while(currentTraverse->rightChild->getType() == op1 || currentTraverse->rightChild->getType()  == op2){
                auto& rightChild = static_cast<ASTOperationExpressionNode&>(*currentTraverse->rightChild);
                if(currentTraverse == expr){
@@ -147,7 +153,6 @@ namespace semantic{
                } else {
                    optimizeExpression(rightChild.leftChild);
                    currentBuild = std::make_unique<ASTOperationExpressionNode>(currentTraverse->getType(),std::move(currentBuild),std::move(rightChild.leftChild));
-
                }
                //if we break before the next iteration we need to add the furthest right child of the original tree to the new tree
                if(rightChild.rightChild->getType() != op1 && rightChild.rightChild->getType()  != op2){
@@ -165,20 +170,20 @@ namespace semantic{
            }
            return;
        };
-        if(node->getType() == ASTNode::AssignmentExpression){
+        auto nodeType = node->getType();
+        if(nodeType == ASTNode::AssignmentExpression){
             auto& assignmentExpr = static_cast<ASTAssignmentExpression&>(*node);
             optimizeExpression(assignmentExpr.rightChild);
-        } else if(node->getType() == ASTNode::PlusOperator || node->getType() == ASTNode::MinusOperator){
-            func(ASTNode::PlusOperator,ASTNode::MinusOperator);
-            return;
-        } else if (node->getType() == ASTNode::MulOperator || node->getType() == ASTNode::DivOperator){
-            func(ASTNode::MulOperator,ASTNode::DivOperator);
-        }else if(node->getType() == ASTNode::UnaryPlus || node->getType() == ASTNode::UnaryMinus){
+        } else if(nodeType == ASTNode::PlusOperator || nodeType == ASTNode::MinusOperator){
+            optimizeAssociation(ASTNode::PlusOperator,ASTNode::MinusOperator);
+        } else if (nodeType == ASTNode::MulOperator || nodeType == ASTNode::DivOperator){
+            optimizeAssociation(ASTNode::MulOperator,ASTNode::DivOperator);
+        }else if(nodeType == ASTNode::UnaryPlus || nodeType == ASTNode::UnaryMinus){
             auto& unaryExpr = static_cast<ASTUnaryExpression&>(*node);
             optimizeExpression(unaryExpr.child);
-            return;
-        } else {
-            return;
+        }  else if(nodeType == ASTNode::BracketExpression){
+            auto& bracketExpr = static_cast<ASTBracketExpression&>(*node);
+            optimizeExpression(bracketExpr.child);
         }
     }
 } // namespace semantic

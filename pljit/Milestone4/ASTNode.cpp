@@ -1,7 +1,6 @@
 #include "ASTNode.h"
 #include "ASTTreePrintVisitor.h"
 #include "../Milestone5/ASTEvaluator.h"
-#include <iostream>
 #include <utility>
 namespace semantic{
 using namespace sourceCodeManagement;
@@ -36,6 +35,7 @@ ASTExpressionNode::ASTExpressionNode(ASTNodeType type): ASTNode(type){}
 ASTOperationExpressionNode::ASTOperationExpressionNode(ASTNodeType type,std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTExpressionNode(type),leftChild(std::move(left)), rightChild(std::move(right)){}
 ASTAssignmentExpression::ASTAssignmentExpression(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode>right): ASTExpressionNode(AssignmentExpression),leftChild(std::move(left)), rightChild(std::move(right)){}
 ASTUnaryExpression::ASTUnaryExpression(ASTNodeType type,std::unique_ptr<ASTNode> child): ASTExpressionNode(type),child(std::move(child)){}
+ASTBracketExpression::ASTBracketExpression(std::unique_ptr<ASTNode> child):ASTExpressionNode(BracketExpression),child(std::move(child)){}
 //-----------------------------------------------------------------------------------------------------------------
 void ASTFunctionNode::accept(ASTTreeVisitor& visitor) const {
     visitor.visit(*this);
@@ -61,6 +61,9 @@ void ASTAssignmentExpression::accept(ASTTreeVisitor& visitor) const {
 void ASTUnaryExpression::accept(ASTTreeVisitor& visitor) const {
     visitor.visit(*this);
 }
+void ASTBracketExpression::accept(ASTTreeVisitor& visitor) const {
+    visitor.visit(*this);
+}
 //Evaluation-------------------------------------------------------------------
 std::optional<double> ASTFunctionNode::acceptEvaluation(ASTEvaluator& visitor) const {
     for(auto& child: children){
@@ -70,8 +73,7 @@ std::optional<double> ASTFunctionNode::acceptEvaluation(ASTEvaluator& visitor) c
             return astChild;
         }
     }
-    std::cout<<"something has gone wrong!"<<std::endl;
-    return {};
+    return {};// if we were here, something would have gone very wrong
 }
 std::optional<double> ASTIdentifierNode::acceptEvaluation(ASTEvaluator& visitor) const {
         //we are in the statement evaluation phase => return value for variable
@@ -107,8 +109,7 @@ std::optional<double> ASTOperationExpressionNode::acceptEvaluation(ASTEvaluator&
         }
         return leftExpr.value() / rightExpr.value();
     } else {
-        std::cout<< "something has gone wrong!"<<std::endl;
-        return -1;
+        return {};// if we were here, something would have gone very wrong
     }
 }
 std::optional<double> ASTAssignmentExpression::acceptEvaluation(ASTEvaluator& visitor) const {
@@ -126,6 +127,9 @@ std::optional<double> ASTUnaryExpression::acceptEvaluation(ASTEvaluator& visitor
     if(result.has_value() && type == ASTNode::UnaryMinus){
         result.value() *= -1;
     }
-    return result;
+    return result;// if we were here, something would have gone very wrong
+}
+std::optional<double> ASTBracketExpression::acceptEvaluation(ASTEvaluator& visitor) const {
+    return child->acceptEvaluation(visitor);
 }
 } // namespace semantic

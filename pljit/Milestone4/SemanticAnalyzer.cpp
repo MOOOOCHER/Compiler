@@ -174,9 +174,8 @@ std::unique_ptr<ASTNode> SemanticAnalyzer::analyzeExpression(parser::NonTerminal
         return analyzeExpression(expr);
     } else if(parseType == NodeType::PrimaryExpression){
         if(children.size() > 1){
-            //case (expr), has to be treated differently due to evaluation association optimization
-            return std::make_unique<ASTUnaryExpression>(ASTNode::ASTNodeType::UnaryPlus, getChild(&SemanticAnalyzer::analyzeExpression, children[1].get()));
-            //return getChild(&SemanticAnalyzer::analyzeExpression, children[1].get());
+            //case (expr)
+            return std::make_unique<ASTBracketExpression>(getChild(&SemanticAnalyzer::analyzeExpression, children[1].get()));
         } else {
             if(children[0]->getType() == NodeType::Identifier){
                 //case identifier
