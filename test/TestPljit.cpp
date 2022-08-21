@@ -1,19 +1,20 @@
-#include "pljit/Milestone6/Pljit.h"
+#include "pljit/Pljit/Pljit.h"
 #include <thread>
 #include <gtest/gtest.h>
 #include <unordered_set>
+#include <utility>
 using Pljit = pljit::Pljit;
 template<std::floating_point ...Args>
-static void testValidCode(Pljit& jit, std::string_view input, double expectedResult, Args... args){
-    auto func = jit.registerFunction(input);
+static void testValidCode(Pljit& jit, std::string input, double expectedResult, Args... args){
+    auto func = jit.registerFunction(std::move(input));
     auto result = func(args...);
     ASSERT_EQ(result.has_value(), true);
     EXPECT_EQ(result.value(), expectedResult);
 }
 
 template<std::floating_point ...Args>
-static void testInvalidCode(Pljit& jit, std::string_view input, Args... args){
-    auto func = jit.registerFunction(input);
+static void testInvalidCode(Pljit& jit, std::string input, Args... args){
+    auto func = jit.registerFunction(std::move(input));
     auto result = func(args...);
     EXPECT_EQ(result.has_value(), false);
 }
@@ -27,6 +28,16 @@ TEST(TestPljit, TestValidCodeSimple){
     result = func2(1.0,2.0);
     ASSERT_EQ(result.has_value(), true);
     EXPECT_EQ(result.value(), 4);
+    auto func = jit.registerFunction("PARAM hello, world; BEGIN RETURN hello/10+world END.");
+    result = func(10.0,5.0);
+    ASSERT_EQ(result.has_value(), true);
+    EXPECT_EQ(result.value(), 6);
+    result = func2(111.3,22341.0);
+    ASSERT_EQ(result.has_value(), true);
+    EXPECT_EQ(result.value(), 22453.3);
+    result = func(10.0,5.0);
+    ASSERT_EQ(result.has_value(), true);
+    EXPECT_EQ(result.value(), 6);
 }
 TEST(TestPljit, TestMultiThread){
     Pljit jit;
@@ -74,6 +85,19 @@ TEST(TestPljit, TestInvalidCode){
     result = func2(1.0);
     EXPECT_EQ(result.has_value(), false);
     std::cout << "=========================================================" << std::endl;
+}
+TEST(TestPljit, TestManyHandles){
+    Pljit jit;
+    //calling twice
+    std::vector<pljit::PljitHandle> handles;
+    for(size_t i=0;i<50;i++){
+        auto func= jit.registerFunction("PARAM a,b; BEGIN RETURN a+b END.");
+        handles.push_back(std::move(func));
+    }
+    for(size_t i=0;i<150;i++){
+        auto result = handles[i%50].operator()(static_cast<double>(i),10.0);
+        EXPECT_EQ(result.value(),i+10);
+    }
 }
 TEST(TestPljit, TestValidCodeComplex){
     Pljit jit;

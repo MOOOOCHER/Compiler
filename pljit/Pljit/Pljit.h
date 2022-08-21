@@ -26,26 +26,34 @@ class Pljit {
         friend class Pljit;
         friend class PljitHandle;
 
-        std::string_view code;
-        std::unique_ptr<semantic::ASTTree> astNode;
-        PljitStatus(std::string_view code, std::unique_ptr<semantic::ASTTree> astNode);
+        std::string code;
+        std::optional<semantic::ASTTree> astTree;
+        explicit PljitStatus(std::string code);
     };
     std::vector<PljitStatus> functionStatus;
     public:
-    PljitHandle registerFunction(std::string_view code);
+    PljitHandle registerFunction(std::string code);
 };
 
 class PljitHandle{
     friend class Pljit;
-    Pljit::PljitStatus& jit;
+    Pljit* jit;     //raw pointer is needed to make the handle copyable;
+    size_t index;
     mutable std::mutex mutex;
 
-    explicit PljitHandle(Pljit::PljitStatus& jit);
-
+    explicit PljitHandle(Pljit* jit);
     public:
+    PljitHandle(const PljitHandle& other): jit(other.jit),index(other.index){}
+    PljitHandle& operator=(const PljitHandle& other){
+        if(&other!=this){
+            jit= other.jit;
+            index = other.index;
+        }
+        return *this;
+    }
     template <std::floating_point ... Args>
-    std::optional<double> operator()(Args... args) {
-        if(jit.code.empty()){
+    std::optional<double> operator()(Args... args) const{
+        if(jit->functionStatus[index].code.empty()){
             std::cout << "Please insert code!" << std::endl;
             return {};
         }
@@ -54,9 +62,9 @@ class PljitHandle{
             // we don't need synchronization for evaluation, since we then only have a read-only on the handle, (more specifically: the SymbolTable of the ASTTree within PljitStatus)
             // the lock is needed here in order to avoid threads unnecessarily compiling the function again after waiting for the compilation process in a different thread.
             std::unique_lock lock(mutex);
-            if (jit.astNode == nullptr) {
+            if (!jit->functionStatus[index].astTree.has_value()) {
                 //compile new
-                SourceCodeManager manager(jit.code);
+                SourceCodeManager manager(jit->functionStatus[index].code);
                 Parser parser = Parser(Tokenizer(manager));
                 auto parseNode = parser.expectFunctionDefinition();
                 if (!parseNode) {
@@ -76,12 +84,12 @@ class PljitHandle{
                 associationPass.optimize(*semanticNode);
                 ConstantPropagationPass constantPropagationPass = ConstantPropagationPass();
                 constantPropagationPass.optimize(*semanticNode);
-                jit.astNode = std::move(semanticNode);
+                jit->functionStatus[index].astTree = std::move(*semanticNode);
             }
         }
         std::vector<double> vec = {args...};
         ASTEvaluator evaluator = ASTEvaluator();
-        return evaluator.evaluateFunction(vec,*jit.astNode); // the ast tree will not be modified in the evaluation, hence no need of synchronization (tradeoff: speed vs memory space)
+        return evaluator.evaluateFunction(vec,*jit->functionStatus[index].astTree); // the ast tree will not be modified in the evaluation, hence no need of synchronization (tradeoff: speed vs memory space)
     }
 };
 } // namespace pljit
